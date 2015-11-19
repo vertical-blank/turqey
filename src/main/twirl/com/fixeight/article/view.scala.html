@@ -1,0 +1,26 @@
+@import com.fixeight.entity._
+@import com.fixeight.html._
+@import com.fixeight.view._
+@import com.fixeight.utils.Implicits._
+
+@(article: Article)
+<html>
+  @css()
+  <body>
+  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  @topnav {
+    <nav class="top-nav">
+      <div class="container">
+        <div class="nav-wrapper"><a class="page-title">@article.title</a></div>
+      </div>
+    </nav>
+  } 
+    <div class="container">
+      <div>@Html(Markdown.html(article.content))</div>
+      <p>
+        <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+      </p>
+    </div>
+  </body>
+</html>
+

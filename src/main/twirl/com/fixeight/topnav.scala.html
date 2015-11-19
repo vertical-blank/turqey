@@ -1,0 +1,20 @@
+@import com.fixeight.servlet._
+
+@(additional: Html = null)
+<header>
+  <nav class="navbar-top">
+    <div class="container">
+      <div class="nav-wrapper">
+        <a href="@root/" class="brand-logo">TurQey</a>
+        <a href="@root/googleAuth" >googleLogin</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          @SessionHolder.user.map{ u =>
+          <li>@u.name</li>
+          <li><img src="@u.imgUrl"></li>
+          }
+        </ul>
+      </div>
+    </div>
+  </nav>
+@additional
+</header>

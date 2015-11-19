@@ -1,0 +1,91 @@
+
+buildscript {
+  repositories {
+    jcenter()
+    maven{ 
+      url 'http://oss.sonatype.org/content/repositories/snapshots/'
+    }
+  }
+  dependencies {
+    classpath "us.hexcoder:gradle-twirl:1.0.0-SNAPSHOT"
+    classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
+  }
+}
+
+apply plugin: "twirl"
+apply plugin: "scala"
+apply plugin: "war"
+apply plugin: "application"
+apply plugin: 'org.flywaydb.flyway'
+
+repositories {
+  jcenter()
+  mavenCentral()
+  maven{ 
+    url 'http://amateras.sourceforge.jp/mvn/'
+  }
+}
+
+dependencies {
+  compile 'org.scalaz:scalaz-core_2.11:7.1.5'
+  compile 'org.scala-lang:scala-library:2.11.6'
+  compile 'org.scala-lang:scala-xml:2.11.0-M4'
+  compile 'com.typesafe.play:twirl-api_2.11:1.0.2'
+  compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.3.6'
+  compile group: 'org.scalatra', name: 'scalatra_2.11', version: '2.3.0'
+  compile group: 'org.scalatra', name: 'scalatra-scalate_2.11', version: '2.3.1'
+  compile group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.3.5.v20151012'
+  compile group: 'com.typesafe.scala-logging', name: 'scala-logging-slf4j_2.11', version: '2.1.2'
+
+  compile 'io.github.gitbucket:markedj:1.0.3'
+  compile 'com.google.apis:google-api-services-oauth2:v1-rev99-1.20.0'
+  compile 'com.google.apis:google-api-services-plus:v1-rev290-1.20.0'
+  compile 'com.google.apis:google-api-services-plusDomains:v1-rev198-1.20.0'
+  
+  compile 'org.scalikejdbc:scalikejdbc_2.11:2.2.9'
+  compile 'org.scalikejdbc:scalikejdbc-config_2.11:2.2.9'
+  compile 'ch.qos.logback:logback-classic:1.1.3'
+  compile 'org.skinny-framework:skinny-orm_2.11:2.0.0.RC2'
+  compile 'org.flywaydb:flyway-core:3.2.1'
+
+  compile 'com.h2database:h2:1.3.170'
+  compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
+
+  testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
+  testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
+}
+
+defaultTasks 'compileScala'
+
+mainClassName = 'JettyLauncher'
+
+twirl {
+  imports = [
+    "java.lang._",
+    "java.util._",
+    "scala.collection.JavaConversions._",
+    "scala.collection.JavaConverters._",
+    "play.twirl.api._",
+    "com.fixeight.servlet.ServletContextHolder._"
+  ]
+}
+
+task h2(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  standardInput = System.in
+
+  logging.captureStandardOutput LogLevel.QUIET
+
+  main = 'org.h2.tools.Server'
+  args '-web','-webAllowOthers'
+  //args '-url', 'jdbc:h2:./db/default;MVCC=true', '-user', 'sa', '-password', 'sa'
+}
+
+flyway {
+  driver = 'org.h2.Driver'
+  url = 'jdbc:h2:file:./db/default'
+  user = 'sa'
+  password = 'sa'
+  locations="src/main/resources/db/migration"
+}
+

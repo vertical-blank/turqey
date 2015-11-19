@@ -1,0 +1,36 @@
+@(date: Date, articles: scala.collection.immutable.List[com.fixeight.entity.Article])
+<html>
+  @css()
+  <body>
+    <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      <p>CSV知識を共有しよう。</p>
+      <p>
+        <a href="/article/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
+      </p>
+      <div class="row">
+        <div class="col s12">
+          <ul class="tabs">
+            <li class="tab col s2"><a class="waves-effect" href="#following">フォロー中</a></li>
+            <li class="tab col s2"><a class="active waves-effect" href="#whole">全ての投稿</a></li>
+            <li class="tab col s2 disabled"><a href="#"></a></li>
+            <li class="tab col s2 disabled"><a href="#"></a></li>
+            <li class="tab col s2"><a class="waves-effect" href="#stock">ストック</a></li>
+            <li class="tab col s2"><a class="waves-effect" href="#own">自分の投稿</a></li>
+          </ul>
+        </div>
+        <div id="following" class="col s12">W.I.P.</div>
+        <div id="whole" class="col s12">
+          <ul class="collection">
+          @articles.map{ a => <li class="collection-item"><a href="@root/article/@a.id">@a.title</a></li> }
+          </ul>
+        </div>
+        <div id="stock" class="col s12">W.I.P.</div>
+        <div id="own" class="col s12">W.I.P.</div>
+      </div>
+    </div>
+    </main>
+  </body>
+</html>

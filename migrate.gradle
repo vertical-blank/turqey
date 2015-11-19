@@ -1,0 +1,21 @@
+
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
+    classpath 'com.h2database:h2:1.3.170'
+  }
+}
+
+apply plugin: 'org.flywaydb.flyway'
+
+flyway {
+  driver = 'org.h2.Driver'
+  url = 'jdbc:h2:file:./db/default'
+  user = 'sa'
+  password = 'sa'
+  locations=["filesystem:src/main/resources/db/migration"]
+}
+
