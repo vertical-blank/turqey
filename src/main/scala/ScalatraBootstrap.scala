@@ -7,6 +7,7 @@ import turqey.controller._
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     Seq(
+      new AdminController("admin"),
       new ArticleController(),
       new IndexController()
     ).foreach { controller =>
