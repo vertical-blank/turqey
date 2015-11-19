@@ -13,7 +13,7 @@ apply plugin: 'org.flywaydb.flyway'
 
 flyway {
   driver = 'org.h2.Driver'
-  url = 'jdbc:h2:file:./db/default'
+  url = 'jdbc:h2:file:./db/turqey'
   user = 'sa'
   password = 'sa'
   locations=["filesystem:src/main/resources/db/migration"]

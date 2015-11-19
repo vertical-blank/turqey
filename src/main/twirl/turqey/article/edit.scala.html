@@ -1,0 +1,32 @@
+@import turqey.entity._
+@import turqey.html._
+@import turqey.utils.Implicits._
+
+@(article: Option[Article])
+
+<html>
+  @css()
+  <body>
+  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      <form action="/article/@article.map(_.id)" method="post" class="col s12">
+        <div class="row">
+          <div class="input-field col s12">
+            <input type="text" name="title" value="@article.map(_.title)" id="input_title" length="120">
+            <label>Title</label>
+            </input>
+          </div>
+          <div class="input-field col s12">
+            <textarea name="content" class="materialize-textarea" placeholder="Markdown" id="input_content">@article.map( x => clobToString(x.content))</textarea>
+            <label>Content</label>
+          </div>
+        </div>
+        <button type="submit" class="waves-effect waves-light btn"><i class="material-icons right">check</i>保存</button>
+      </form>
+    </div>
+    </main>
+  </body>
+</html>
+

@@ -1,0 +1,25 @@
+package turqey.controller
+
+import org.scalatra._
+import javax.servlet.http.HttpServletRequest
+import io.github.gitbucket.markedj._
+import scalikejdbc._
+
+import turqey.entity._
+import turqey.utils._
+import turqey.article._
+
+import scalaz._
+import scalaz.Scalaz._
+
+class UserController extends ControllerBase  {
+  override val path = "/user"
+
+  val view = get("/:id"){
+  }
+
+  val edit = get("/:id/edit"){
+  }
+
+}
+

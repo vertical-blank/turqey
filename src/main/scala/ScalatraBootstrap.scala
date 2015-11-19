@@ -1,8 +1,8 @@
-import com.fixeight._
 import org.scalatra._
 import javax.servlet.ServletContext
 
-import com.fixeight.controller._
+import turqey._
+import turqey.controller._
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
