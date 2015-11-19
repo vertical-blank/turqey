@@ -6,9 +6,10 @@ import turqey.controller._
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    context.mount(new Servlet, "/*")
-    
-    Seq(new ArticleController()).foreach { controller =>
+    Seq(
+      new ArticleController(),
+      new IndexController()
+    ).foreach { controller =>
       context.mount(controller, controller.path)
     }
   }

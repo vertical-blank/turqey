@@ -1,10 +1,14 @@
-package turqey
+package turqey.controller
 
 import org.scalatra._
-
+import javax.servlet.http.HttpServletRequest
 import io.github.gitbucket.markedj._
-
 import scalikejdbc._
+
+import turqey.entity._
+import turqey.utils._
+import turqey.servlet._
+import turqey.html
 
 import com.google.api.client.googleapis.auth.oauth2._
 import com.google.api.client.googleapis.javanet._
@@ -19,31 +23,37 @@ import java.util.Arrays.asList
 import scalaz._
 import scalaz.Scalaz._
 
-import turqey.entity._
-import turqey.utils._
-import turqey.servlet._
-import turqey.controller._
+import turqey.utils.Implicits._
 
-class Servlet extends ControllerBase {
-
-  override val path = ""
+class IndexController extends ControllerBase  {
+  override val path = "/"
 
   get("/") {
-    val articles = {
+    val articles = 
+    if (SessionHolder.user isDefined){
       implicit val session = AutoSession
       val a = Article.syntax("a")
       withSQL {
         select.from(Article as a)
       }.map(rs => Article(a)(rs)).list.apply
     }
+    else {
+      redirect(url(login))
+    }
 
     html.index(articles)
   }
 
+  val login = get("/login") {
+    html.login()
+  }
+
+  // TODO need to be refactored.
   get("/googleAuth") {
-    //TODO LoadFromFile
+    //TODO LoadFromFileOrDB.
     val clientSecret = "9DcPVivtQlBS3YdX-pkxlReG"
     val cliendId = "553877725807-nh4mfmq8di4e2h2tqtbkgu6g36iu2h8r.apps.googleusercontent.com"
+    // TODO request.getRequestURL
     val redirectUrl = "http://www.words-words.net:8080/googleAuth"
     
     val flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -70,7 +80,11 @@ class Servlet extends ControllerBase {
         JacksonFactory.getDefaultInstance,
         credential).setApplicationName("TurQey").build 
 
-      val googleUser:Option[Person] = try{ Some(plus.people.get("me").execute) } catch { case e:Exception => None }
+      val googleUser:Option[Person] = try{
+          Some(plus.people.get("me").execute)
+        } catch {
+          case e:Exception => None
+        }
 
       println (googleUser)
 
@@ -85,3 +99,4 @@ class Servlet extends ControllerBase {
   }
 
 }
+
