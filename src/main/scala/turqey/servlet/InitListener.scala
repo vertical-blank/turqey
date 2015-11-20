@@ -10,7 +10,6 @@ class InitListener extends ServletContextListener {
   override def contextInitialized(event: ServletContextEvent):Unit = {
     DBs.setupAll()
 
-
     val flyway = new Flyway()
     flyway.setDataSource(ConnectionPool.dataSource())
     flyway.migrate()

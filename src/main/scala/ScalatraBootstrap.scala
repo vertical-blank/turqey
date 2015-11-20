@@ -9,7 +9,10 @@ class ScalatraBootstrap extends LifeCycle {
     Seq(
       new AdminController("admin"),
       new ArticleController(),
-      new IndexController()
+      new IndexController(),
+      new LoginController(),
+      new AssetsController(),
+      new GoogleAuthController()
     ).foreach { controller =>
       context.mount(controller, controller.path)
     }

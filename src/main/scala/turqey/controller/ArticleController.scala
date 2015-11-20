@@ -21,11 +21,7 @@ class ArticleController extends ControllerBase  {
     implicit val session = AutoSession
 
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
-
-    val a = Article.syntax("a")
-    val article = withSQL {
-      select.from(Article as a).where.eq(a.id, articleId)
-    }.map(rs => Article(a)(rs)).single.apply.getOrElse(redirect("/"))
+    val article = Article.findBy(sqls.eq(Article.a.id, articleId)).getOrElse(redirect("/"))
 
     html.view(article)
   }
@@ -35,10 +31,7 @@ class ArticleController extends ControllerBase  {
 
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
 
-    val a = Article.syntax("a")
-    val article = withSQL {
-      select.from(Article as a).where.eq(a.id, articleId)
-    }.map(rs => Article(a)(rs)).single.apply.getOrElse(redirect("/"))
+    val article = Article.findBy(sqls.eq(Article.a.id, articleId)).getOrElse(redirect("/"))
 
     html.edit(Some(article))
   }
@@ -48,15 +41,9 @@ class ArticleController extends ControllerBase  {
 
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
 
-    val a = Article.syntax("a")
-    val article = withSQL {
-      select.from(Article as a).where.eq(a.id, articleId)
-    }.map(rs => Article(a)(rs)).single.apply.getOrElse(redirect("/"))
+    val article = Article.findBy(sqls.eq(Article.a.id, articleId)).getOrElse(redirect("/"))
 
-    val h = ArticleHistory.syntax("h")
-    val histories = withSQL {
-      select.from(ArticleHistory as h).where.eq(h.articleId, articleId)
-    }.map(rs => ArticleHistory(h)(rs)).list.apply
+    val histories = ArticleHistory.findAll()
 
     html.history(article, histories)
   }
@@ -70,27 +57,20 @@ class ArticleController extends ControllerBase  {
 
     articleId.foreach { id => 
       {
-        val a = Article.syntax("a")
-        val article = withSQL {
-          select.from(Article as a).where.eq(a.id, id)
-        }.map(rs => Article(a)(rs)).single.apply.get
+        val article = Article.findBy(sqls.eq(Article.a.id, articleId)).getOrElse(redirect("/"))
 
         val diff = turqey.utils.DiffUtil.uniDiff(article.content, content).mkString("\r\n")
 
-        withSQL {
-          update(Article).set(
-            Article.column.title   -> title,
-            Article.column.content -> content
-          ).where.eq(Article.column.id, id)
-        }.update.apply
+        article.copy(
+          title   = title,
+          content = content
+        ).save()
 
-        withSQL {
-          insert.into(ArticleHistory).namedValues(
-            ArticleHistory.column.articleId -> id,
-            ArticleHistory.column.diff      -> diff,
-            ArticleHistory.column.userId    -> 1
-          )
-        }.update.apply
+        ArticleHistory.create(
+          articleId = id,
+          diff      = diff,
+          userId    = Some(turqey.servlet.SessionHolder.user.get.id)
+        )
       }
     }
     
@@ -98,8 +78,6 @@ class ArticleController extends ControllerBase  {
   }
 
   val newEdit = get("/edit"){
-    implicit val session = AutoSession
-
     html.edit(None)
   }
 
@@ -109,13 +87,11 @@ class ArticleController extends ControllerBase  {
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
 
-    val newId = withSQL {
-      insert.into(Article).namedValues(
-        Article.column.title   -> title,
-        Article.column.content -> content,
-        Article.column.owner   -> 1
-      )
-    }.updateAndReturnGeneratedKey.apply
+    val newId = Article.create(
+      title   = title,
+      content = content,
+      owner   = turqey.servlet.SessionHolder.user.get.id
+    ).id
     
     redirect(url(view, "id" -> newId.toString))
   }
