@@ -22,8 +22,10 @@ class ArticleController extends ControllerBase  {
 
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
     val article = Article.findBy(sqls.eq(Article.a.id, articleId)).getOrElse(redirect("/"))
+    val owner = User.find(article.owner).get
+    //val latestEdit = ArticleHistory.findAllBy(sql.eq(ArticleHistory.ah.articleId, articleId)).tail
 
-    html.view(article)
+    html.view(article, owner)
   }
 
   val edit = get("/:id/edit"){
