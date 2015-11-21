@@ -3,7 +3,7 @@
 @import turqey.view._
 @import turqey.utils.Implicits._
 
-@(article: Article, owner: User)
+@(article: Article, owner: User, tags: Seq[Tag])
 <html>
   @css()
   <body>
@@ -16,6 +16,13 @@
         <span>@article.title</span>
         <span>@article.created</span>
         <span>@owner.name</span>
+      </p>
+      <p>
+      @tags.map { tag =>
+        <div class="chip">
+          @tag.name
+        </div>
+      }
       </p>
       <p>
       <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>

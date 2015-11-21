@@ -8,6 +8,8 @@ case class User(
   email: String,
   name: String,
   imgUrl: String,
+  password: Option[String] = None,
+  `type`: Option[Int] = None,
   lastLogin: Option[DateTime] = None,
   created: Option[DateTime] = None) {
 
@@ -24,7 +26,7 @@ object User extends SQLSyntaxSupport[User] {
 
   override val tableName = "USERS"
 
-  override val columns = Seq("ID", "EMAIL", "NAME", "IMG_URL", "LAST_LOGIN", "CREATED")
+  override val columns = Seq("ID", "EMAIL", "NAME", "IMG_URL", "PASSWORD", "TYPE", "LAST_LOGIN", "CREATED")
 
   def apply(u: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(u.resultName)(rs)
   def apply(u: ResultName[User])(rs: WrappedResultSet): User = new User(
@@ -32,6 +34,8 @@ object User extends SQLSyntaxSupport[User] {
     email = rs.get(u.email),
     name = rs.get(u.name),
     imgUrl = rs.get(u.imgUrl),
+    password = rs.get(u.password),
+    `type` = rs.get(u.`type`),
     lastLogin = rs.get(u.lastLogin),
     created = rs.get(u.created)
   )
@@ -76,6 +80,8 @@ object User extends SQLSyntaxSupport[User] {
     email: String,
     name: String,
     imgUrl: String,
+    password: Option[String] = None,
+    `type`: Option[Int] = None,
     lastLogin: Option[DateTime] = None,
     created: Option[DateTime] = None)(implicit session: DBSession = autoSession): User = {
     val generatedKey = withSQL {
@@ -83,12 +89,16 @@ object User extends SQLSyntaxSupport[User] {
         column.email,
         column.name,
         column.imgUrl,
+        column.password,
+        column.`type`,
         column.lastLogin,
         column.created
       ).values(
         email,
         name,
         imgUrl,
+        password,
+        `type`,
         lastLogin,
         created
       )
@@ -99,6 +109,8 @@ object User extends SQLSyntaxSupport[User] {
       email = email,
       name = name,
       imgUrl = imgUrl,
+      password = password,
+      `type` = `type`,
       lastLogin = lastLogin,
       created = created)
   }
@@ -109,18 +121,24 @@ object User extends SQLSyntaxSupport[User] {
         'email -> entity.email,
         'name -> entity.name,
         'imgUrl -> entity.imgUrl,
+        'password -> entity.password,
+        'type -> entity.`type`,
         'lastLogin -> entity.lastLogin,
         'created -> entity.created))
         SQL("""insert into USERS(
         EMAIL,
         NAME,
         IMG_URL,
+        PASSWORD,
+        TYPE,
         LAST_LOGIN,
         CREATED
       ) values (
         {email},
         {name},
         {imgUrl},
+        {password},
+        {type},
         {lastLogin},
         {created}
       )""").batchByName(params: _*).apply()
@@ -133,6 +151,8 @@ object User extends SQLSyntaxSupport[User] {
         column.email -> entity.email,
         column.name -> entity.name,
         column.imgUrl -> entity.imgUrl,
+        column.password -> entity.password,
+        column.`type` -> entity.`type`,
         column.lastLogin -> entity.lastLogin,
         column.created -> entity.created
       ).where.eq(column.id, entity.id)
