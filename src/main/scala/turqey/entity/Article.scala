@@ -10,7 +10,7 @@ case class Article(
   title: String,
   content: Clob,
   owner: Long,
-  created: Option[DateTime] = None) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
@@ -20,6 +20,8 @@ case class Article(
 
 
 object Article extends SQLSyntaxSupport[Article] {
+
+  override val schemaName = Some("PUBLIC")
 
   override val tableName = "ARTICLES"
 
@@ -75,21 +77,18 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId: Option[Long] = None,
     title: String,
     content: Clob,
-    owner: Long,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): Article = {
+    owner: Long)(implicit session: DBSession = autoSession): Article = {
     val generatedKey = withSQL {
       insert.into(Article).columns(
         column.projectId,
         column.title,
         column.content,
-        column.owner,
-        column.created
+        column.owner
       ).values(
         projectId,
         title,
         content,
-        owner,
-        created
+        owner
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -98,8 +97,7 @@ object Article extends SQLSyntaxSupport[Article] {
       projectId = projectId,
       title = title,
       content = content,
-      owner = owner,
-      created = created)
+      owner = owner)
   }
 
   def batchInsert(entities: Seq[Article])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -108,20 +106,17 @@ object Article extends SQLSyntaxSupport[Article] {
         'projectId -> entity.projectId,
         'title -> entity.title,
         'content -> entity.content,
-        'owner -> entity.owner,
-        'created -> entity.created))
+        'owner -> entity.owner))
         SQL("""insert into ARTICLES(
         PROJECT_ID,
         TITLE,
         CONTENT,
-        OWNER,
-        CREATED
+        OWNER
       ) values (
         {projectId},
         {title},
         {content},
-        {owner},
-        {created}
+        {owner}
       )""").batchByName(params: _*).apply()
     }
 
@@ -132,8 +127,7 @@ object Article extends SQLSyntaxSupport[Article] {
         column.projectId -> entity.projectId,
         column.title -> entity.title,
         column.content -> entity.content,
-        column.owner -> entity.owner,
-        column.created -> entity.created
+        column.owner -> entity.owner
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity

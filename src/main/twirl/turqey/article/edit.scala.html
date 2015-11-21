@@ -19,7 +19,14 @@
             <label>Title</label>
             </input>
           </div>
-          <div class="input-field col s12">
+          <div class="input-field col s3">
+            <input type="text" id="find_tag" placeholder="検索"
+              data-bind="event: {keypress: onEnter},
+                         textInput: tagText">
+            <label>Tag</label>
+            </input>
+          </div>
+          <div class="input-field col s9">
           <!-- ko foreach: tags -->
             <div class="chip">
               <span data-bind="text: name"></span>
@@ -28,13 +35,6 @@
               <i class="material-icons" data-bind="click: $root.remove">close</i>
             </div>
           <!-- /ko -->
-          </div>
-          <div class="input-field col s6">
-            <input type="text" id="find_tag"
-              data-bind="event: {keypress: onEnter},
-                         textInput: tagText">
-            <label>Tag</label>
-            </input>
           </div>
           <div class="input-field col s12">
             <textarea name="content" class="materialize-textarea" placeholder="Markdown" id="input_content">@article.map( x => clobToString(x.content))</textarea>

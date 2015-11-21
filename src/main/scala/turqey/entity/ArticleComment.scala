@@ -9,7 +9,7 @@ case class ArticleComment(
   articleId: Long,
   userId: Long,
   content: Clob,
-  created: Option[DateTime] = None) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = ArticleComment.autoSession): ArticleComment = ArticleComment.save(this)(session)
 
@@ -19,6 +19,8 @@ case class ArticleComment(
 
 
 object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
+
+  override val schemaName = Some("PUBLIC")
 
   override val tableName = "ARTICLE_COMMENTS"
 
@@ -72,19 +74,16 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
   def create(
     articleId: Long,
     userId: Long,
-    content: Clob,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): ArticleComment = {
+    content: Clob)(implicit session: DBSession = autoSession): ArticleComment = {
     val generatedKey = withSQL {
       insert.into(ArticleComment).columns(
         column.articleId,
         column.userId,
-        column.content,
-        column.created
+        column.content
       ).values(
         articleId,
         userId,
-        content,
-        created
+        content
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -92,8 +91,7 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
       id = generatedKey,
       articleId = articleId,
       userId = userId,
-      content = content,
-      created = created)
+      content = content)
   }
 
   def batchInsert(entities: Seq[ArticleComment])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -101,18 +99,15 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
       Seq(
         'articleId -> entity.articleId,
         'userId -> entity.userId,
-        'content -> entity.content,
-        'created -> entity.created))
+        'content -> entity.content))
         SQL("""insert into ARTICLE_COMMENTS(
         ARTICLE_ID,
         USER_ID,
-        CONTENT,
-        CREATED
+        CONTENT
       ) values (
         {articleId},
         {userId},
-        {content},
-        {created}
+        {content}
       )""").batchByName(params: _*).apply()
     }
 
@@ -122,8 +117,7 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
         column.id -> entity.id,
         column.articleId -> entity.articleId,
         column.userId -> entity.userId,
-        column.content -> entity.content,
-        column.created -> entity.created
+        column.content -> entity.content
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity

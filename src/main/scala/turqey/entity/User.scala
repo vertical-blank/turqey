@@ -11,7 +11,7 @@ case class User(
   password: Option[String] = None,
   `type`: Option[Int] = None,
   lastLogin: Option[DateTime] = None,
-  created: Option[DateTime] = None) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = User.autoSession): User = User.save(this)(session)
 
@@ -82,8 +82,7 @@ object User extends SQLSyntaxSupport[User] {
     imgUrl: String,
     password: Option[String] = None,
     `type`: Option[Int] = None,
-    lastLogin: Option[DateTime] = None,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): User = {
+    lastLogin: Option[DateTime] = None)(implicit session: DBSession = autoSession): User = {
     val generatedKey = withSQL {
       insert.into(User).columns(
         column.email,
@@ -91,16 +90,14 @@ object User extends SQLSyntaxSupport[User] {
         column.imgUrl,
         column.password,
         column.`type`,
-        column.lastLogin,
-        column.created
+        column.lastLogin
       ).values(
         email,
         name,
         imgUrl,
         password,
         `type`,
-        lastLogin,
-        created
+        lastLogin
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -111,8 +108,7 @@ object User extends SQLSyntaxSupport[User] {
       imgUrl = imgUrl,
       password = password,
       `type` = `type`,
-      lastLogin = lastLogin,
-      created = created)
+      lastLogin = lastLogin)
   }
 
   def batchInsert(entities: Seq[User])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -123,24 +119,21 @@ object User extends SQLSyntaxSupport[User] {
         'imgUrl -> entity.imgUrl,
         'password -> entity.password,
         'type -> entity.`type`,
-        'lastLogin -> entity.lastLogin,
-        'created -> entity.created))
+        'lastLogin -> entity.lastLogin))
         SQL("""insert into USERS(
         EMAIL,
         NAME,
         IMG_URL,
         PASSWORD,
         TYPE,
-        LAST_LOGIN,
-        CREATED
+        LAST_LOGIN
       ) values (
         {email},
         {name},
         {imgUrl},
         {password},
         {type},
-        {lastLogin},
-        {created}
+        {lastLogin}
       )""").batchByName(params: _*).apply()
     }
 
@@ -153,8 +146,7 @@ object User extends SQLSyntaxSupport[User] {
         column.imgUrl -> entity.imgUrl,
         column.password -> entity.password,
         column.`type` -> entity.`type`,
-        column.lastLogin -> entity.lastLogin,
-        column.created -> entity.created
+        column.lastLogin -> entity.lastLogin
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity

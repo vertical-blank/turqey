@@ -16,6 +16,8 @@ case class ArticleStock(
 
 object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "ARTICLE_STOCKS"
 
   override val columns = Seq("ID", "ARTICLE_ID", "USER_ID")

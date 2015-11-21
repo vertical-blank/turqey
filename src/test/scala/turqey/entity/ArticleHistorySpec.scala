@@ -6,57 +6,57 @@ import scalikejdbc._
 import org.joda.time.{DateTime}
 
 
-class UserSpec extends Specification {
+class ArticleHistorySpec extends Specification {
 
-  "User" should {
+  "ArticleHistory" should {
 
-    val u = User.syntax("u")
+    val ah = ArticleHistory.syntax("ah")
 
     "find by primary keys" in new AutoRollback {
-      val maybeFound = User.find(1L)
+      val maybeFound = ArticleHistory.find(1L)
       maybeFound.isDefined should beTrue
     }
     "find by where clauses" in new AutoRollback {
-      val maybeFound = User.findBy(sqls.eq(u.id, 1L))
+      val maybeFound = ArticleHistory.findBy(sqls.eq(ah.id, 1L))
       maybeFound.isDefined should beTrue
     }
     "find all records" in new AutoRollback {
-      val allResults = User.findAll()
+      val allResults = ArticleHistory.findAll()
       allResults.size should be_>(0)
     }
     "count all records" in new AutoRollback {
-      val count = User.countAll()
+      val count = ArticleHistory.countAll()
       count should be_>(0L)
     }
     "find all by where clauses" in new AutoRollback {
-      val results = User.findAllBy(sqls.eq(u.id, 1L))
+      val results = ArticleHistory.findAllBy(sqls.eq(ah.id, 1L))
       results.size should be_>(0)
     }
     "count by where clauses" in new AutoRollback {
-      val count = User.countBy(sqls.eq(u.id, 1L))
+      val count = ArticleHistory.countBy(sqls.eq(ah.id, 1L))
       count should be_>(0L)
     }
     "create new record" in new AutoRollback {
-      val created = User.create(email = "MyString", name = "MyString", imgUrl = "MyString", created = DateTime.now)
+      val created = ArticleHistory.create(articleId = 1L, diff = null, created = DateTime.now)
       created should not beNull
     }
     "save a record" in new AutoRollback {
-      val entity = User.findAll().head
+      val entity = ArticleHistory.findAll().head
       // TODO modify something
       val modified = entity
-      val updated = User.save(modified)
+      val updated = ArticleHistory.save(modified)
       updated should not equalTo(entity)
     }
     "destroy a record" in new AutoRollback {
-      val entity = User.findAll().head
-      User.destroy(entity)
-      val shouldBeNone = User.find(1L)
+      val entity = ArticleHistory.findAll().head
+      ArticleHistory.destroy(entity)
+      val shouldBeNone = ArticleHistory.find(1L)
       shouldBeNone.isDefined should beFalse
     }
     "perform batch insert" in new AutoRollback {
-      val entities = User.findAll()
-      entities.foreach(e => User.destroy(e))
-      val batchInserted = User.batchInsert(entities)
+      val entities = ArticleHistory.findAll()
+      entities.foreach(e => ArticleHistory.destroy(e))
+      val batchInserted = ArticleHistory.batchInsert(entities)
       batchInserted.size should be_>(0)
     }
   }

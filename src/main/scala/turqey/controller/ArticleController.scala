@@ -1,7 +1,6 @@
 package turqey.controller
 
 import org.scalatra._
-import javax.servlet.http.HttpServletRequest
 import io.github.gitbucket.markedj._
 import scalikejdbc._
 
@@ -18,8 +17,6 @@ class ArticleController extends ControllerBase  {
   override val path = "/article"
 
   val view = get("/:id"){
-    implicit val session = AutoSession
-
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
     val article = Article.find(articleId).getOrElse(redirect("/"))
     val owner = User.find(article.owner).get
@@ -28,13 +25,12 @@ class ArticleController extends ControllerBase  {
     // TODO should be refactored as cache.
     val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
+    val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
 
-    html.view(article, owner, tags)
+    html.view(article, owner, tags, comments)
   }
 
   val edit = get("/:id/edit"){
-    implicit val session = AutoSession
-
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
     val article = Article.find(articleId).getOrElse(redirect("/"))
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
@@ -46,8 +42,6 @@ class ArticleController extends ControllerBase  {
   }
 
   val history = get("/:id/history"){
-    implicit val session = AutoSession
-
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
 
     val article = Article.find(articleId).getOrElse(redirect("/"))
@@ -57,9 +51,20 @@ class ArticleController extends ControllerBase  {
     html.history(article, histories)
   }
 
-  post("/:id"){
-    implicit val session = AutoSession
+  val comment = post("/:id/comment"){
+    val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
+    val comment   = params.getOrElse("comment", "").toString
 
+    ArticleComment.create(
+      articleId = articleId,
+      content   = comment,
+      userId    = turqey.servlet.SessionHolder.user.get.id
+    )
+
+    redirect(url(view, "id" -> articleId.toString))
+  }
+
+  post("/:id"){
     val articleId = params.getOrElse("id", "").parseLong.toOption
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
@@ -100,8 +105,6 @@ class ArticleController extends ControllerBase  {
   }
 
   post("/"){
-    implicit val session = AutoSession
-
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
 

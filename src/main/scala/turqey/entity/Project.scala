@@ -16,6 +16,8 @@ case class Project(
 
 object Project extends SQLSyntaxSupport[Project] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "PROJECTS"
 
   override val columns = Seq("ID", "NAME", "OWNER")

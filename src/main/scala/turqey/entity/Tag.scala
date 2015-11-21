@@ -4,7 +4,8 @@ import scalikejdbc._
 
 case class Tag(
   id: Long,
-  name: String) {
+  name: String,
+  icon: Option[String] = None) {
 
   def save()(implicit session: DBSession = Tag.autoSession): Tag = Tag.save(this)(session)
 
@@ -15,14 +16,17 @@ case class Tag(
 
 object Tag extends SQLSyntaxSupport[Tag] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "TAGS"
 
-  override val columns = Seq("ID", "NAME")
+  override val columns = Seq("ID", "NAME", "ICON")
 
   def apply(t: SyntaxProvider[Tag])(rs: WrappedResultSet): Tag = apply(t.resultName)(rs)
   def apply(t: ResultName[Tag])(rs: WrappedResultSet): Tag = new Tag(
     id = rs.get(t.id),
-    name = rs.get(t.name)
+    name = rs.get(t.name),
+    icon = rs.get(t.icon)
   )
 
   val t = Tag.syntax("t")
@@ -62,28 +66,35 @@ object Tag extends SQLSyntaxSupport[Tag] {
   }
 
   def create(
-    name: String)(implicit session: DBSession = autoSession): Tag = {
+    name: String,
+    icon: Option[String] = None)(implicit session: DBSession = autoSession): Tag = {
     val generatedKey = withSQL {
       insert.into(Tag).columns(
-        column.name
+        column.name,
+        column.icon
       ).values(
-        name
+        name,
+        icon
       )
     }.updateAndReturnGeneratedKey.apply()
 
     Tag(
       id = generatedKey,
-      name = name)
+      name = name,
+      icon = icon)
   }
 
   def batchInsert(entities: Seq[Tag])(implicit session: DBSession = autoSession): Seq[Int] = {
     val params: Seq[Seq[(Symbol, Any)]] = entities.map(entity => 
       Seq(
-        'name -> entity.name))
+        'name -> entity.name,
+        'icon -> entity.icon))
         SQL("""insert into TAGS(
-        NAME
+        NAME,
+        ICON
       ) values (
-        {name}
+        {name},
+        {icon}
       )""").batchByName(params: _*).apply()
     }
 
@@ -91,7 +102,8 @@ object Tag extends SQLSyntaxSupport[Tag] {
     withSQL {
       update(Tag).set(
         column.id -> entity.id,
-        column.name -> entity.name
+        column.name -> entity.name,
+        column.icon -> entity.icon
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity

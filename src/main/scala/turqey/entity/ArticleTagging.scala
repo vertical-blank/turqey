@@ -7,7 +7,7 @@ case class ArticleTagging(
   id: Long,
   articleId: Long,
   tagId: Long,
-  created: Option[DateTime] = None) {
+  created: DateTime) {
 
   def save()(implicit session: DBSession = ArticleTagging.autoSession): ArticleTagging = ArticleTagging.save(this)(session)
 
@@ -17,6 +17,8 @@ case class ArticleTagging(
 
 
 object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
+
+  override val schemaName = Some("PUBLIC")
 
   override val tableName = "ARTICLE_TAGGINGS"
 
@@ -69,7 +71,7 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
   def create(
     articleId: Long,
     tagId: Long,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): ArticleTagging = {
+    created: DateTime)(implicit session: DBSession = autoSession): ArticleTagging = {
     val generatedKey = withSQL {
       insert.into(ArticleTagging).columns(
         column.articleId,

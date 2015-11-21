@@ -3,37 +3,65 @@
 @import turqey.view._
 @import turqey.utils.Implicits._
 
-@(article: Article, owner: User, tags: Seq[Tag])
+@(article: Article, owner: User, tags: Seq[Tag], comments: Seq[ArticleComment])
 <html>
   @css()
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
-  @topnav {
-  <div class="">
-    <div class="container">
-      <div class="row">
-      <p>
-        <span>@article.title</span>
-      <p>
-      <p>
-        <span>@owner.name が @article.created に作成</span>
-      </p>
-      <p>
-      @tags.map { tag =>
-        <div class="chip">
-          @tag.name
+    @topnav {
+    <div class="">
+      <div class="container">
+        <div class="row">
+        <p>
+          <span>@article.title</span>
+        <p>
+        <p>
+          <span>@owner.name が @{article.created.toString("yyyy/MM/dd")} に作成</span>
+        </p>
+        <p>
+        @tags.map { tag =>
+          <div class="chip">
+            @tag.name
+          </div>
+        }
+        </p>
+        <p>
+        <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+        </p>
         </div>
-      }
-      </p>
-      <p>
-      <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
-      </p>
       </div>
     </div>
-  </div>
-  } 
+    } 
     <div class="container">
       <div>@Html(Markdown.html(article.content))</div>
+      <div>
+        <div class="row">
+          <div class="col s10">
+            <i class="material-icons">comment</i>コメント
+          </div>
+        </div>
+        <div class="row">
+          @comments.map { comment =>
+          <div class="card">
+            <div class="card-content">
+            <span class="card-title">@comment.created.toString("yyyy/MM/dd")</span>
+              @Html(Markdown.html(comment.content))
+            </div>
+          </div>
+          }
+        </div>
+        <div class="row">
+          <form action="./@article.id/comment" method="post">
+            <div class="input-field col s12">
+              <textarea name="comment" class="materialize-textarea" placeholder="Markdown" id="input_comment"></textarea>
+              <label>Comment</label>
+            </div>
+            <div class="input-field col s12">
+              <button type="submit" class="waves-effect waves-light btn"><i class="material-icons right">check</i>送信</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </body>
 </html>

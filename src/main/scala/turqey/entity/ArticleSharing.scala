@@ -17,6 +17,8 @@ case class ArticleSharing(
 
 object ArticleSharing extends SQLSyntaxSupport[ArticleSharing] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "ARTICLE_SHARINGS"
 
   override val columns = Seq("ID", "PARENT_ID", "USER_ID", "GROUP_ID")
