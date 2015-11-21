@@ -36,10 +36,13 @@ class ArticleController extends ControllerBase  {
     implicit val session = AutoSession
 
     val articleId = params.getOrElse("id", redirect("/")).parseLong.toOption.getOrElse(redirect("/"))
-
     val article = Article.find(articleId).getOrElse(redirect("/"))
+    val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
+    // TODO should be refactored as cache.
+    val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
+    val tags = taggings.map( x => allTags(x.tagId) )
 
-    html.edit(Some(article))
+    html.edit(Some(article), tags)
   }
 
   val history = get("/:id/history"){
@@ -84,7 +87,7 @@ class ArticleController extends ControllerBase  {
   }
 
   val newEdit = get("/edit"){
-    html.edit(None)
+    html.edit(None, Seq())
   }
 
   post("/"){

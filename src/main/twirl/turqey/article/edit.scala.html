@@ -1,21 +1,39 @@
 @import turqey.entity._
 @import turqey.html._
 @import turqey.utils.Implicits._
+@import turqey.utils.Json
 
-@(article: Option[Article])
-
+@(article: Option[Article], tags: Seq[Tag])
 <html>
   @css()
-  <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  <body>
+  <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav()
     <main>
     <div class="container">
-      <form action="/article/@article.map(_.id)" method="post" class="col s12">
+      <form action="/article/@article.map(_.id)" method="post" class="col s12" id="form">
         <div class="row">
           <div class="input-field col s12">
             <input type="text" name="title" value="@article.map(_.title)" id="input_title" length="120">
             <label>Title</label>
+            </input>
+          </div>
+          <div class="input-field col s12">
+          <!-- ko foreach: tags -->
+            <div class="chip">
+              <span data-bind="text: name"></span>
+              <input type="hidden" name="tagIds"   data-bind="value: id">
+              <input type="hidden" name="tagNames" data-bind="value: name">
+              <i class="material-icons" data-bind="click: $root.remove">close</i>
+            </div>
+          <!-- /ko -->
+          </div>
+          <div class="input-field col s6">
+            <input type="text" id="find_tag"
+              data-bind="event: {keypress: onEnter},
+                         textInput: tagText">
+            <label>Tag</label>
             </input>
           </div>
           <div class="input-field col s12">
@@ -27,6 +45,31 @@
       </form>
     </div>
     </main>
+<script>
+
+var ViewModel = function (initialTags){
+  var self = this;
+  self.tags = ko.observableArray(initialTags);
+  self.clickedItem = ko.observable();
+  self.remove = function (obj, e){
+    self.tags.remove(obj);
+  };
+  self.tagText = ko.observable('');
+  self.add = function(obj, e){
+    e.preventDefault();
+    self.tags.push({id: null, name: self.tagText()});
+    self.tagText('');
+  };
+  self.onEnter = function(obj, e){
+    e.keyCode === 13 && self.add(obj, e);
+    return true;
+  };
+};
+
+// Activates knockout.js
+var vm = new ViewModel(@{Html(Json.toJson(tags))});
+ko.applyBindings(vm, document.getElementById('form'));
+</script>
   </body>
 </html>
 

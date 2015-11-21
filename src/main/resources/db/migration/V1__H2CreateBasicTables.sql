@@ -73,7 +73,7 @@ CREATE TABLE USERS (
 
 CREATE TABLE TAGS (
   ID          bigint auto_increment primary key,
-  NAME        varchar(255) NOT NULL UNIQUE
+  NAME        VARCHAR_IGNORECASE(255) NOT NULL UNIQUE
 );
 
 CREATE TABLE ARTICLE_TAGGINGS (

@@ -50,6 +50,8 @@ dependencies {
 
   compile 'com.h2database:h2:1.3.170'
   compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
+  compile 'org.json4s:json4s-core_2.11:3.3.0'
+  compile 'org.json4s:json4s-native_2.11:3.3.0'
 
   testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
   testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
