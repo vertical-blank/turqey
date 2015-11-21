@@ -63,9 +63,10 @@ class ArticleController extends ControllerBase  {
     val articleId = params.getOrElse("id", "").parseLong.toOption
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
+    val tagIds    = multiParams("tagIds")
+    val tagNames  = multiParams("tagNames")
 
-    articleId.foreach { articleId => 
-      {
+    articleId.foreach { articleId => {
         val article = Article.find(articleId).getOrElse(redirect("/"))
 
         val diff = turqey.utils.DiffUtil.uniDiff(article.content, content).mkString("\r\n")
@@ -80,6 +81,14 @@ class ArticleController extends ControllerBase  {
           diff      = diff,
           userId    = Some(turqey.servlet.SessionHolder.user.get.id)
         )
+
+        tagIds.zip(tagNames).foreach { pair =>
+          // foreach entry that id is null, search db by name
+          // then there are no matches, insert into tags and get newid.
+          // if id is not null, then use it.
+          // search articleTaggings by new tag-ids, delete or insert.
+          println (pair)
+        }
       }
     }
     

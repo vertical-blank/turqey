@@ -57,7 +57,7 @@ var ViewModel = function (initialTags){
   self.tagText = ko.observable('');
   self.add = function(obj, e){
     e.preventDefault();
-    self.tags.push({id: null, name: self.tagText()});
+    self.tags.push({id: '', name: self.tagText()});
     self.tagText('');
   };
   self.onEnter = function(obj, e){
