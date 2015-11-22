@@ -13,6 +13,7 @@ case class Tag(
 
 }
 
+case class TagAndCount(tag:Tag, count: Int)
 
 object Tag extends SQLSyntaxSupport[Tag] {
 
@@ -111,6 +112,13 @@ object Tag extends SQLSyntaxSupport[Tag] {
 
   def destroy(entity: Tag)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(Tag).where.eq(column.id, entity.id) }.update.apply()
+  }
+
+  def findAllWithArticleCount(): Seq[(Tag, Int)] = {
+    val allTags = this.findAll()
+    val countByTag = ArticleTagging.countByTag().toMap
+
+    allTags map { x => ( x, countByTag.getOrElse(x.id, 0) ) }
   }
 
 }

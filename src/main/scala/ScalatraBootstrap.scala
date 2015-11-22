@@ -9,6 +9,7 @@ class ScalatraBootstrap extends LifeCycle {
     Seq(
       new AdminController("admin"),
       new ArticleController(),
+      new TagController(),
       new IndexController(),
       new LoginController(),
       new AssetsController(),

@@ -137,4 +137,14 @@ object Article extends SQLSyntaxSupport[Article] {
     withSQL { delete.from(Article).where.eq(column.id, entity.id) }.update.apply()
   }
 
+  def findTagged(tagId: Long)(implicit session: DBSession = autoSession): Seq[Article] = {
+    withSQL {
+      val a = Article.a
+      val at = ArticleTagging.at
+      select.from(Article as a).where.exists(
+        select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
+      )
+    }.map(Article(a.resultName)).list.apply()
+  }
+
 }
