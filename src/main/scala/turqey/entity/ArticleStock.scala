@@ -29,7 +29,7 @@ object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
     userId = rs.get(as.userId)
   )
 
-  val as = ArticleStock.syntax("as")
+  val as = ArticleStock.syntax("astk")
 
   override val autoSession = AutoSession
 

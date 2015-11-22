@@ -14,6 +14,8 @@ class ArticleController extends ControllerBase  {
   override val path = "/article"
 
   val view = get("/:id"){
+    val userId    = turqey.servlet.SessionHolder.user.get.id
+
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
     val owner = User.find(article.owner).get
@@ -23,8 +25,13 @@ class ArticleController extends ControllerBase  {
     val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
+    val as = ArticleStock.as
+    val stocked = ArticleStock.findBy(sqls
+      .eq(as.articleId, articleId).and
+      .eq(as.userId, userId)
+    ).isDefined
 
-    html.view(article, owner, tags, comments)
+    html.view(article, owner, tags, comments, stocked)
   }
 
   val edit = get("/:id/edit"){
@@ -107,6 +114,26 @@ class ArticleController extends ControllerBase  {
     redirect(url(view, "id" -> newId.toString))
   }
   
+  val stock = post("/:id/stock"){
+    val articleId = params.getOrElse("id", redirect("/")).toLong
+    val userId    = turqey.servlet.SessionHolder.user.get.id
+    val as = ArticleStock.as
+    ArticleStock.findBy(sqls
+      .eq(as.articleId, articleId).and
+      .eq(as.userId, userId)
+    ) match {
+      case Some(a)  => {
+        ArticleStock.destroy(a)
+      }
+      case None     => {
+        ArticleStock.create(
+          articleId = articleId,
+          userId    = userId
+        )
+      }
+    }
+  }
+
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String]): Unit = {
     val tagIdName = tagIds.zip(tagNames).map { x:(String, String) =>
       x match {

@@ -31,7 +31,7 @@ object ArticleSharing extends SQLSyntaxSupport[ArticleSharing] {
     groupId = rs.get(as.groupId)
   )
 
-  val as = ArticleSharing.syntax("as")
+  val as = ArticleSharing.syntax("ashr")
 
   override val autoSession = AutoSession
 

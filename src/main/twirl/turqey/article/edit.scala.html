@@ -6,8 +6,8 @@
 @(article: Option[Article], tags: Seq[Tag])
 <html>
   @css()
-  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
   <body>
+  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav()
     <main>
@@ -45,12 +45,12 @@
       </form>
     </div>
     </main>
-<script>
+  </body>
 
+<script>
 var ViewModel = function (initialTags){
   var self = this;
   self.tags = ko.observableArray(initialTags);
-  self.clickedItem = ko.observable();
   self.remove = function (obj, e){
     self.tags.remove(obj);
   };
@@ -70,6 +70,5 @@ var ViewModel = function (initialTags){
 var vm = new ViewModel(@{Html(Json.toJson(tags))});
 ko.applyBindings(vm, document.getElementById('form'));
 </script>
-  </body>
 </html>
 
