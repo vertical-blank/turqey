@@ -100,7 +100,8 @@ class ArticleController extends ControllerBase  {
 
     val article = Article.find(articleId).getOrElse(redirect("/"))
     if (!article.editable) { redirect("/") }
-    val oldContent = Implicits.clobToString(article.content)
+    // must read CLOB content before update.
+    val oldContent: String = article.content
 
     article.copy(
       title   = title,
