@@ -66,7 +66,14 @@
               @Html(Markdown.html(comment.content))
             </div>
             @if(comment.editable){
-              <a class="waves-effect waves-light btn-floating btn-large"><i class="material-icons right">edit</i></a>
+            <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top 10px;">
+              <a class="btn-floating btn">
+                <i class="small material-icons">edit</i>
+              </a>
+              <a class="btn-floating btn red">
+                <i class="small material-icons">delete</i>
+              </a>
+            </div>
             }
           </div>
           }
