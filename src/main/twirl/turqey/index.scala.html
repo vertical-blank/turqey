@@ -57,7 +57,7 @@
         </div>
         <div id="own" class="col s12">
           <div class="collection">
-          @articles.filter(a => a.owner == SessionHolder.user.get.id).map{ a =>
+          @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
             <a href="@root/article/@a.id" class="collection-item">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
