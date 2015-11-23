@@ -59,12 +59,21 @@ class ArticleController extends ControllerBase  {
   post("/:id/comment"){
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
-
-    ArticleComment.create(
-      articleId = articleId,
-      content   = comment,
-      userId    = turqey.servlet.SessionHolder.user.get.id
-    )
+    
+    params.get("commentId") match {
+      case Some(commentId) => {
+        ArticleComment.find(commentId).get.copy(
+          content = comment
+        ).save()
+      }
+      case _ => {
+        ArticleComment.create(
+          articleId = articleId,
+          content   = comment,
+          userId    = turqey.servlet.SessionHolder.user.get.id
+        )
+      }
+    }
 
     redirect(url(view, "id" -> articleId.toString))
   }
