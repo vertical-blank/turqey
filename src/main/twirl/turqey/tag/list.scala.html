@@ -22,9 +22,9 @@
         *@
         <div id="whole" class="col s12">
           <div class="collection">
-          @tags.map{ t => 
-            <a class="collection-item" href="@root/tag/@t._1.id">
-              <span class="title">@t._1.name 記事数:@t._2</span>
+          @tags.map{ case (t, c) => 
+            <a class="collection-item" href="@root/tag/@t.id">
+              <span class="title">@t.name 記事数:@c</span>
             </a>
           }
           </div>

@@ -121,7 +121,7 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
   }
 
   def insertTagsOfArticle(articleId: Long, tagIds: Seq[Long])(implicit session: DBSession = autoSession): Unit = {
-    Array.fill(tagIds.size)(articleId).zip(tagIds).foreach( x => this.create(x._1, x._2) )
+    Array.fill(tagIds.size)(articleId).zip(tagIds).foreach{ case(articleId, tagId) => this.create(articleId, tagId) }
   }
 
   def countByTag()(implicit session: DBSession = autoSession): Seq[(Long, Int)] = {

@@ -62,7 +62,7 @@ class ArticleController extends ControllerBase  {
     
     params.get("commentId") match {
       case Some(commentId) => {
-        ArticleComment.find(commentId).get.copy(
+        ArticleComment.find(commentId.toLong).get.copy(
           content = comment
         ).save()
       }
@@ -148,20 +148,20 @@ class ArticleController extends ControllerBase  {
   }
 
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String]): Unit = {
-    val tagIdName = tagIds.zip(tagNames).map { x:(String, String) =>
-      x match {
+    val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
+      (id, name) match {
         case ("", _) => {
-          val tag = Tag.findBy(sqls.eq(Tag.t.name, x._2)).getOrElse(
-            Tag.create( name = x._2 )
+          val tag = Tag.findBy(sqls.eq(Tag.t.name, name)).getOrElse(
+            Tag.create( name = name )
           )
           (tag.id, tag.name)
         }
-        case _ => (x._1.toLong, x._2)
+        case _ => (id.toLong, name)
       }
     }
 
     val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
-    val tagIdsNew = tagIdName.map( x => x._1 )
+    val tagIdsNew = tagIdName.map { case (id, name) => id }
 
     val tagIdsForDelete = tagIdsOld diff tagIdsNew
     val tagIdsForInsert = tagIdsNew diff tagIdsOld
