@@ -9,16 +9,16 @@ case class Article(
   projectId: Option[Long] = None,
   title: String,
   content: Clob,
-  owner: Long,
+  ownerId: Long,
   created: DateTime = null,
-  user: Option[User] = None) {
+  owner: Option[User] = None) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
   def destroy()(implicit session: DBSession = Article.autoSession): Unit = Article.destroy(this)(session)
 
   def editable(): Boolean = { turqey.servlet.SessionHolder.user match {
-      case Some(u) => u.id == owner
+      case Some(u) => u.id == ownerId
       case None => false
     }
   }
@@ -32,7 +32,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   override val tableName = "ARTICLES"
 
-  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER", "CREATED")
+  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED")
 
   def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
   def apply(a: ResultName[Article], u: Option[ResultName[User]])(rs: WrappedResultSet): Article = new Article(
@@ -40,9 +40,9 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId = rs.get(a.projectId),
     title = rs.get(a.title),
     content = rs.get(a.content),
-    owner = rs.get(a.owner),
+    ownerId = rs.get(a.ownerId),
     created = rs.get(a.created),
-    user = u.map{ u => User(u)(rs) }
+    owner = u.map{ u => User(u)(rs) }
   )
 
   val a = Article.syntax("a")
@@ -54,7 +54,7 @@ object Article extends SQLSyntaxSupport[Article] {
     withSQL {
       select
       .from(Article as a)
-      .join(User as u).on(a.owner, u.id)
+      .join(User as u).on(a.ownerId, u.id)
       .where.eq(a.id, id)
     }.map( Article(a.resultName, Option(u.resultName)) ).single.apply()
   }
@@ -62,7 +62,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def findAll()(implicit session: DBSession = autoSession): List[Article] = {
     val u = User.u
     withSQL{ 
-      select.from(Article as a).join(User as u).on(a.owner, u.id)
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id)
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
@@ -73,14 +73,14 @@ object Article extends SQLSyntaxSupport[Article] {
   def findBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Option[Article] = {
     val u = User.u
     withSQL {
-      select.from(Article as a).join(User as u).on(a.owner, u.id).where.append(where)
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.append(where)
     }.map(Article(a.resultName, Option(u.resultName))).single.apply()
   }
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[Article] = {
     val u = User.u
     withSQL {
-      select.from(Article as a).join(User as u).on(a.owner, u.id).where.append(where)
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.append(where)
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
@@ -94,18 +94,18 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId: Option[Long] = None,
     title: String,
     content: Clob,
-    owner: Long)(implicit session: DBSession = autoSession): Article = {
+    ownerId: Long)(implicit session: DBSession = autoSession): Article = {
     val generatedKey = withSQL {
       insert.into(Article).columns(
         column.projectId,
         column.title,
         column.content,
-        column.owner
+        column.ownerId
       ).values(
         projectId,
         title,
         content,
-        owner
+        ownerId
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -114,7 +114,7 @@ object Article extends SQLSyntaxSupport[Article] {
       projectId = projectId,
       title = title,
       content = content,
-      owner = owner)
+      ownerId = ownerId)
   }
 
   def batchInsert(entities: Seq[Article])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -123,17 +123,17 @@ object Article extends SQLSyntaxSupport[Article] {
         'projectId -> entity.projectId,
         'title -> entity.title,
         'content -> entity.content,
-        'owner -> entity.owner))
+        'ownerId -> entity.ownerId))
         SQL("""insert into ARTICLES(
         PROJECT_ID,
         TITLE,
         CONTENT,
-        OWNER
+        OWNER_ID
       ) values (
         {projectId},
         {title},
         {content},
-        {owner}
+        {ownerId}
       )""").batchByName(params: _*).apply()
     }
 
@@ -144,7 +144,7 @@ object Article extends SQLSyntaxSupport[Article] {
         column.projectId -> entity.projectId,
         column.title -> entity.title,
         column.content -> entity.content,
-        column.owner -> entity.owner
+        column.ownerId -> entity.ownerId
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity
@@ -159,7 +159,7 @@ object Article extends SQLSyntaxSupport[Article] {
     withSQL {
       val a = Article.a
       val at = ArticleTagging.at
-      select.from(Article as a).join(User as u).on(a.owner, u.id).where.exists(
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.exists(
         select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
       )
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()

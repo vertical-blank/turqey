@@ -62,9 +62,6 @@ class ArticleController extends ControllerBase  {
     
     params.get("commentId") match {
       case Some(commentId) => {
-        ArticleComment.find(commentId.toLong).get.copy(
-          content = comment
-        ).save()
       }
       case _ => None
     }
@@ -135,7 +132,7 @@ class ArticleController extends ControllerBase  {
     val newId = Article.create(
       title   = title,
       content = content,
-      owner   = turqey.servlet.SessionHolder.user.get.id
+      ownerId = turqey.servlet.SessionHolder.user.get.id
     ).id
 
     refreshTaggings(newId, tagIds, tagNames);

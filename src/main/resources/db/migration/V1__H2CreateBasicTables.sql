@@ -1,7 +1,7 @@
 CREATE TABLE PROJECTS (
-  ID     bigint auto_increment primary key,
-  NAME   varchar(255) NOT NULL,
-  OWNER  bigint NOT NULL
+  ID          bigint auto_increment primary key,
+  NAME        varchar(255) NOT NULL,
+  OWNER_ID    bigint NOT NULL
 );
 
 CREATE TABLE ARTICLES (
@@ -9,7 +9,7 @@ CREATE TABLE ARTICLES (
   PROJECT_ID  bigint,
   TITLE       varchar(255) NOT NULL,
   CONTENT     CLOB NOT NULL,
-  OWNER       bigint NOT NULL,
+  OWNER_ID    bigint NOT NULL,
   CREATED     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IDX_ARTICLES1 ON ARTICLES (PROJECT_ID);
