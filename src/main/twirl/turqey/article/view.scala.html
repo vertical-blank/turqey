@@ -61,10 +61,6 @@
         <div class="row">
           @comments.zipWithIndex.map { case (comment, idx) =>
           <div class="card">
-            <div class="card-content">
-            <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
-              @Html(Markdown.html(comment.content))
-            </div>
             @if(comment.editable){
             <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top 10px;">
               <a class="btn-floating btn">
@@ -75,6 +71,10 @@
               </a>
             </div>
             }
+            <div class="card-content">
+            <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
+              @Html(Markdown.html(comment.content))
+            </div>
           </div>
           }
         </div>

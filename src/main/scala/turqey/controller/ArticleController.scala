@@ -56,6 +56,22 @@ class ArticleController extends ControllerBase  {
     html.history(article, histories)
   }
 
+// TODO Validate that articleId equals comment.articleId
+  post("/:id/comment/delete"){
+    val articleId = params.getOrElse("id", redirect("/")).toLong
+    
+    params.get("commentId") match {
+      case Some(commentId) => {
+        ArticleComment.find(commentId.toLong).get.copy(
+          content = comment
+        ).save()
+      }
+      case _ => None
+    }
+
+    redirect(url(view, "id" -> articleId.toString))
+  }
+
   post("/:id/comment"){
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
