@@ -11,6 +11,7 @@
     <div class="container">
       <p>タグ一覧</p>
       <div class="row">
+        @*
         <div class="col s12">
           <ul class="tabs">
             <li class="tab col s2"><a class="waves-effect" href="#following">フォロー中</a></li>
@@ -18,10 +19,15 @@
           </ul>
         </div>
         <div id="following" class="col s12">W.I.P.</div>
+        *@
         <div id="whole" class="col s12">
-          <ul class="collection">
-          @tags.map{ t => <li class="collection-item"><a href="@root/tag/@t._1.id">@t._1.name</a> 記事数:@t._2 </li> }
-          </ul>
+          <div class="collection">
+          @tags.map{ t => 
+            <a class="collection-item" href="@root/tag/@t._1.id">
+              <span class="title">@t._1.name 記事数:@t._2</span>
+            </a>
+          }
+          </div>
         </div>
       </div>
     </div>

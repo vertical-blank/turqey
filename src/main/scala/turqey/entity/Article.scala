@@ -10,7 +10,8 @@ case class Article(
   title: String,
   content: Clob,
   owner: Long,
-  created: DateTime = null) {
+  created: DateTime = null,
+  user: Option[User] = None) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
@@ -27,14 +28,15 @@ object Article extends SQLSyntaxSupport[Article] {
 
   override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER", "CREATED")
 
-  def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName)(rs)
-  def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = new Article(
+  def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
+  def apply(a: ResultName[Article], u: Option[ResultName[User]])(rs: WrappedResultSet): Article = new Article(
     id = rs.get(a.id),
     projectId = rs.get(a.projectId),
     title = rs.get(a.title),
     content = rs.get(a.content),
     owner = rs.get(a.owner),
-    created = rs.get(a.created)
+    created = rs.get(a.created),
+    user = u.map{ u => User(u)(rs) }
   )
 
   val a = Article.syntax("a")
@@ -42,13 +44,20 @@ object Article extends SQLSyntaxSupport[Article] {
   override val autoSession = AutoSession
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Article] = {
+    val u = User.u
     withSQL {
-      select.from(Article as a).where.eq(a.id, id)
-    }.map(Article(a.resultName)).single.apply()
+      select
+      .from(Article as a)
+      .join(User as u).on(a.owner, u.id)
+      .where.eq(a.id, id)
+    }.map( Article(a.resultName, Option(u.resultName)) ).single.apply()
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[Article] = {
-    withSQL(select.from(Article as a)).map(Article(a.resultName)).list.apply()
+    val u = User.u
+    withSQL{ 
+      select.from(Article as a).join(User as u).on(a.owner, u.id)
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = {
@@ -56,15 +65,17 @@ object Article extends SQLSyntaxSupport[Article] {
   }
 
   def findBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Option[Article] = {
+    val u = User.u
     withSQL {
-      select.from(Article as a).where.append(where)
-    }.map(Article(a.resultName)).single.apply()
+      select.from(Article as a).join(User as u).on(a.owner, u.id).where.append(where)
+    }.map(Article(a.resultName, Option(u.resultName))).single.apply()
   }
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[Article] = {
+    val u = User.u
     withSQL {
-      select.from(Article as a).where.append(where)
-    }.map(Article(a.resultName)).list.apply()
+      select.from(Article as a).join(User as u).on(a.owner, u.id).where.append(where)
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = {
@@ -138,13 +149,14 @@ object Article extends SQLSyntaxSupport[Article] {
   }
 
   def findTagged(tagId: Long)(implicit session: DBSession = autoSession): Seq[Article] = {
+    val u = User.u
     withSQL {
       val a = Article.a
       val at = ArticleTagging.at
-      select.from(Article as a).where.exists(
+      select.from(Article as a).join(User as u).on(a.owner, u.id).where.exists(
         select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
       )
-    }.map(Article(a.resultName)).list.apply()
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
 }

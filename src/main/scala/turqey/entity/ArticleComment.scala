@@ -9,7 +9,8 @@ case class ArticleComment(
   articleId: Long,
   userId: Long,
   content: Clob,
-  created: DateTime = null) {
+  created: DateTime = null,
+  user: Option[User] = None) {
 
   def save()(implicit session: DBSession = ArticleComment.autoSession): ArticleComment = ArticleComment.save(this)(session)
 
@@ -26,13 +27,14 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
 
   override val columns = Seq("ID", "ARTICLE_ID", "USER_ID", "CONTENT", "CREATED")
 
-  def apply(ac: SyntaxProvider[ArticleComment])(rs: WrappedResultSet): ArticleComment = apply(ac.resultName)(rs)
-  def apply(ac: ResultName[ArticleComment])(rs: WrappedResultSet): ArticleComment = new ArticleComment(
+  def apply(ac: SyntaxProvider[ArticleComment])(rs: WrappedResultSet): ArticleComment = apply(ac.resultName, None)(rs)
+  def apply(ac: ResultName[ArticleComment], u: Option[ResultName[User]])(rs: WrappedResultSet): ArticleComment = new ArticleComment(
     id = rs.get(ac.id),
     articleId = rs.get(ac.articleId),
     userId = rs.get(ac.userId),
     content = rs.get(ac.content),
-    created = rs.get(ac.created)
+    created = rs.get(ac.created),
+    user = u.map{ u => User(u)(rs) }
   )
 
   val ac = ArticleComment.syntax("ac")
@@ -42,11 +44,11 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
   def find(id: Long)(implicit session: DBSession = autoSession): Option[ArticleComment] = {
     withSQL {
       select.from(ArticleComment as ac).where.eq(ac.id, id)
-    }.map(ArticleComment(ac.resultName)).single.apply()
+    }.map(ArticleComment(ac.resultName, None)).single.apply()
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[ArticleComment] = {
-    withSQL(select.from(ArticleComment as ac)).map(ArticleComment(ac.resultName)).list.apply()
+    withSQL(select.from(ArticleComment as ac)).map(ArticleComment(ac.resultName, None)).list.apply()
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = {
@@ -56,13 +58,14 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
   def findBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Option[ArticleComment] = {
     withSQL {
       select.from(ArticleComment as ac).where.append(where)
-    }.map(ArticleComment(ac.resultName)).single.apply()
+    }.map(ArticleComment(ac.resultName, None)).single.apply()
   }
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[ArticleComment] = {
+    val u = User.u
     withSQL {
-      select.from(ArticleComment as ac).where.append(where)
-    }.map(ArticleComment(ac.resultName)).list.apply()
+      select.from(ArticleComment as ac).join(User as u).on(ac.userId, u.id).where.append(where)
+    }.map(ArticleComment(ac.resultName, Option(u.resultName))).list.apply()
   }
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = {

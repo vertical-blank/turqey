@@ -12,12 +12,20 @@
       <p>タグ @tag.name の記事一覧</p>
       <div class="row">
         <div id="whole" class="col s12">
-          <ul class="collection">
-          @articles.map{ a => <li class="collection-item"><a href="@root/article/@a.id">@a.title</a></li> }
-          </ul>
+          <div class="collection">
+          @articles.map{ a =>
+            <a href="@root/article/@a.id" class="collection-item">
+              <span class="title">@a.title</span>
+              <p>
+                @a.user.get.name @a.created.toString("yyyy/MM/dd")
+              </p>
+            </a>
+          }
+          </div>
         </div>
       </div>
     </div>
     </main>
   </body>
 </html>
+

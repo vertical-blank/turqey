@@ -18,7 +18,6 @@ class ArticleController extends ControllerBase  {
 
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
-    val owner = User.find(article.owner).get
     //val latestEdit = ArticleHistory.findAllBy(sql.eq(ArticleHistory.ah.articleId, articleId)).tail
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
     // TODO should be refactored as cache.
@@ -31,7 +30,7 @@ class ArticleController extends ControllerBase  {
       .eq(as.userId, userId)
     ).isDefined
 
-    html.view(article, owner, tags, comments, stocked)
+    html.view(article, tags, comments, stocked)
   }
 
   val edit = get("/:id/edit"){
@@ -76,12 +75,14 @@ class ArticleController extends ControllerBase  {
     val tagNames  = multiParams("tagNames")
 
     val article = Article.find(articleId).getOrElse(redirect("/"))
+    val oldContent = Implicits.clobToString(article.content)
+
     article.copy(
       title   = title,
       content = content
     ).save()
 
-    val diff = turqey.utils.DiffUtil.uniDiff(article.content, content).mkString("\r\n")
+    val diff = turqey.utils.DiffUtil.uniDiff(oldContent, content).mkString("\r\n")
     ArticleHistory.create(
       articleId = articleId,
       diff      = diff,

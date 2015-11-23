@@ -20,7 +20,9 @@ class IndexController extends ControllerBase  {
       redirect(url("/login"))
     }
 
-    html.index(articles)
+    val stocks = ArticleStock.findAllBy(sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)).map( x => x.articleId )
+
+    html.index(articles, stocks)
   }
 
 }

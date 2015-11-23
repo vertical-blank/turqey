@@ -68,7 +68,8 @@ twirl {
     "scala.collection.JavaConversions._",
     "scala.collection.JavaConverters._",
     "play.twirl.api._",
-    "turqey.servlet.ServletContextHolder._"
+    "turqey.servlet.ServletContextHolder._",
+    "turqey.servlet.SessionHolder"
   ]
 }
 
