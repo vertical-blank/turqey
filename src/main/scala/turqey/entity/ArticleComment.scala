@@ -16,6 +16,12 @@ case class ArticleComment(
 
   def destroy()(implicit session: DBSession = ArticleComment.autoSession): Unit = ArticleComment.destroy(this)(session)
 
+  def editable(): Boolean = { turqey.servlet.SessionHolder.user match {
+      case Some(u) => u.id == userId
+      case None => false
+    }
+  }
+
 }
 
 

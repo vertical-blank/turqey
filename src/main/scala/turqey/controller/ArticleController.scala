@@ -36,6 +36,8 @@ class ArticleController extends ControllerBase  {
   val edit = get("/:id/edit"){
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
+    if (!article.editable) { redirect("/") }
+
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
     // TODO should be refactored as cache.
     val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
@@ -75,6 +77,7 @@ class ArticleController extends ControllerBase  {
     val tagNames  = multiParams("tagNames")
 
     val article = Article.find(articleId).getOrElse(redirect("/"))
+    if (!article.editable) { redirect("/") }
     val oldContent = Implicits.clobToString(article.content)
 
     article.copy(

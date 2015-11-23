@@ -27,7 +27,7 @@
               </div>
             }
             </p>
-            @if(turqey.servlet.SessionHolder.user.get.id == article.owner){
+            @if(article.editable){
             <p>
               <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
             </p>
@@ -65,6 +65,11 @@
             <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
               @Html(Markdown.html(comment.content))
             </div>
+            @if(comment.editable){
+            <p>
+              <a "/article/@article.id" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+            </p>
+            }
           </div>
           }
         </div>
