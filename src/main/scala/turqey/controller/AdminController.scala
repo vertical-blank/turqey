@@ -20,9 +20,23 @@ class AdminController(adminPath: String) extends ControllerBase {
   get("/"){
     <html>
       <body>
-        ADMIN CONSOLE!!!
+        <ul>
+          <li>USER</li>
+        </ul>
       </body>
     </html>
+  }
+
+  get("/user"){
+    // list all users.
+  }
+
+  post("/user"){
+    //insert user.
+  }
+
+  get("/user/:id"){
+    //show user detail
   }
 
 }
