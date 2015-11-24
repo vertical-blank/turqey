@@ -4,6 +4,8 @@ import javax.servlet._
 import scalikejdbc._
 import scalikejdbc.config._
 import org.flywaydb.core._
+import turqey.entity.User
+import turqey.utils.Digest
 
 class InitListener extends ServletContextListener {
 
@@ -13,6 +15,15 @@ class InitListener extends ServletContextListener {
     val flyway = new Flyway()
     flyway.setDataSource(ConnectionPool.dataSource())
     flyway.migrate()
+    
+    if (User.countAll() == 0){
+      User.create(
+        email    = "root",
+        name     = "root",
+        password = Some(Digest.get("root")),
+        imgUrl = ""
+      )
+    }
     
     ServletContextHolder.init(event.getServletContext)
   }

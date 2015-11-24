@@ -9,11 +9,8 @@ import turqey.entity._
 import turqey.utils._
 import turqey.article._
 
-import scalaz._
-import scalaz.Scalaz._
-
-class UserController extends ControllerBase  {
-  override val path = "/user"
+class UserController extends ControllerBase {
+  override val key = "user"
 
   val view = get("/:id"){
   }

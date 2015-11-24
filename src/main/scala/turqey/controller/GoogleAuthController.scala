@@ -19,11 +19,8 @@ import turqey.servlet._
 import turqey.html
 import turqey.utils.Implicits._
 
-import scalaz._
-import scalaz.Scalaz._
-
-class GoogleAuthController extends ControllerBase  {
-  override val path = "/googleAuth"
+class GoogleAuthController extends ControllerBase {
+  override val key = "googleAuth"
   override val shouldLoggedIn = false
   
   // TODO need to be refactored.

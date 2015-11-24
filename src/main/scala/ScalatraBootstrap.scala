@@ -1,21 +1,15 @@
-import org.scalatra._
+import org.scalatra.LifeCycle
 import javax.servlet.ServletContext
 
 import turqey._
 import turqey.controller._
+import turqey.servlet._
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    Seq(
-      new AdminController("admin"),
-      new ArticleController(),
-      new TagController(),
-      new IndexController(),
-      new LoginController(),
-      new AssetsController(),
-      new GoogleAuthController()
-    ).foreach { controller =>
+    ServletMappings.servlets.foreach { controller =>
       context.mount(controller, controller.path)
     }
   }
 }
+
