@@ -62,6 +62,16 @@ defaultTasks 'compileScala'
 
 mainClassName = 'JettyLauncher'
 
+compileScala {
+    scalaCompileOptions.fork = true
+    scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+    scalaCompileOptions.additionalParameters = [
+        "-feature",
+        "-language:reflectiveCalls", // used for config structural typing
+        "-language:postfixOps"
+    ]
+}
+
 twirl {
   imports = [
     "java.lang._",

@@ -10,8 +10,8 @@ import turqey.tag._
 
 import turqey.utils.Implicits._
 
-class TagController extends ControllerBase  {
-  override val path = "/tag"
+class TagController extends ControllerBase {
+  override val key = "tag"
 
   val list = get("/"){
     val tags = Tag.findAllWithArticleCount()

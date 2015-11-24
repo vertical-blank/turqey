@@ -10,8 +10,8 @@ import turqey.article._
 
 import turqey.utils.Implicits._
 
-class ArticleController extends ControllerBase  {
-  override val path = "/article"
+class ArticleController extends ControllerBase {
+  override val key = "article"
 
   val view = get("/:id"){
     val userId    = turqey.servlet.SessionHolder.user.get.id

@@ -7,8 +7,9 @@ import collection.mutable
 import turqey.servlet._
 
 trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport {
-
-  val path: String
+  val key: String
+  def path = "/" + this.key
+  
   val shouldLoggedIn = true
 
   before() {
