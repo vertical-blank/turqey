@@ -1,0 +1,27 @@
+@import turqey.entity._
+@import turqey.servlet._
+@import turqey.html._
+
+@(users: Seq[User])
+<html>
+  @css()
+  <body>
+    <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      <div class="row">
+        <div class="col s12">
+          <div class="collection">
+            @users.map{ u =>
+            <a href="@root/admin/user/@u.id" class="collection-item">
+              <span class="title">@u.name</span>
+            </a>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    </main>
+  </body>
+</html>

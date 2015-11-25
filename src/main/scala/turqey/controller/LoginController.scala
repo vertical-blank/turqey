@@ -23,7 +23,7 @@ class LoginController extends ControllerBase {
     User.findBy(sqls.eq(User.u.email, id).and.eq(User.u.password, digestedPass))
       match {
         case Some(user: User) => {
-          session("user") = new UserSession(user.id, user.name, user.imgUrl)
+          session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
           redirect(url(""))
         }
         case None => html.login()

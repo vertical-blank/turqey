@@ -86,7 +86,7 @@ class GoogleAuthController extends ControllerBase {
           }
         }
 
-        session("user") = new UserSession(user.id, user.name, user.imgUrl)
+        session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
       }
 
       redirect(url(""))

@@ -12,6 +12,6 @@ object SessionHolder {
   def set(session: HttpSession):Unit = { this.sessionOfThread.set(session) }
 }
 
-case class UserSession(id: Long, name: String, imgUrl: String)
+case class UserSession(id: Long, name: String, imgUrl: String, root: Boolean)
 
 
