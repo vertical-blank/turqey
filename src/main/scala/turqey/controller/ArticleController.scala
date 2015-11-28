@@ -177,8 +177,8 @@ class ArticleController extends ControllerBase {
     val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
     val tagIdsNew = tagIdName.map { case (id, name) => id }
 
-    val tagIdsForDelete = tagIdsOld diff tagIdsNew
-    val tagIdsForInsert = tagIdsNew diff tagIdsOld
+    val tagIdsForDelete = tagIdsOld diff tagIdsNew distinct
+    val tagIdsForInsert = tagIdsNew diff tagIdsOld distinct
 
     ArticleTagging.deleteTagsOfArticle(articleId, tagIdsForDelete)
     ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
