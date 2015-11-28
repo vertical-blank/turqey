@@ -21,7 +21,6 @@ class ArticleController extends ControllerBase {
     val article = Article.find(articleId).getOrElse(redirect("/"))
     //val latestEdit = ArticleHistory.findAllBy(sql.eq(ArticleHistory.ah.articleId, articleId)).tail
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-    // TODO should be refactored as cache.
     val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
@@ -41,7 +40,6 @@ class ArticleController extends ControllerBase {
     if (!article.editable) { redirect("/") }
 
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-    // TODO should be refactored as cache.
     val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
 
@@ -59,13 +57,14 @@ class ArticleController extends ControllerBase {
   }
 
 // TODO Validate that articleId equals comment.articleId
-  post("/:id/comment/delete"){
+  post("/:id/comment/:commentId/delete"){
     val articleId = params.getOrElse("id", redirect("/")).toLong
+    val commentId = params.getOrElse("commentId", redirect("/")).toLong
     
-    params.get("commentId") match {
-      case Some(commentId) => {
-      }
-      case _ => None
+    val ac = ArticleComment.ac
+    ArticleComment.findBy(sqls.eq(ac.articleId, articleId).and.eq(ac.id, commentId)) match {
+      case Some(rec) => { rec.destroy() }
+      case _ =>
     }
 
     redirect(url(view, "id" -> articleId.toString))
@@ -154,7 +153,7 @@ class ArticleController extends ControllerBase {
       .eq(as.userId, userId)
     ) match {
       case Some(a)  => {
-        ArticleStock.destroy(a)
+        a.destroy()
       }
       case None     => {
         ArticleStock.create(

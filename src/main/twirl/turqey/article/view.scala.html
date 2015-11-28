@@ -66,12 +66,16 @@
           <div class="card">
             @if(comment.editable){
             <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top: 10px;">
+              @*
               <a class="btn-floating btn">
                 <i class="small material-icons">edit</i>
               </a>
-              <a class="btn-floating btn red">
+              *@
+              <form action="@root/article/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
+              <button class="btn-floating btn red">
                 <i class="small material-icons">delete</i>
-              </a>
+              </button>
+              </form>
             </div>
             }
             <div class="card-content">
@@ -108,10 +112,9 @@ var ViewModel = function (initialState){
   self.count = ko.observable(@count);
 };
 
-// Activates knockout.js
+// Activate knockout.js
 var vm = new ViewModel(@{Html(stocked.toString)});
 ko.applyBindings(vm, document.getElementById('divStock'));
-//$('#btnStock').on('click', function(){ $.post('./@article.id/stock'); }); 
 </script>
 </html>
 
