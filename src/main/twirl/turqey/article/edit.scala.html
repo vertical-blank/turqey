@@ -17,7 +17,9 @@
       <form action="/article/@article.map(_.id)" method="post" class="col s12" id="form">
         <div class="row">
           <div class="input-field col s12">
-            <input type="text" name="title" value="@article.map(_.title)" id="input_title" length="120">
+            <input type="text" name="title" 
+              id="input_title" length="120"
+              data-bind="textInput: title">
             <label>Title</label>
             </input>
           </div>
@@ -45,11 +47,14 @@
           <!-- /ko -->
           </div>
           <div class="input-field col s12">
-            <textarea name="content" class="materialize-textarea" placeholder="Markdown" id="input_content">@article.map( x => clobToString(x.content))</textarea>
+            <textarea name="content" class="materialize-textarea" 
+              placeholder="Markdown" id="input_content"
+              data-bind="textInput: content"></textarea>
             <label>Content</label>
           </div>
         </div>
-        <button type="submit" class="waves-effect waves-light btn"><i class="material-icons right">check</i>保存</button>
+        <button type="submit" class="waves-effect waves-light btn"
+          data-bind="enable: postable" disabled><i class="material-icons right">check</i>保存</button>
       </form>
     </div>
     </main>
@@ -83,6 +88,10 @@ var ViewModel = function (initialTags){
     self.tagId(i.id);
     self.add(i);
   };
+
+  self.title = ko.observable(@{Html(Json.toJson(article.map(_.title)))});
+  self.content = ko.observable(@{Html(Json.toJson(article.map( x => clobToString(x.content))))});
+  self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
 };
 
 // Activates knockout.js

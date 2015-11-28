@@ -86,13 +86,16 @@
           }
         </div>
         <div class="row">
-          <form action="./@article.id/comment" method="post">
+          <form action="./@article.id/comment" method="post" id="formComment">
             <div class="input-field col s12">
-              <textarea name="comment" class="materialize-textarea" placeholder="Markdown" id="input_comment"></textarea>
+              <textarea name="comment" class="materialize-textarea"
+                placeholder="Markdown" id="input_comment"
+                data-bind="textInput: comment"></textarea>
               <label>Comment</label>
             </div>
             <div class="input-field col s12">
-              <button type="submit" class="waves-effect waves-light btn"><i class="material-icons right">send</i>コメント</button>
+              <button type="submit" class="waves-effect waves-light btn"
+                data-bind="enable: commentable"><i class="material-icons right">send</i>コメント</button>
             </div>
           </form>
         </div>
@@ -112,9 +115,16 @@ var ViewModel = function (initialState){
   self.count = ko.observable(@count);
 };
 
+var CommentViewModel = function (){
+  var self = this;
+  self.comment = ko.observable('');
+  self.commentable = ko.pureComputed( function (){ return self.comment().length != 0; } );
+};
 // Activate knockout.js
 var vm = new ViewModel(@{Html(stocked.toString)});
+var commentVm = new CommentViewModel();
 ko.applyBindings(vm, document.getElementById('divStock'));
+ko.applyBindings(commentVm, document.getElementById('formComment'));
 </script>
 </html>
 
