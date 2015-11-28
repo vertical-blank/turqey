@@ -34,7 +34,7 @@
         <div id="whole" class="col s12">
           <div class="collection">
           @articles.map{ a =>
-            <a href="@root/article/@a.id" class="collection-item">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
@@ -46,7 +46,7 @@
         <div id="stock" class="col s12">
           <div class="collection">
           @articles.filter( a => stocks.contains(a.id) ).map{ a =>
-            <a href="@root/article/@a.id" class="collection-item">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
@@ -58,7 +58,7 @@
         <div id="own" class="col s12">
           <div class="collection">
           @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
-            <a href="@root/article/@a.id" class="collection-item">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")

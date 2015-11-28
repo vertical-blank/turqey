@@ -19,6 +19,7 @@ class InitListener extends ServletContextListener {
     if (User.countBy(sqls.eq(User.u.email, "root")) == 0){
       User.create(
         email    = "root",
+        loginId  = "root",
         name     = "root",
         password = Some(Digest.get("root")),
         imgUrl   = "",

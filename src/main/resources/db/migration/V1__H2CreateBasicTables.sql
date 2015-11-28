@@ -63,6 +63,7 @@ CREATE INDEX IDX_GROUP_MEMBERS3 ON GROUP_MEMBERS (MEMBER_GROUP_ID);
 
 CREATE TABLE USERS (
   ID          bigint auto_increment primary key,
+  LOGIN_ID    varchar(255) NOT NULL UNIQUE,
   EMAIL       varchar(255) NOT NULL UNIQUE,
   NAME        varchar(255) NOT NULL,
   IMG_URL     varchar(255) NOT NULL,

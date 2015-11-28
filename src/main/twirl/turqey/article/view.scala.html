@@ -3,7 +3,7 @@
 @import turqey.view._
 @import turqey.utils.Implicits._
 
-@(article: Article, tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean)
+@(article: Article, tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean, count: Long)
 <html>
   @css()
   <body>
@@ -34,6 +34,9 @@
             }
           </div>
           <div class="col s4" id="divStock">
+            <p>
+              <span data-bind="text: count"></span> ストック
+            </p>
             <p>
               <button type="button"
                 class="waves-effect waves-light btn"
@@ -97,10 +100,12 @@ var ViewModel = function (initialState){
   var self = this;
   self.stocked = ko.observable(initialState);
   self.toggleStock = function(obj, e){
-    $.post('./@article.id/stock', function(){
+    $.post('./@article.id/stock', function(dat){
       self.stocked(!self.stocked());
+      self.count(dat.count);
     });
   };
+  self.count = ko.observable(@count);
 };
 
 // Activates knockout.js

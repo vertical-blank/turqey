@@ -14,7 +14,7 @@
         <div id="whole" class="col s12">
           <div class="collection">
           @articles.map{ a =>
-            <a href="@root/article/@a.id" class="collection-item">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")

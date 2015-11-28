@@ -7,6 +7,7 @@ import scalikejdbc._
 import turqey.entity._
 import turqey.utils._
 import turqey.article._
+import turqey.utils.Json
 
 import turqey.utils.Implicits._
 
@@ -29,8 +30,9 @@ class ArticleController extends ControllerBase {
       .eq(as.articleId, articleId).and
       .eq(as.userId, userId)
     ).isDefined
+    val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
 
-    html.view(article, tags, comments, stocked)
+    html.view(article, tags, comments, stocked, count)
   }
 
   val edit = get("/:id/edit"){
@@ -142,6 +144,8 @@ class ArticleController extends ControllerBase {
   }
   
   val stock = post("/:id/stock"){
+    contentType = "text/json"
+
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val userId    = turqey.servlet.SessionHolder.user.get.id
     val as = ArticleStock.as
@@ -159,6 +163,9 @@ class ArticleController extends ControllerBase {
         )
       }
     }
+
+    val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
+    Json.toJson(Map("count" -> count))
   }
 
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String]): Unit = {

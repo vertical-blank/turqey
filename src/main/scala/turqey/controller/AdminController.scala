@@ -48,6 +48,7 @@ class AdminController(adminPath: String) extends ControllerBase {
     //insert user.
     
     val id = User.create(
+      loginId = "",
       name   = "",
       email  = "",
       imgUrl = ""

@@ -79,6 +79,7 @@ class GoogleAuthController extends ControllerBase {
           }
           case None    => {
             User.create(
+              loginId   = "",
               name      = gu.getDisplayName,
               imgUrl    = gu.getImage.getUrl,
               email     = email,
