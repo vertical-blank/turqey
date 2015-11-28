@@ -9,6 +9,8 @@
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
+  <script type="text/javascript" src="/assets/vender/js/knockout.autocomplete.js"></script>
+  <link href="/assets/vender/css/knockout.autocomplete.css" rel="stylesheet" />
     @topnav()
     <main>
     <div class="container">
@@ -23,7 +25,12 @@
             <i class="material-icons prefix">search</i>
             <input type="text" id="find_tag" placeholder="検索"
               data-bind="event: {keypress: onEnter},
-                         textInput: tagText">
+                         textInput: tagText,
+                         autocomplete: {
+                           data    : allTags,
+                           format  : formatTagItem,
+                           onSelect: select
+                         }">
             <label>Tag</label>
             </input>
           </div>
@@ -49,21 +56,32 @@
   </body>
 
 <script>
+var allTags = @{Html(Json.toJson(Tag.findAll()))}
 var ViewModel = function (initialTags){
   var self = this;
   self.tags = ko.observableArray(initialTags);
   self.remove = function (obj, e){
     self.tags.remove(obj);
   };
-  self.tagText = ko.observable('');
   self.add = function(obj, e){
-    e.preventDefault();
-    self.tags.push({id: '', name: self.tagText()});
+    e && e.preventDefault();
+    if (!self.tagText().trim()){ return };
+    self.tags.push({id: self.tagId(), name: self.tagText()});
     self.tagText('');
+    self.tagId('');
   };
   self.onEnter = function(obj, e){
     e.keyCode === 13 && self.add(obj, e);
     return true;
+  };
+  self.tagText = ko.observable('');
+  self.tagId = ko.observable('');
+  self.allTags = allTags;
+  self.formatTagItem = function(i) { return i.name; };
+  self.select = function(i) {
+    self.tagText(self.formatTagItem(i));
+    self.tagId(i.id);
+    self.add(i);
   };
 };
 
