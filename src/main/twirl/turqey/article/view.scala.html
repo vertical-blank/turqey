@@ -33,10 +33,11 @@
             </p>
             }
           </div>
-          <div class="col s4" id="divStock">
+          <div class="col s4 right-align" id="divStock">
             <p>
               <span data-bind="text: count"></span> ストック
             </p>
+            @if(SessionHolder.user.get.id != article.ownerId) {
             <p>
               <button type="button"
                 class="waves-effect waves-light btn"
@@ -47,6 +48,7 @@
                 style="display: none"
                 data-bind="click: toggleStock, visible: !stocked()"><i class="material-icons right">folder</i>ストック</button>
             <p>
+            }
           </div>
         </div>
       </div>
