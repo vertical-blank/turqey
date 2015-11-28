@@ -5,6 +5,8 @@ import java.sql.Clob
 import java.io.StringWriter
 import scalikejdbc._
 
+import scala.language.implicitConversions
+
 object Implicits {
 
   implicit def clobToString(clob: Clob):String = {

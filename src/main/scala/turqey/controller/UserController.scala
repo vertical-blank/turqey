@@ -13,9 +13,17 @@ class UserController extends ControllerBase {
   override val key = "user"
 
   val view = get("/:id"){
+    
   }
 
   val edit = get("/:id/edit"){
+
+  }
+
+  val self = get("/self"){
+    val selfId = turqey.servlet.SessionHolder.user.get.id;
+
+
   }
 
 }
