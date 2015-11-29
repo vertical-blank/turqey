@@ -46,6 +46,14 @@ class UserController extends ControllerBase {
     
     if(!user.editable){ redirect("/") }
 
+    user.copy(
+      loginId  = params.get("loginId").get,
+      name     = params.get("name").get,
+      email    = params.get("email").get,
+      password = params.get("password").map { p => Digest.get(p) }.get,
+      imgUrl   = ""
+    ).save()
+
     //update user
     redirect(url(view, "id" -> id.toString))
   }
