@@ -14,13 +14,20 @@
         <div class="col s12">
           <div class="collection">
             @users.map{ u =>
-            <a href="@root/admin/user/@u.id" class="collection-item">
+            <a href="@root/user/@u.id" class="collection-item waves-effect waves-light">
               <span class="title">@u.name</span>
             </a>
             }
           </div>
         </div>
       </div>
+      @if(SessionHolder.root){
+      <div class="row">
+        <div class="col s12">
+          <a href="/user/edit" class="waves-effect waves-light btn"><i class="material-icons right">person_add</i>追加</a>
+        </div>
+      </div>
+      }
     </div>
     </main>
   </body>

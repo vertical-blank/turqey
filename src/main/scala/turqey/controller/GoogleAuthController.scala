@@ -63,8 +63,6 @@ class GoogleAuthController extends ControllerBase {
           case e:Exception => None
         }
 
-      println (googleUser)
-
       googleUser
       .filter{ gu => gu.getDomain == "casleyconsulting.co.jp" }
       .foreach { gu => 
@@ -80,6 +78,7 @@ class GoogleAuthController extends ControllerBase {
           case None    => {
             User.create(
               loginId   = "",
+              password  = "",
               name      = gu.getDisplayName,
               imgUrl    = gu.getImage.getUrl,
               email     = email,

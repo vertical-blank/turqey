@@ -42,6 +42,8 @@ class IndexController extends ControllerBase {
       match {
         case Some(user: User) => {
           session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
+
+          user.copy(lastLogin = Some(new org.joda.time.DateTime())).save()
           
           redirect(url(entry))
         }

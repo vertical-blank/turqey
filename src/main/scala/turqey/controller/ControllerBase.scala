@@ -13,13 +13,6 @@ trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport {
 
   def appRoot:String = ServletContextHolder.root
 
-  /**
-   * Sends a redirect response and immediately halts the current action.
-  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
-    halt(Found(fullUrl(appRoot + uri)))
-  }
-   */
-
   before() {
     SessionHolder.set(session)
     if (shouldLoggedIn && !SessionHolder.user.isDefined){

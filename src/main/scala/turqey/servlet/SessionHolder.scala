@@ -10,6 +10,7 @@ object SessionHolder {
   def get:RichSession = { new RichSession(this.sessionOfThread.get()) }
   def user:Option[UserSession] = { this.get.get("user").asInstanceOf[Option[UserSession]] }
   def set(session: HttpSession):Unit = { this.sessionOfThread.set(session) }
+  def root:Boolean = this.user match { case Some(u) => { u.root } case _ => false }
 }
 
 case class UserSession(id: Long, name: String, imgUrl: String, root: Boolean)

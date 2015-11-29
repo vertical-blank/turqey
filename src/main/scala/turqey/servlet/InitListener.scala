@@ -21,7 +21,7 @@ class InitListener extends ServletContextListener {
         email    = "root",
         loginId  = "root",
         name     = "root",
-        password = Some(Digest.get("root")),
+        password = Digest.get("root"),
         imgUrl   = "",
         root     = false
       )

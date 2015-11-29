@@ -1,6 +1,7 @@
 package turqey.entity
 
 import scalikejdbc._
+import turqey.servlet.SessionHolder
 import org.joda.time.{DateTime}
 
 case class User(
@@ -9,7 +10,7 @@ case class User(
   email: String,
   name: String,
   imgUrl: String,
-  password: Option[String] = None,
+  password: String,
   root: Boolean = false,
   lastLogin: Option[DateTime] = None,
   created: DateTime = null) {
@@ -17,6 +18,8 @@ case class User(
   def save()(implicit session: DBSession = User.autoSession): User = User.save(this)(session)
 
   def destroy()(implicit session: DBSession = User.autoSession): Unit = User.destroy(this)(session)
+
+  def editable = { this.id == SessionHolder.user.get.id || SessionHolder.root }
 
 }
 
@@ -83,7 +86,7 @@ object User extends SQLSyntaxSupport[User] {
     loginId: String,
     name: String,
     imgUrl: String,
-    password: Option[String] = None,
+    password: String,
     root: Boolean = false,
     lastLogin: Option[DateTime] = None)(implicit session: DBSession = autoSession): User = {
     val generatedKey = withSQL {

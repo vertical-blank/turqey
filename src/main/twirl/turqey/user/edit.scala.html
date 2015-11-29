@@ -10,7 +10,14 @@
     @topnav()
     <main>
     <div class="container">
-      <form action="@root/admin/user/@u.map(_.id)" method="post" class="col s12" id="form">
+      <form action="@root/user/@u.map(_.id)" method="post" class="col s12" id="form">
+        <div class="row">
+          <div class="input-field col s12">
+            <input type="text" name="loginId" value="@u.map(_.loginId)" id="input_title" length="120">
+            <label>ID</label>
+            </input>
+          </div>
+        </div>
         <div class="row">
           <div class="input-field col s12">
             <input type="text" name="name" value="@u.map(_.name)" id="input_title" length="120">
@@ -22,6 +29,13 @@
           <div class="input-field col s12">
             <input type="text" name="email" value="@u.map(_.email)" id="input_title" length="120">
             <label>Mail</label>
+            </input>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <input type="text" name="password" id="input_title" length="120">
+            <label>Pass</label>
             </input>
           </div>
         </div>
