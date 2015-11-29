@@ -8,7 +8,7 @@
         <a href="@root/" class="brand-logo">TurQey</a>
         <ul id="nav-mobile" class="right hide-on-med-and-down">
           @SessionHolder.user.map{ u =>
-          <li>@u.name</li>
+          <li><a href="@root/user/self">@u.name</a></li>
           <li><img src="@u.imgUrl"></li>
           }
         </ul>

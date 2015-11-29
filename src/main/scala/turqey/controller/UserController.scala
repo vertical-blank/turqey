@@ -28,15 +28,13 @@ class UserController extends ControllerBase {
     val user = User.find(id).getOrElse(redirect("/"))
     
     if(!user.editable){ redirect("/") }
-    //show user detail
+
     html.edit(Some(user))
   }
 
   val editNew = get("/edit"){
-    
     if(!SessionHolder.root){ redirect("/") }
     
-    //show user detail
     html.edit(None)
   }
 
@@ -54,7 +52,6 @@ class UserController extends ControllerBase {
       imgUrl   = ""
     ).save()
 
-    //update user
     redirect(url(view, "id" -> id.toString))
   }
 
@@ -66,13 +63,10 @@ class UserController extends ControllerBase {
 
     user.copy(password = Digest.get(user.loginId) ).save()
 
-    //update user
     redirect(url(view, "id" -> id.toString))
   }
 
   post("/"){
-    //insert user.
-    
     if(!SessionHolder.root){ redirect("/") }
     
     val id = User.create(
