@@ -45,7 +45,7 @@ class IndexController extends ControllerBase {
 
           user.copy(lastLogin = Some(new org.joda.time.DateTime())).save()
           
-          redirect(url(entry))
+          redirect(fullUrl("/", includeServletPath = false))
         }
         case None => html.login()
       }
