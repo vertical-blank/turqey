@@ -9,11 +9,10 @@ import turqey.servlet._
 import turqey.html
 
 class IndexController extends ControllerBase {
-  override val key = ""
+  override val path = ""
   override val shouldLoggedIn = false
 
   val entry = get("/") {
-  
     val articles = 
       if (SessionHolder.user isDefined){
         Article.findAll()
@@ -22,7 +21,9 @@ class IndexController extends ControllerBase {
         redirect(url(login))
       }
 
-    val stocks = ArticleStock.findAllBy(sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)).map( x => x.articleId )
+    val stocks = ArticleStock.findAllBy(
+      sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)
+    ).map( x => x.articleId )
 
     html.index(articles, stocks)
   }

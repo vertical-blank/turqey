@@ -10,7 +10,7 @@ import turqey.utils._
 import turqey.article._
 
 class UserController extends ControllerBase {
-  override val key = "user"
+  override val path = "user"
 
   val view = get("/:id"){
     

@@ -1,5 +1,6 @@
 @import turqey.entity._
 @import turqey.html._
+@import turqey.controller._
 @import turqey.utils.Implicits._
 @import turqey.utils.Json
 
@@ -9,12 +10,12 @@
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
-  <script type="text/javascript" src="/assets/vender/js/knockout.autocomplete.js"></script>
-  <link href="/assets/vender/css/knockout.autocomplete.css" rel="stylesheet" />
+  <script type="text/javascript" src="@assets/vender/js/knockout.autocomplete.js"></script>
+  <link href="@assets/vender/css/knockout.autocomplete.css" rel="stylesheet" />
     @topnav()
     <main>
     <div class="container">
-      <form action="/article/@article.map(_.id)" method="post" class="col s12" id="form">
+      <form action="@ArticleController.root/@article.map(_.id)" method="post" class="col s12" id="form">
         <div class="row">
           <div class="input-field col s12">
             <input type="text" name="title" 

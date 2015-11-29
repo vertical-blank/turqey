@@ -1,5 +1,6 @@
 @import turqey.entity._
 @import turqey.html._
+@import turqey.controller._
 
 @(tags: Seq[(Tag, Int)])
 <html>
@@ -23,7 +24,7 @@
         <div id="whole" class="col s12">
           <div class="collection">
           @tags.map{ case (t, c) => 
-            <a class="collection-item waves-effect waves-light" href="@root/tag/@t.id">
+            <a class="collection-item waves-effect waves-light" href="@TagController.root/@t.id">
               <span class="title">@t.name 記事数:@c</span>
             </a>
           }

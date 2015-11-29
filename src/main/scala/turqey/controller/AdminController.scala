@@ -14,7 +14,7 @@ import turqey.user
 import turqey.utils.Implicits._
 
 class AdminController(adminPath: String) extends ControllerBase {
-  override val key = adminPath
+  override val path = adminPath
   
   before() {
     SessionHolder.set(session)
@@ -24,7 +24,7 @@ class AdminController(adminPath: String) extends ControllerBase {
     }
   }
 
-  get("/"){
+  get(s"/$path"){
     html.index()
   }
 

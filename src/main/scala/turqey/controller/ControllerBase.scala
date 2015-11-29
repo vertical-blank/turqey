@@ -1,21 +1,29 @@
 package turqey.controller
 
 import org.scalatra._
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import collection.mutable
 
 import turqey.servlet._
 
 trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport {
-  val key: String
-  def path = "/" + this.key
+  def path: String
   
   val shouldLoggedIn = true
+
+  def appRoot:String = ServletContextHolder.root
+
+  /**
+   * Sends a redirect response and immediately halts the current action.
+   */
+  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+    halt(Found(fullUrl(appRoot + uri, includeServletPath = false, includeContextPath = false)))
+  }
 
   before() {
     SessionHolder.set(session)
     if (shouldLoggedIn && !SessionHolder.user.isDefined){
-      redirect("/login")
+      redirect(appRoot + "/login")
     }
   }
   after() {
@@ -27,3 +35,4 @@ trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport {
   }
 
 }
+

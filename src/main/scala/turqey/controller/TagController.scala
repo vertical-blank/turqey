@@ -11,7 +11,7 @@ import turqey.tag._
 import turqey.utils.Implicits._
 
 class TagController extends ControllerBase {
-  override val key = "tag"
+  override val path = "tag"
 
   val list = get("/"){
     val tags = Tag.findAllWithArticleCount()
@@ -28,5 +28,9 @@ class TagController extends ControllerBase {
     html.view(tag, articles)
   }
 
+}
+
+object TagController {
+  def root: String = { turqey.servlet.ServletContextHolder.root + "/tag" }
 }
 

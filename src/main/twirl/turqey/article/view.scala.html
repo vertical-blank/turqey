@@ -2,6 +2,7 @@
 @import turqey.html._
 @import turqey.view._
 @import turqey.utils.Implicits._
+@import turqey.controller._
 
 @(article: Article, tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean, count: Long)
 <html>
@@ -23,13 +24,13 @@
             <p>
             @tags.map { tag =>
               <div class="chip">
-                <a href="@root/tag/@tag.id">@tag.name</a>
+                <a href="@TagController.root/@tag.id">@tag.name</a>
               </div>
             }
             </p>
             @if(article.editable){
             <p>
-              <a href="/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+              <a href="@ArticleController.root/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
             </p>
             }
           </div>
@@ -73,7 +74,7 @@
                 <i class="small material-icons">edit</i>
               </a>
               *@
-              <form action="@root/article/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
+              <form action="@ArticleController.root/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
               <button class="btn-floating btn red">
                 <i class="small material-icons">delete</i>
               </button>
@@ -88,7 +89,7 @@
           }
         </div>
         <div class="row">
-          <form action="./@article.id/comment" method="post" id="formComment">
+          <form action="@ArticleController.root/@article.id/comment" method="post" id="formComment">
             <div class="input-field col s12">
               <textarea name="comment" class="materialize-textarea"
                 placeholder="Markdown" id="input_comment"
@@ -109,7 +110,7 @@ var ViewModel = function (initialState){
   var self = this;
   self.stocked = ko.observable(initialState);
   self.toggleStock = function(obj, e){
-    $.post('./@article.id/stock', function(dat){
+    $.post('@ArticleController.root/@article.id/stock', function(dat){
       self.stocked(!self.stocked());
       self.count(dat.count);
     });

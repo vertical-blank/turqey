@@ -12,7 +12,7 @@ import turqey.utils.Json
 import turqey.utils.Implicits._
 
 class ArticleController extends ControllerBase {
-  override val key = "article"
+  override val path = "article"
 
   val view = get("/:id"){
     val userId    = turqey.servlet.SessionHolder.user.get.id
@@ -122,6 +122,7 @@ class ArticleController extends ControllerBase {
   }
 
   val newEdit = get("/edit"){
+    // TODO Pass NULL Object to View.
     html.edit(None, Seq())
   }
 
@@ -190,5 +191,9 @@ class ArticleController extends ControllerBase {
     ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
   }
 
+}
+
+object ArticleController {
+  def root: String = { turqey.servlet.ServletContextHolder.root + "/article" }
 }
 

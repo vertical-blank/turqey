@@ -10,7 +10,7 @@ public class JettyLauncher {
     public static void main(String[] args) throws Exception {
         String host = null;
         int port = 8080;
-        String contextPath = "/";
+        String contextPath = "/turqey";
         boolean forceHttps = false;
 
         /*

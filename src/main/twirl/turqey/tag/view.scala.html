@@ -1,5 +1,6 @@
 @import turqey.entity._
 @import turqey.html._
+@import turqey.controller._
 
 @(tag:Tag, articles: Seq[Article])
 <html>
@@ -14,7 +15,7 @@
         <div id="whole" class="col s12">
           <div class="collection">
           @articles.map{ a =>
-            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
+            <a href="@ArticleController.root/@a.id" class="collection-item waves-effect waves-light">
               <span class="title">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")

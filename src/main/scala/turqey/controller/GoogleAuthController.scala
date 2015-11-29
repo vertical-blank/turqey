@@ -20,7 +20,7 @@ import turqey.html
 import turqey.utils.Implicits._
 
 class GoogleAuthController extends ControllerBase {
-  override val key = "googleAuth"
+  override val path = "googleAuth"
   override val shouldLoggedIn = false
   
   // TODO need to be refactored.

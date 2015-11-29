@@ -4,7 +4,7 @@ import org.scalatra._
 import turqey.html
 
 class AssetsController extends ControllerBase {
-  override val key = "assets"
+  override val path = "assets"
   override val shouldLoggedIn = false
 }
 

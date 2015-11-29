@@ -7,8 +7,17 @@ import turqey.servlet._
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    ServletMappings.servlets.foreach { controller =>
-      context.mount(controller, controller.path)
+    val servlets: Seq[ControllerBase] = Seq(
+      new AdminController("admin"),
+      new ArticleController(),
+      new TagController(),
+      new IndexController(),
+      new AssetsController(),
+      new GoogleAuthController()
+    )
+
+    servlets.foreach { controller =>
+      context.mount(controller, "/" + controller.path)
     }
   }
 }
