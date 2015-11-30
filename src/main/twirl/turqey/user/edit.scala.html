@@ -13,7 +13,8 @@
       <form action="@root/user/@u.map(_.id)" method="post" class="col s12" id="form">
         <div class="row">
           <div class="input-field col s12">
-            <input type="text" name="loginId" value="@u.map(_.loginId)" id="input_title" length="120">
+            <input type="text" name="loginId" value="@u.map(_.loginId)" id="input_title" length="120" 
+            @{ u match { case None => "" case _ => "readonly" } }>
             <label>ID</label>
             </input>
           </div>

@@ -44,13 +44,20 @@ class UserController extends ControllerBase {
     
     if(!user.editable){ redirect("/") }
 
-    user.copy(
-      loginId  = params.get("loginId").get,
+    val updUsr = user.copy(
       name     = params.get("name").get,
       email    = params.get("email").get,
-      password = params.get("password").map { p => Digest.get(p) }.get,
+      password = params.get("password") match {
+        case Some("") | None => { user.password }
+        case Some(p)  => { Digest.get(p) }
+      },
       imgUrl   = ""
     ).save()
+
+    val sessionUsr = SessionHolder.user.get
+    if (sessionUsr.id == user.id){
+      session("user") = sessionUsr.copy(name = updUsr.name, imgUrl = updUsr.imgUrl)
+    }
 
     redirect(url(view, "id" -> id.toString))
   }
