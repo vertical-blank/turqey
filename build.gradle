@@ -27,13 +27,16 @@ repositories {
   }
 }
 
+configurations {
+  executableWar
+}
+
 dependencies {
   compile 'org.scala-lang:scala-library:2.11.6'
   compile 'org.scala-lang:scala-xml:2.11.0-M4'
   compile 'com.typesafe.play:twirl-api_2.11:1.0.2'
   compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.3.6'
   compile group: 'org.scalatra', name: 'scalatra_2.11', version: '2.3.0'
-  compile 'org.eclipse.jetty:jetty-webapp:8.1.18.v20150929'
   compile group: 'com.typesafe.scala-logging', name: 'scala-logging-slf4j_2.11', version: '2.1.2'
 
   compile 'io.github.gitbucket:markedj:1.0.3'
@@ -52,11 +55,28 @@ dependencies {
   compile 'org.json4s:json4s-core_2.11:3.3.0'
   compile 'org.json4s:json4s-native_2.11:3.3.0'
 
+  compile 'javax.mail:javax.mail-api:1.5.4'
+  compile 'com.sun.mail:javax.mail:1.5.4'
+
+  compile 'org.eclipse.jetty:jetty-server:9.3.6.v20151106'
+  compile 'org.eclipse.jetty:jetty-webapp:9.3.6.v20151106'
+  compile 'javax.servlet:javax.servlet-api:3.1.0'
+  executableWar 'javax.servlet:javax.servlet-api:3.1.0'
+
+  executableWar 'org.eclipse.jetty:jetty-server:9.3.6.v20151106'
+  executableWar 'org.eclipse.jetty:jetty-webapp:9.3.6.v20151106'
+  executableWar 'org.eclipse.jetty:jetty-annotations:9.3.6.v20151106'
+
   testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
   testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
 }
 
-//targetCompatibility = '1.7'
+sourceSets.all {
+  compileClasspath += configurations.executableWar
+}
+
+targetCompatibility = '1.7'
+sourceCompatibility = '1.7'
 
 defaultTasks 'compileScala'
 
@@ -102,4 +122,18 @@ flyway {
   password = 'sa'
   schemas = ['PUBLIC']
 }
+
+war {
+  from {
+    configurations.executableWar.collect {
+      return it.isDirectory() ? it : zipTree(it)
+    }
+  }
+  from "$buildDir/classes/main"
+
+  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+
+  manifest.attributes('Main-Class': 'JettyLauncher')
+}
+
 

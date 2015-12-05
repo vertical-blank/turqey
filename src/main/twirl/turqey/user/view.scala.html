@@ -44,18 +44,16 @@
       </div>
       @if(u.editable){
       <div class="row">
-        <div class="col s12">
+        <div class="col s6">
           <a href="@root/user/@u.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
         </div>
-      </div>
-      }
-      @if(SessionHolder.root){
-      <div class="row">
-        <div class="col s12">
+        @if(SessionHolder.root){
+        <div class="col s6">
           <form method="post" action="@root/user/@u.id/reset" >
-            <button class="waves-effect waves-light btn"><i class="material-icons right">person_outline</i>パスワードリセット</button>
+            <button class="waves-effect waves-light btn red"><i class="material-icons right">person_outline</i>パスワードリセット</button>
           </form>
         </div>
+        }
       </div>
       }
     </div>

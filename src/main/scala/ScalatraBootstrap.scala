@@ -20,6 +20,7 @@ class ScalatraBootstrap extends LifeCycle {
     servlets.foreach { controller =>
       context.mount(controller, "/" + controller.path)
     }
+    println ("ScalatraBoot!")
   }
 }
 

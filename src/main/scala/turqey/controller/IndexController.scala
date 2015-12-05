@@ -38,17 +38,19 @@ class IndexController extends ControllerBase {
 
     val digestedPass = turqey.utils.Digest.get(pass.get)
 
-    User.findBy(sqls.eq(User.u.loginId, id).and.eq(User.u.password, digestedPass))
-      match {
-        case Some(user: User) => {
-          session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
+    val usr = User.findBy(sqls.eq(User.u.loginId, id).and.eq(User.u.password, digestedPass))
+    usr  match {
+      case Some(user: User) => {
+        session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
 
-          user.copy(lastLogin = Some(new org.joda.time.DateTime())).save()
-          
-          redirect(fullUrl("/", includeServletPath = false))
-        }
-        case None => html.login()
+        user.copy(
+          lastLogin = Some(new org.joda.time.DateTime())
+        ).save()
+        
+        redirect(fullUrl("/", includeServletPath = false) + "/")
       }
+      case None => html.login()
+    }
     
   }
 

@@ -1,11 +1,16 @@
 package turqey.servlet
 
 import javax.servlet._
+import akka.actor.{Props, ActorSystem}
+
 import scalikejdbc._
 import scalikejdbc.config._
+
 import org.flywaydb.core._
+
 import turqey.entity.User
 import turqey.utils.Digest
+import turqey.actor._
 
 class InitListener extends ServletContextListener {
 
@@ -28,6 +33,10 @@ class InitListener extends ServletContextListener {
     }
     
     ServletContextHolder.init(event.getServletContext)
+
+    // val system = ActorSystem("sample")
+    // val actor = system.actorOf(Props[MailNotificationActor])
+    // actor ! "HelloWorld!"
   }
 
   override def contextDestroyed(event: ServletContextEvent):Unit = {
