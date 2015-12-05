@@ -47,6 +47,7 @@ public class JettyLauncher {
 
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
+        String externalLocation = location.toExternalForm();
 
         Configuration[] configurations = {
             new AnnotationConfiguration(),
@@ -74,15 +75,17 @@ public class JettyLauncher {
         tmpDir.mkdirs();
         context.setTempDirectory(tmpDir);
         context.setContextPath(contextPath);
-        context.setDescriptor(location.toExternalForm() + "/WEB-INF/web.xml");
-        context.setWar(location.toExternalForm());
-
-        System.out.println(location.toExternalForm());
+        context.setDescriptor(externalLocation + "/WEB-INF/web.xml");
+        System.out.println (externalLocation);
+        if (externalLocation.endsWith(".war")){
+          context.setWar(externalLocation);
+        } else {
+          context.setResourceBase("src/main/webapp");
+        }
 
         if (forceHttps) {
             context.setInitParameter("org.scalatra.ForceHttps", "true");
         }
-        // context.setResourceBase("src/main/webapp");
 
         Server server = new Server(port);
         server.setHandler(context);
