@@ -23,8 +23,9 @@
       if ( options.theme ) editor.setTheme("ace/theme/" + options.theme);
       if ( options.mode ) editor.getSession().setMode("ace/mode/" + options.mode);
       if ( options.readOnly ) editor.setReadOnly(true);
+      if ( options.change ) editor.getSession().on("change", options.change);
+      if ( options.fontSize ) editor.setFontSize(options.fontSize);
 
-      editor.setFontSize("14px");
       editor.setValue(value);
       editor.gotoLine( 0 );
 
@@ -33,6 +34,7 @@
           valueAccessor()( editor.getValue() );
         }
       });
+
 
       instances_by_id[element.id] = editor;
 

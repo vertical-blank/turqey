@@ -193,7 +193,3 @@ class ArticleController extends ControllerBase {
 
 }
 
-object ArticleController {
-  def root: String = { turqey.servlet.ServletContextHolder.root + "/article" }
-}
-

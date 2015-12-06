@@ -30,7 +30,3 @@ class TagController extends ControllerBase {
 
 }
 
-object TagController {
-  def root: String = { turqey.servlet.ServletContextHolder.root + "/tag" }
-}
-

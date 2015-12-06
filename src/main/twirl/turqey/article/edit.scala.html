@@ -38,15 +38,21 @@
   @topnav()
     <main>
     <div class="container">
-      <form action="@ArticleController.root/@article.map(_.id)" method="post" class="col s12" id="form">
+      <form action="@root/article/@article.map(_.id)" method="post" class="col s12" id="form">
         <div class="row">
-          <div class="input-field col s12">
+          <div class="input-field col s8">
             <input type="text" name="title" 
               id="input_title" length="120"
               data-bind="textInput: title">
             <label>Title</label>
             </input>
           </div>
+          <div class="input-field col s4 right-align">
+            <button type="submit" class="waves-effect waves-light btn"
+              data-bind="enable: postable" disabled><i class="material-icons right">check</i>保存</button>
+          </div>
+        </div>
+        <div class="row">
           <div class="input-field col s3">
             <i class="material-icons prefix">search</i>
             <input type="text" id="find_tag" placeholder="検索"
@@ -70,6 +76,8 @@
             </div>
           <!-- /ko -->
           </div>
+        </div>
+        <div class="row">
           <div class="input-field col s12" >
             <div class="card" style="height: 500px; width: 100%;">
               <div class="editor" style="height: 500px; width: 100%;"
@@ -78,25 +86,17 @@
                            aceOptions: {
                              mode: 'markdown',
                              theme: 'eclipse',
-                             fontSize: 13
+                             fontSize: '14px',
+                             change: changeContent
                            }"></div>
               <textarea name="content"
                 data-bind="value: content, visible: false"></textarea>
-              @*
-              <textarea name="content" style="height: 500px; width: 100%;"
-                placeholder="Markdown" id="input_content"
-                data-bind="ace: content,
-                           aceOptions: {
-                             mode: 'markdown',
-                             theme: 'solarized_light'
-                           }"></textarea>
-              *@
               <label for="input_content" class="active" ></label>
             </div>
           </div>
         </div>
-        <button type="submit" class="waves-effect waves-light btn"
-          data-bind="enable: postable" disabled><i class="material-icons right">check</i>保存</button>
+        <div class="row" id="preview">
+        </div>
       </form>
     </div>
     </main>
@@ -131,6 +131,24 @@ var ViewModel = function (initialTags){
     self.add(i);
   };
 
+  var delay = (function(){
+    var timer = 0;
+    return function(callback, ms){
+      clearTimeout (timer);
+      timer = setTimeout(callback, ms);
+    };
+  })();
+  self.changeContent = function(){
+    delay(function(){
+      $.post(
+        '@root/api/markdown',
+        {content: ace.edit("input_content").getValue() },
+        function(response) {
+          $('#preview').html(response);
+          Prism.highlightAll();
+        }
+    )}, 800);
+  };
   self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
   self.content = ko.observable(@{Html(Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") ))});
   self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );

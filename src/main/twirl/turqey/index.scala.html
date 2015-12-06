@@ -12,7 +12,7 @@
     <div class="container">
       <p>CSV知識を共有しよう。</p>
       <p>
-        <a href="@ArticleController.root/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
+        <a href="@root/article/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
       </p>
       <div class="row">
         <div class="col s12">
@@ -35,7 +35,7 @@
         <div id="whole" class="col s12">
           <div class="collection">
           @articles.map{ a =>
-            <a href="@ArticleController.root/@a.id" class="collection-item waves-effect waves-light">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
@@ -47,7 +47,7 @@
         <div id="stock" class="col s12">
           <div class="collection">
           @articles.filter( a => stocks.contains(a.id) ).map{ a =>
-            <a href="@{ArticleController.root}/@a.id" class="collection-item waves-effect waves-light">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
@@ -59,7 +59,7 @@
         <div id="own" class="col s12">
           <div class="collection">
           @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
-            <a href="@{ArticleController.root}/@a.id" class="collection-item waves-effect waves-light">
+            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
