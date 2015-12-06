@@ -68,7 +68,7 @@ class MailNotificationActor extends Actor {
       val mimeMessage = new MimeMessage(session)
 
       val toAddr   = new InternetAddress("youhei.yamana@casleyconsulting.co.jp", "受信者の名前")
-      val fromAddr = new InternetAddress("youhei.yamana@casleyconsulting.co.jp", "送信者の名前");
+      val fromAddr = new InternetAddress("noreply@casleyconsulting.co.jp", "Turqey@Casley");
       mimeMessage.setFrom(fromAddr);
       mimeMessage.setRecipient(Message.RecipientType.TO, toAddr)
       mimeMessage.setSubject("title", "ISO-2022-JP");

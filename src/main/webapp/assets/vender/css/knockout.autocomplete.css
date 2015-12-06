@@ -1,6 +1,7 @@
 .knockout-autocomplete.menu {
     background-color: white;
     padding: 3px 0;
+    z-index: 100;
 }
 
 .knockout-autocomplete.floating-menu {

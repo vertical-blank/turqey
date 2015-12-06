@@ -9,10 +9,33 @@
   @css()
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/jquery.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.autocomplete.js"></script>
   <link href="@assets/vender/css/knockout.autocomplete.css" rel="stylesheet" />
-    @topnav()
+
+  <script type="text/javascript" src="@assets/vender/ace/ace.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/knockout-ace.js"></script>
+
+  @*
+  <link rel="stylesheet" href="@assets/vender/css/uikit.min.css" />
+  <script src="@assets/vender/js/uikit.min.js"></script>
+
+  <!-- Codemirror and marked dependencies -->
+  <link rel="stylesheet" href="@assets/vender/css/codemirror.css">
+  <script src="@assets/vender/js/codemirror.js"></script>
+  <script src="@assets/vender/js/markdown.js"></script>
+  <script src="@assets/vender/js/overlay.js"></script>
+  <script src="@assets/vender/js/xml.js"></script>
+  <script src="@assets/vender/js/gfm.js"></script>
+  <script src="@assets/vender/js/marked.min.js"></script>
+
+  <!-- HTML editor CSS and JavaScript -->
+  <link rel="stylesheet" href="@assets/vender/css/htmleditor.min.css">
+  <script src="@assets/vender/js/htmleditor.min.js"></script>
+  *@
+
+  @topnav()
     <main>
     <div class="container">
       <form action="@ArticleController.root/@article.map(_.id)" method="post" class="col s12" id="form">
@@ -28,7 +51,7 @@
             <i class="material-icons prefix">search</i>
             <input type="text" id="find_tag" placeholder="検索"
               data-bind="event: {keypress: onEnter},
-                         textInput: tagText,
+                         inputText: tagText,
                          autocomplete: {
                            data    : allTags,
                            format  : formatTagItem,
@@ -47,11 +70,29 @@
             </div>
           <!-- /ko -->
           </div>
-          <div class="input-field col s12">
-            <textarea name="content" class="materialize-textarea" 
-              placeholder="Markdown" id="input_content"
-              data-bind="textInput: content"></textarea>
-            <label>Content</label>
+          <div class="input-field col s12" >
+            <div class="card" style="height: 500px; width: 100%;">
+              <div class="editor" style="height: 500px; width: 100%;"
+                id="input_content"
+                data-bind="ace: content,
+                           aceOptions: {
+                             mode: 'markdown',
+                             theme: 'eclipse',
+                             fontSize: 13
+                           }"></div>
+              <textarea name="content"
+                data-bind="value: content, visible: false"></textarea>
+              @*
+              <textarea name="content" style="height: 500px; width: 100%;"
+                placeholder="Markdown" id="input_content"
+                data-bind="ace: content,
+                           aceOptions: {
+                             mode: 'markdown',
+                             theme: 'solarized_light'
+                           }"></textarea>
+              *@
+              <label for="input_content" class="active" ></label>
+            </div>
           </div>
         </div>
         <button type="submit" class="waves-effect waves-light btn"
@@ -90,8 +131,8 @@ var ViewModel = function (initialTags){
     self.add(i);
   };
 
-  self.title = ko.observable(@{Html(Json.toJson(article.map(_.title)))});
-  self.content = ko.observable(@{Html(Json.toJson(article.map( x => clobToString(x.content))))});
+  self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
+  self.content = ko.observable(@{Html(Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") ))});
   self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
 };
 

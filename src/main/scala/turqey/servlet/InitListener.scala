@@ -33,10 +33,6 @@ class InitListener extends ServletContextListener {
     }
     
     ServletContextHolder.init(event.getServletContext)
-
-    // val system = ActorSystem("sample")
-    // val actor = system.actorOf(Props[MailNotificationActor])
-    // actor ! "HelloWorld!"
   }
 
   override def contextDestroyed(event: ServletContextEvent):Unit = {
