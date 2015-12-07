@@ -25,6 +25,7 @@
       if ( options.readOnly ) editor.setReadOnly(true);
       if ( options.change ) editor.getSession().on("change", options.change);
       if ( options.fontSize ) editor.setFontSize(options.fontSize);
+      if ( options.maxLines ) editor.setMaxLines(options.maxLines);
 
       editor.setValue(value);
       editor.gotoLine( 0 );

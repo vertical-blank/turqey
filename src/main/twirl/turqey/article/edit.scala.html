@@ -83,6 +83,7 @@
               <div style="float: left; width: 50%; height: 100%;">
                 <div style="height: 36px; width: 100%;">
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">code</i></a>
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">link</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">border_all</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
@@ -106,7 +107,8 @@
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">fullscreen</i></a>
                 </div>
                 <div style="overflow: auto;">
-                  <div id="preview" class="markdown" style="height: 100%;"></div>
+                  <div id="preview" class="markdown" style="height: 100%;"
+                    data-bind="html: marked"></div>
                 </div>
               </div>
             </div>
@@ -153,13 +155,14 @@ var ViewModel = function (initialTags){
       timer = setTimeout(callback, ms);
     };
   })();
+  self.marked = ko.observable("");
   self.changeContent = function(){
     delay(function(){
       $.post(
         '@root/api/markdown',
         {content: ace.edit("input_content").getValue() },
         function(response) {
-          $('#preview').html(response);
+          self.marked(response);
           Prism.highlightAll();
         }
     )}, 800);
