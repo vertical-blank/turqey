@@ -49,7 +49,7 @@
           </div>
           <div class="input-field col s4 right-align">
             <button type="submit" class="waves-effect waves-light btn"
-              data-bind="enable: postable" disabled><i class="material-icons right">check</i>保存</button>
+              data-bind="enable: postable" disabled><i class="material-icons right">save</i>保存</button>
           </div>
         </div>
         <div class="row">
@@ -79,23 +79,38 @@
         </div>
         <div class="row">
           <div class="input-field col s12" >
-            <div class="card" style="height: 500px; width: 100%;">
-              <div class="editor" style="height: 500px; width: 100%;"
-                id="input_content"
-                data-bind="ace: content,
-                           aceOptions: {
-                             mode: 'markdown',
-                             theme: 'eclipse',
-                             fontSize: '14px',
-                             change: changeContent
-                           }"></div>
-              <textarea name="content"
-                data-bind="value: content, visible: false"></textarea>
-              <label for="input_content" class="active" ></label>
+            <div class="card" style="height: 500px;">
+              <div style="float: left; width: 50%; height: 100%;">
+                <div style="height: 36px; width: 100%;">
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">code</i></a>
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">border_all</i></a>
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
+                </div>
+                <div class="editor"
+                  style="height: 100%; width: 100%;"
+                  id="input_content"
+                  data-bind="ace: content,
+                             aceOptions: {
+                               mode: 'markdown',
+                               theme: 'eclipse',
+                               fontSize: '14px',
+                               change: changeContent
+                             }"></div>
+                <textarea name="content"
+                  data-bind="value: content, visible: false"></textarea>
+                <label for="input_content" class="active" ></label>
+              </div>
+              <div>
+                <div class="right-align" style="height: 36px; width: 100%;">
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">fullscreen</i></a>
+                </div>
+                <div style="overflow: auto;">
+                  <div id="preview" class="markdown" style="height: 100%;"></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="row" id="preview">
         </div>
       </form>
     </div>

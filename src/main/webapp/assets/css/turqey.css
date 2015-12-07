@@ -1,0 +1,12 @@
+.markdown ul {
+  padding: 0 0 0 1.5rem;
+}
+.markdown ul li { 
+   list-style-type: disc !important;
+}
+.markdown ul li ul li { 
+   list-style-type: circle !important; 
+}
+.markdown ul li ul li ul li { 
+   list-style-type: square !important; 
+}
