@@ -41,7 +41,7 @@
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
               <p>
-              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
                 <div class="chip">
                   @tag.name
                 </div>
@@ -60,7 +60,7 @@
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
               <p>
-              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
                 <div class="chip">
                   @tag.name
                 </div>
@@ -79,7 +79,7 @@
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
               <p>
-              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
                 <div class="chip">
                   @tag.name
                 </div>
