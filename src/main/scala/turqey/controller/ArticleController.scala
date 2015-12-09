@@ -23,7 +23,9 @@ class ArticleController extends ControllerBase {
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
     val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
+
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
+
     val as = ArticleStock.as
     val stocked = ArticleStock.findBy(sqls
       .eq(as.articleId, articleId).and
@@ -81,11 +83,14 @@ class ArticleController extends ControllerBase {
         ).save()
       }
       case _ => {
-        ArticleComment.create(
+        val commentId = ArticleComment.create(
           articleId = articleId,
           content   = comment,
           userId    = turqey.servlet.SessionHolder.user.get.id
-        )
+        ).id
+        CommentNotification.create(
+          commentId = commentId
+        );
       }
     }
 
@@ -161,6 +166,10 @@ class ArticleController extends ControllerBase {
           articleId = articleId,
           userId    = userId
         )
+        StockNotification.create(
+          articleId = articleId,
+          userId    = userId
+        );
       }
     }
 

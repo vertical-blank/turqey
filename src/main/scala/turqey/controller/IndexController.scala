@@ -54,5 +54,10 @@ class IndexController extends ControllerBase {
     
   }
 
+  val logout = get("/logout") {
+    session.invalidate()
+    redirect(url(login))
+  }
+
 }
 
