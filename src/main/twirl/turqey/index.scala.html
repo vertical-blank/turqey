@@ -2,7 +2,7 @@
 @import turqey.servlet._
 @import turqey.controller._
 
-@(articles: Seq[Article], stocks: Seq[scala.Long])
+@(articles: Seq[Article], stocks: Seq[scala.Long], tagsByArticleId: scala.collection.immutable.Map[scala.Long, Seq[(scala.Long, Tag)]])
 <html>
   @css()
   <body>
@@ -40,6 +40,13 @@
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
+              <p>
+              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+                <div class="chip">
+                  @tag.name
+                </div>
+              }
+              </p>
             </a>
           }
           </div>
@@ -52,6 +59,13 @@
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
+              <p>
+              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+                <div class="chip">
+                  @tag.name
+                </div>
+              }
+              </p>
             </a>
           }
           </div>
@@ -63,6 +77,13 @@
               <span class="title" href="@root/article/@a.id">@a.title</span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
+              </p>
+              <p>
+              @tagsByArticleId.get(a.id).getOrElse(Seq()).map { case (id, tag) =>
+                <div class="chip">
+                  @tag.name
+                </div>
+              }
               </p>
             </a>
           }

@@ -21,7 +21,7 @@ class ArticleController extends ControllerBase {
     val article = Article.find(articleId).getOrElse(redirect("/"))
     //val latestEdit = ArticleHistory.findAllBy(sql.eq(ArticleHistory.ah.articleId, articleId)).tail
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-    val allTags = turqey.entity.Tag.findAll().map( x => (x.id, x) ).toMap
+    val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
 
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))

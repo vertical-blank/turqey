@@ -18,8 +18,8 @@
 
   @topnav()
     <main>
-    <div class="container">
-      <form action="@root/article/@article.map(_.id)" method="post" class="col s12" id="form">
+    <form action="@root/article/@article.map(_.id)" method="post" class="col s12" id="form">
+      @*<div class="container">*@
         <div class="row">
           <div class="input-field col s8">
             <input type="text" name="title" 
@@ -65,6 +65,7 @@
                 <div style="height: 36px; width: 100%;">
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">code</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">link</i></a>
+                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">insert_photo</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">border_all</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
                   <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
@@ -95,8 +96,8 @@
             </div>
           </div>
         </div>
-      </form>
-    </div>
+      @*</div>*@
+    </form>
     </main>
   </body>
 

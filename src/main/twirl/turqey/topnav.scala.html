@@ -12,7 +12,8 @@
           <li><a class="dropdown-button waves-effect waves-light" href="#" 
             data-activates="dropdown1"
             data-constrainwidth="false"
-            data-beloworigin="true" >@u.name</a></li>
+            data-beloworigin="true"
+            data-alignment="right" >@u.name</a></li>
           @*<li><img src="@u.imgUrl" class="waves-effect waves-light"></li>*@
           }
         </ul>
@@ -20,10 +21,10 @@
     </div>
   </nav>
 @additional
-<ul id='dropdown1' class='dropdown-content'>
-  <li><a href="@root/user/self">プロフィール</a></li>
-  <li><a href="@root/article/edit">記事作成</a></li>
+<ul id="dropdown1" class="dropdown-content" style="width: 12rem;">
+  <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
+  <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
   <li class="divider"></li>
-  <li><a href="@root/logout">ログアウト</a></li>
+  <li><a href="@root/logout"><i class="material-icons small left">exit_to_app</i>ログアウト</a></li>
 </ul>
 </header>

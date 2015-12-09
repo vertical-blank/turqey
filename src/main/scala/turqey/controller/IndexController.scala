@@ -13,19 +13,19 @@ class IndexController extends ControllerBase {
   override val shouldLoggedIn = false
 
   val entry = get("/") {
-    val articles = 
-      if (SessionHolder.user isDefined){
-        Article.findAll()
-      }
-      else {
-        redirect(url(login))
-      }
+    if (!(SessionHolder.user isDefined)){
+      redirect(url(login))
+    }
 
+    val articles = Article.findAll()
     val stocks = ArticleStock.findAllBy(
       sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)
     ).map( x => x.articleId )
+    val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
+    val taggings = ArticleTagging.findAll().map( x => (x.articleId, allTags(x.tagId) ) )
+    val tagsByArticleId = taggings.groupBy{ case (articleId, tag) => articleId }
 
-    html.index(articles, stocks)
+    html.index(articles, stocks, tagsByArticleId)
   }
   
   val login = get("/login") {
