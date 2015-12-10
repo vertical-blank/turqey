@@ -1,15 +1,5 @@
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.annotations.AnnotationConfiguration;
-import org.eclipse.jetty.plus.webapp.EnvConfiguration;
-import org.eclipse.jetty.plus.webapp.PlusConfiguration;
-import org.eclipse.jetty.webapp.Configuration;
-import org.eclipse.jetty.webapp.FragmentConfiguration;
-import org.eclipse.jetty.webapp.JettyWebXmlConfiguration;
-import org.eclipse.jetty.webapp.MetaInfConfiguration;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebInfConfiguration;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
 import org.scalatra.servlet.ScalatraListener;
 
@@ -48,18 +38,6 @@ public class JettyLauncher {
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
         String externalLocation = location.toExternalForm();
-
-        Configuration[] configurations = {
-            new AnnotationConfiguration(),
-            new WebInfConfiguration(),
-            new WebXmlConfiguration(),
-            new MetaInfConfiguration(),
-            new FragmentConfiguration(),
-            new EnvConfiguration(),
-            new PlusConfiguration(),
-            new JettyWebXmlConfiguration()
-        };
-        context.setConfigurations(configurations);
 
         File tmpDir = new File(new File(System.getProperty("user.home"), ".turqey"), "tmp");
         if(tmpDir.exists()){
