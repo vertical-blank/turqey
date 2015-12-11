@@ -20,7 +20,8 @@
         <a href="#" data-activates="mobile-menu" class="button-collapse right"><i class="material-icons">menu</i></a>
         <ul class="side-nav" id="mobile-menu">
           @SessionHolder.user.map{ u =>
-            <li><a href="@root/tag" class="waves-effect waves-light" style="color: white;">タグ一覧</a></li>
+            <li><a href="@root/tag" class="waves-effect waves-light">タグ一覧</a></li>
+            <li class="divider"></li>
             <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
             <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
             <li class="divider"></li>
