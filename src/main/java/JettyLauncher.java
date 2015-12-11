@@ -14,25 +14,6 @@ public class JettyLauncher {
         String contextPath = "/";
         boolean forceHttps = false;
 
-        /*
-        for(String arg: args) {
-            if(arg.startsWith("--") && arg.contains("=")) {
-                String[] dim = arg.split("=");
-                if(dim.length >= 2) {
-                    if(dim[0].equals("--host")) {
-                        host = dim[1];
-                    } else if(dim[0].equals("--port")) {
-                        port = Integer.parseInt(dim[1]);
-                    } else if(dim[0].equals("--prefix")) {
-                        contextPath = dim[1];
-                    } else if(dim[0].equals("--gitbucket.home")){
-                        System.setProperty("gitbucket.home", dim[1]);
-                    }
-                }
-            }
-        }
-        */
-
         WebAppContext context = new WebAppContext();
 
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();

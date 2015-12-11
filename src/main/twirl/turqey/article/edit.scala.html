@@ -19,7 +19,6 @@
   @topnav()
     <main>
     <form action="@root/article/@article.map(_.id)" method="post" class="col s12" id="form">
-      @*<div class="container">*@
         <div class="row">
           <div class="input-field col s8">
             <input type="text" name="title" 
@@ -58,46 +57,42 @@
           <!-- /ko -->
           </div>
         </div>
-        <div class="row">
-          <div class="input-field col s12" >
-            <div class="card" style="height: 500px;">
-              <div style="float: left; width: 50%; height: 100%;">
-                <div style="height: 36px; width: 100%;">
-                  <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs"><i class="small material-icons">code</i></a>
-                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
-                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
-                  <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
-                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
-                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
-                </div>
-                <div class="editor"
-                  style="height: 100%; width: 100%;"
-                  id="input_content"
-                  data-bind="ace: content,
-                             aceOptions: {
-                               mode: 'markdown',
-                               theme: 'eclipse',
-                               fontSize: '14px',
-                               change: changeContent
-                             }"></div>
-                <textarea name="content"
-                  data-bind="value: content, visible: false"></textarea>
-                <label for="input_content" class="active" ></label>
-              </div>
-              <div>
-                <div class="right-align" style="height: 36px; width: 100%;">
-                  <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">fullscreen</i></a>
-                </div>
-                <div style="overflow: auto;">
-                  <div id="preview" class="markdown" style="height: 100%;"
-                    data-bind="html: marked"></div>
-                </div>
-              </div>
+        
+        <div style="height: 500px;">
+          <div style="float: left; width: 50%; height: 100%;">
+            <div style="height: 36px; width: 100%;">
+              <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false"><i class="small material-icons">code</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
+              <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
+            </div>
+            <div class="editor"
+              style="height: 100%; width: 100%;"
+              id="input_content"
+              data-bind="ace: content,
+                          aceOptions: {
+                            mode: 'markdown',
+                            theme: 'eclipse',
+                            fontSize: '14px',
+                            change: changeContent
+                          }"></div>
+            <textarea name="content"
+              data-bind="value: content, visible: false"></textarea>
+            <label for="input_content" class="active" ></label>
+          </div>
+          <div>
+            <div class="right-align" style="height: 36px; width: 100%;">
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">fullscreen</i></a>
+            </div>
+            <div style="overflow: auto;">
+              <div id="preview" class="markdown" style="height: 100%;"
+                data-bind="html: marked"></div>
             </div>
           </div>
         </div>
-      @*</div>*@
-    <ul id="langs" class="dropdown-content" style="max-height: 300px; width: 12rem;">
+    <ul id="langs" class="dropdown-content" style="max-height: 300px; overflow-x: hidden;">
       <!-- ko foreach: langs -->
         <li><a data-bind="text: name, click: $root.insertLang" ></a></li>
       <!-- /ko -->
@@ -199,9 +194,12 @@ var ViewModel = function (initialTags){
     {name: 'typescript'},
     {name: 'yaml'}
   ]);
-  self.insertLang = function(obj){ 
+  self.insertLang = function(lang){ 
     (function(editor){
-      editor.getSession().insert({ row:editor.getSelection().getCursor().row + 1, column: 0 }, "```" + obj.name + "\r\n\r\n```")
+      var selection = editor.getSelection();
+      var row = selection.getCursor().row;
+      editor.getSession().insert({ row: row + 1, column: 0 }, "```" + lang.name + "\r\nInsert_Code_Here\r\n```");
+      selection.setSelectionRange({start:{row: row + 1, column: 0}, end:{row: row + 1, column:20}});
     })(ace.edit("input_content"))
   };
   
