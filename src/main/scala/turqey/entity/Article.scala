@@ -35,6 +35,7 @@ object Article extends SQLSyntaxSupport[Article] {
   override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED")
 
   def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
+  def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = apply(a, None)(rs)
   def apply(a: ResultName[Article], u: Option[ResultName[User]])(rs: WrappedResultSet): Article = new Article(
     id = rs.get(a.id),
     projectId = rs.get(a.projectId),
@@ -61,7 +62,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   def findAll()(implicit session: DBSession = autoSession): List[Article] = {
     val u = User.u
-    withSQL{ 
+    withSQL{
       select.from(Article as a).join(User as u).on(a.ownerId, u.id)
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }

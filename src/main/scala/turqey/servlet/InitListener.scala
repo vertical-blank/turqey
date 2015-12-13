@@ -9,7 +9,7 @@ import scalikejdbc.config._
 import org.flywaydb.core._
 
 import turqey.entity.User
-import turqey.utils.Digest
+import turqey.utils._
 import turqey.actor._
 
 class InitListener extends ServletContextListener {
@@ -69,6 +69,12 @@ object ServletContextHolder {
 import akka.actor.Actor
 
 class HogeActor extends Actor {
-  def receive = { case x: String => { println("received!") }  }
+  def receive = { case x: String => {
+      DB readOnly { implicit session =>
+        println( Mailer.getStockNotifications() )
+        println( Mailer.getCommentNotifications() )
+      }
+    }
+  }
 }
 

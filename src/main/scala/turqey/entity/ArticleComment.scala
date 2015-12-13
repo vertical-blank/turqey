@@ -34,6 +34,7 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
   override val columns = Seq("ID", "ARTICLE_ID", "USER_ID", "CONTENT", "CREATED")
 
   def apply(ac: SyntaxProvider[ArticleComment])(rs: WrappedResultSet): ArticleComment = apply(ac.resultName, None)(rs)
+  def apply(ac: ResultName[ArticleComment])(rs: WrappedResultSet): ArticleComment = apply(ac, None)(rs)
   def apply(ac: ResultName[ArticleComment], u: Option[ResultName[User]])(rs: WrappedResultSet): ArticleComment = new ArticleComment(
     id = rs.get(ac.id),
     articleId = rs.get(ac.articleId),
