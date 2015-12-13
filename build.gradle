@@ -36,6 +36,7 @@ dependencies {
   compile 'org.scala-lang:scala-xml:2.11.0-M4'
   compile 'com.typesafe.play:twirl-api_2.11:1.0.2'
   compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.3.6'
+  compile group: 'com.enragedginger', name: 'akka-quartz-scheduler_2.11', version: '1.4.0-akka-2.3.x'
   compile group: 'org.scalatra', name: 'scalatra_2.11', version: '2.3.0'
   compile group: 'com.typesafe.scala-logging', name: 'scala-logging-slf4j_2.11', version: '2.1.2'
 

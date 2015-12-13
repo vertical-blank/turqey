@@ -28,11 +28,24 @@ class InitListener extends ServletContextListener {
         name     = "root",
         password = Digest.get("root"),
         imgUrl   = "",
-        root     = false
+        root     = true
       )
     }
     
     ServletContextHolder.init(event.getServletContext)
+
+    import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+    import akka._
+    // スケジューラを生成
+    val system = ActorSystem("SampleSystem")
+    val scheduler = QuartzSchedulerExtension(system)
+    // アクターをスケジューリング
+    scheduler.schedule(
+      "Every5Seconds",                       // アクターの名前
+      system.actorOf(Props[HogeActor]), // ActorRef
+      "Hello"                                 // アクターに送信するメッセージ
+    )
+
   }
 
   override def contextDestroyed(event: ServletContextEvent):Unit = {
@@ -51,5 +64,11 @@ object ServletContextHolder {
   def get():ServletContext = { this.srvCxt } 
   def root:String = { this.srvCxt.getContextPath }
   def assets:String = { this.root + "/assets" }
+}
+
+import akka.actor.Actor
+
+class HogeActor extends Actor {
+  def receive = { case x: String => { println("received!") }  }
 }
 

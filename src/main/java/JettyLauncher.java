@@ -10,7 +10,7 @@ import java.security.ProtectionDomain;
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
         String host = null;
-        int port = 8080;
+        int port = 8081;
         String contextPath = "/";
         boolean forceHttps = false;
 
