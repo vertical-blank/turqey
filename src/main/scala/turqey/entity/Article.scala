@@ -63,7 +63,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def findAll()(implicit session: DBSession = autoSession): List[Article] = {
     val u = User.u
     withSQL{
-      select.from(Article as a).join(User as u).on(a.ownerId, u.id)
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).orderBy(a.id).desc
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
@@ -80,8 +80,11 @@ object Article extends SQLSyntaxSupport[Article] {
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[Article] = {
     val u = User.u
+    val h = ArticleHistory.ah
     withSQL {
-      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.append(where)
+      select.from(Article as a)
+      .join(User as u).on(a.ownerId, u.id)
+      .where.append(where).orderBy(a.id).desc
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 

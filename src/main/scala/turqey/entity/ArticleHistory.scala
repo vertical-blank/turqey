@@ -127,5 +127,12 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   def destroy(entity: ArticleHistory)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(ArticleHistory).where.eq(column.id, entity.id) }.update.apply()
   }
+  
+  def findLatestsByIds(articleIds: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, DateTime] = {
+    withSQL {
+      select.from(ArticleHistory as ah)
+      .where.in(ah.articleId, articleIds)
+    }.map{ rs => ( rs.long(ah.articleId), rs.jodaDateTime(ah.created) ) }.list.apply().toMap
+  }
 
 }

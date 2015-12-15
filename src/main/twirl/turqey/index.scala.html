@@ -1,6 +1,7 @@
 @import turqey.entity._
 @import turqey.servlet._
 @import turqey.controller._
+@import turqey.utils.Json
 
 @(articles: Seq[Article], stocks: Seq[scala.Long], tagsByArticleId: scala.collection.immutable.Map[scala.Long, Seq[(scala.Long, Tag)]])
 <html>
@@ -10,7 +11,7 @@
     <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav()
     <main>
-    <div class="container">
+    <div class="container" id="container">
       <p>CSV知識を共有しよう。</p>
       <p>
         <a href="@root/article/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
@@ -45,64 +46,82 @@
             <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
           </ul>
           *@
-          <div class="collection">
-          @articles.map{ a =>
-            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
-              <span class="title" href="@root/article/@a.id">@a.title</span>
-              <p>
-                @a.owner.get.name @a.created.toString("yyyy/MM/dd")
-              </p>
-              <p>
-              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
-                <div class="chip">
-                  @tag.name
-                </div>
-              }
-              </p>
-            </a>
-          }
-          </div>
+          <!-- ko foreach: articles -->
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                <a class="collection-item waves-effect waves-light" data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
+                </span>
+                <p>
+                  <span data-bind="text: owner.name"></span>
+                  <span data-bind="text: created"></span>
+                </p>
+                <p>
+                </p>
+              </div>
+            </div>
+          <!-- /ko -->
         </div>
         <div id="stock" class="col s12">
-          <div class="collection">
           @articles.filter( a => stocks.contains(a.id) ).map{ a =>
-            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
-              <span class="title" href="@root/article/@a.id">@a.title</span>
-              <p>
-                @a.owner.get.name @a.created.toString("yyyy/MM/dd")
-              </p>
-              <p>
-              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
-                <div class="chip">
-                  @tag.name
-                </div>
-              }
-              </p>
-            </a>
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">@a.title</a>
+                </span>
+                <p>
+                  @a.owner.get.name @a.created.toString("yyyy/MM/dd")
+                </p>
+                <p>
+                @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
+                  <div class="chip">
+                    <a href="@root/tag/@tag.id">@tag.name</a>
+                  </div>
+                }
+                </p>
+              </div>
+            </div>
           }
-          </div>
         </div>
         <div id="own" class="col s12">
-          <div class="collection">
           @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
-            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
-              <span class="title" href="@root/article/@a.id">@a.title</span>
-              <p>
-                @a.owner.get.name @a.created.toString("yyyy/MM/dd")
-              </p>
-              <p>
-              @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
-                <div class="chip">
-                  @tag.name
-                </div>
-              }
-              </p>
-            </a>
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">@a.title</a>
+                </span>
+                <p>
+                  @a.owner.get.name @a.created.toString("yyyy/MM/dd")
+                </p>
+                <p>
+                @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
+                  <div class="chip">
+                    <a href="@root/tag/@tag.id">@tag.name</a>
+                  </div>
+                }
+                </p>
+              </div>
+            </div>
           }
-          </div>
         </div>
       </div>
     </div>
     </main>
   </body>
+<script>
+
+var ViewModel = function (){
+  var self = this;
+  
+  self.articlesAll = @{Html(Json.toJson( articles.map(_.id).grouped(10).toSeq ))};
+  
+  self.articles = ko.observableArray(@{Html(Json.toJson( articles ))});
+  
+};
+
+
+// Activates knockout.js
+var vm = new ViewModel();
+ko.applyBindings(vm, document.getElementById('container'));
+</script>
 </html>

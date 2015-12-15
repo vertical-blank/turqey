@@ -118,7 +118,7 @@
   </body>
 
 <script>
-var allTags = @{Html(Json.toJson(Tag.findAll()))}
+var allTags = @{Html(Json.toJson(Tag.findAll()))};
 var ViewModel = function (initialTags){
   var self = this;
   self.tags = ko.observableArray(initialTags);
