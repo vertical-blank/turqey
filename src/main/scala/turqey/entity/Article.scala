@@ -168,5 +168,21 @@ object Article extends SQLSyntaxSupport[Article] {
       )
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
+  
+  case class ArticleForList(id: Long, title: String, created: String, updated: String, user: User, tags: Seq[Tag])
+  def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
+    val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
+    val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
+    val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
+    
+    articles.map{ a => ArticleForList(
+      id      = a.id,
+      title   = a.title,
+      created = a.created.toString("yyyy/MM/dd"),
+      updated = lastUpdatesByIds.get(a.id).map(_.toString("yyyy/MM/dd")).getOrElse(""),
+      user    = a.owner.get,
+      tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2)
+    ) }
+  }
 
 }

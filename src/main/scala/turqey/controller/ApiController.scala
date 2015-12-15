@@ -18,25 +18,11 @@ class ApiController extends ControllerBase {
     Markdown.html(content);
   }
   
-  case class ArticleForList(id: Long, title: String, created: String, updated: String, user: User, tags: Seq[Tag])
-  
   post("/article/list") {
     contentType = "application/json"
     val ids = multiParams("id").map(_.toLong)
     
-    val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
-    val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
-    val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
-    val articlesWithTags = articles.map{ a => ArticleForList(
-      id      = a.id,
-      title   = a.title,
-      created = a.created.toString("yyyy/MM/dd"),
-      updated = lastUpdatesByIds.get(a.id).map(_.toString("yyyy/MM/dd")).getOrElse(""),
-      user    = a.owner.get,
-      tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2)
-    ) }
-    
-    Json.toJson(tagsOfArticleIds)
+    Json.toJson(Article.findForList(ids))
   }
 
 }
