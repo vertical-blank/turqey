@@ -184,5 +184,11 @@ object Article extends SQLSyntaxSupport[Article] {
       tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2)
     ) }
   }
+  
+  def findAllId()(implicit session: DBSession = autoSession) :Seq[Long] = {
+    withSQL {
+      select(a.result.id).from(Article as a).orderBy(a.id).desc
+    }.map(_.long(1)).list.apply()
+  }
 
 }

@@ -17,15 +17,14 @@ class IndexController extends ControllerBase {
       redirect(url(login))
     }
 
-    val articles = Article.findAll()
+    val articleIds = Article.findAllId().grouped(20).toSeq
     val stocks = ArticleStock.findAllBy(
       sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)
     ).map( x => x.articleId )
-    val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-    val taggings = ArticleTagging.findAll().map( x => (x.articleId, allTags(x.tagId) ) )
-    val tagsByArticleId = taggings.groupBy{ case (articleId, tag) => articleId }
+    
+    val articles = Article.findForList(articleIds.headOption.getOrElse(Seq()))
 
-    html.index(articles, stocks, tagsByArticleId)
+    html.index(articleIds, stocks, articles)
   }
   
   val login = get("/login") {

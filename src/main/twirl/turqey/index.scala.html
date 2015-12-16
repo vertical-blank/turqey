@@ -3,7 +3,7 @@
 @import turqey.controller._
 @import turqey.utils.Json
 
-@(articles: Seq[Article], stocks: Seq[scala.Long], tagsByArticleId: scala.collection.immutable.Map[scala.Long, Seq[(scala.Long, Tag)]])
+@(articleIds: Seq[Seq[scala.Long]], stocks: Seq[scala.Long], articles: Seq[Article.ArticleForList])
 <html>
   @css()
   <body>
@@ -63,6 +63,7 @@
           <!-- /ko -->
         </div>
         <div id="stock" class="col s12">
+          @*
           @articles.filter( a => stocks.contains(a.id) ).map{ a =>
             <div class="card">
               <div class="card-content">
@@ -82,8 +83,10 @@
               </div>
             </div>
           }
+          *@
         </div>
         <div id="own" class="col s12">
+          @*
           @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
             <div class="card">
               <div class="card-content">
@@ -103,6 +106,7 @@
               </div>
             </div>
           }
+          *@
         </div>
       </div>
     </div>
@@ -113,7 +117,7 @@
 var ViewModel = function (){
   var self = this;
   
-  self.articlesAll = @{Html(Json.toJson( articles.map(_.id).grouped(10).toSeq ))};
+  self.articlesAll = @{Html(Json.toJson( articleIds ))};
   
   self.articles = ko.observableArray(@{Html(Json.toJson( articles ))});
   

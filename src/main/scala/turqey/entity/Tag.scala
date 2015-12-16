@@ -126,7 +126,7 @@ object Tag extends SQLSyntaxSupport[Tag] {
       select.from(ArticleTagging as at)
       .join(Tag as t).on(at.tagId, t.id)
       .where.in(at.articleId, articleIds)
-    }.map{ rs => ( rs.long(at.articleId), Tag(t.resultName)(rs) ) }.list.apply().groupBy(_._1)
+    }.map{ rs => ( rs.long(at.resultName.articleId), Tag(t.resultName)(rs) ) }.list.apply().groupBy(_._1)
   }
 
 }
