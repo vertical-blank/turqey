@@ -11,20 +11,25 @@ import turqey.html
 class IndexController extends ControllerBase {
   override val path = ""
   override val shouldLoggedIn = false
+  
+  val pagesize = 20
 
   val entry = get("/") {
     if (!(SessionHolder.user isDefined)){
       redirect(url(login))
     }
 
-    val articleIds = Article.findAllId().grouped(20).toSeq
-    val stocks = ArticleStock.findAllBy(
+    val articleIds = Article.findAllId().grouped(pagesize).toSeq
+    val stockIds = ArticleStock.findAllBy(
       sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)
-    ).map( x => x.articleId )
+    ).map( x => x.articleId ).grouped(pagesize).toSeq
+    val ownIds = Article.findAllIdBy(
+      sqls.eq(Article.column.ownerId, SessionHolder.user.get.id)
+    ).grouped(pagesize).toSeq
     
     val articles = Article.findForList(articleIds.headOption.getOrElse(Seq()))
 
-    html.index(articleIds, stocks, articles)
+    html.index(articleIds, stockIds, ownIds, articles)
   }
   
   val login = get("/login") {

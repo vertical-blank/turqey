@@ -20,7 +20,7 @@ class ApiController extends ControllerBase {
   
   post("/article/list") {
     contentType = "application/json"
-    val ids = multiParams("id").map(_.toLong)
+    val ids = multiParams("ids").map(_.toLong)
     
     Json.toJson(Article.findForList(ids))
   }

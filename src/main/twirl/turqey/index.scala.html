@@ -3,7 +3,7 @@
 @import turqey.controller._
 @import turqey.utils.Json
 
-@(articleIds: Seq[Seq[scala.Long]], stocks: Seq[scala.Long], articles: Seq[Article.ArticleForList])
+@(articleIds: Seq[Seq[scala.Long]], stockIds: Seq[Seq[scala.Long]], ownIds: Seq[Seq[scala.Long]], articles: Seq[Article.ArticleForList])
 <html>
   @css()
   <body>
@@ -19,95 +19,36 @@
       <div class="row">
         <div class="col s12">
           <ul class="tabs">
-            @*
-            <li class="tab col s2"><a class="waves-effect" href="#following">フォロー中</a></li>
-            *@
-            <li class="tab col"><a class="active waves-effect" href="#whole">全ての投稿</a></li>
-            @*
-            <li class="tab col s2 disabled"><a href="#"></a></li>
-            <li class="tab col s2 disabled"><a href="#"></a></li>
-            *@
-            <li class="tab col"><a class="waves-effect" href="#stock">ストック</a></li>
-            <li class="tab col"><a class="waves-effect" href="#own">自分の投稿</a></li>
+            <li class="tab col"><a class="waves-effect active" data-bind="click: showWhole">全ての投稿</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showStock">ストック</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showOwn">自分の投稿</a></li>
           </ul>
         </div>
-        @*
-        <div id="following" class="col s12">W.I.P.</div>
-        *@
-        <div id="whole" class="col s12">
-          @*
-          <ul class="pagination" style="text-align: center;">
-            <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-            <li class="active"><a href="#!">1</a></li>
-            <li class="waves-effect"><a href="#!">2</a></li>
-            <li class="waves-effect"><a href="#!">3</a></li>
-            <li class="waves-effect"><a href="#!">4</a></li>
-            <li class="waves-effect"><a href="#!">5</a></li>
-            <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-          </ul>
-          *@
-          <!-- ko foreach: articles -->
-            <div class="card">
-              <div class="card-content">
-                <span class="card-title">
-                <a class="collection-item waves-effect waves-light" data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
-                </span>
-                <p>
-                  <span data-bind="text: owner.name"></span>
-                  <span data-bind="text: created"></span>
-                </p>
-                <p>
-                </p>
+        <!-- ko foreach: tabs -->
+          <div data-bind="visible: (name == $root.selectedTab())">
+            <div class="col s12" data-bind="foreach: articles">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">
+                  <a class="collection-item waves-effect waves-light" data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
+                  </span>
+                  <p>
+                    <span data-bind="text: owner.name"></span>
+                    <span data-bind="text: created"></span>
+                  </p>
+                  <p>
+                    <div data-bind="foreach: tags ">
+                      <div class="chip">
+                        <a data-bind="text: name, attr: { href: '@root/tag/' + id }" ></a>
+                      </div>
+                    </div>
+                  </p>
+                </div>
               </div>
             </div>
-          <!-- /ko -->
-        </div>
-        <div id="stock" class="col s12">
-          @*
-          @articles.filter( a => stocks.contains(a.id) ).map{ a =>
-            <div class="card">
-              <div class="card-content">
-                <span class="card-title">
-                <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">@a.title</a>
-                </span>
-                <p>
-                  @a.owner.get.name @a.created.toString("yyyy/MM/dd")
-                </p>
-                <p>
-                @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
-                  <div class="chip">
-                    <a href="@root/tag/@tag.id">@tag.name</a>
-                  </div>
-                }
-                </p>
-              </div>
-            </div>
-          }
-          *@
-        </div>
-        <div id="own" class="col s12">
-          @*
-          @articles.filter(a => a.ownerId == SessionHolder.user.get.id).map{ a =>
-            <div class="card">
-              <div class="card-content">
-                <span class="card-title">
-                <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">@a.title</a>
-                </span>
-                <p>
-                  @a.owner.get.name @a.created.toString("yyyy/MM/dd")
-                </p>
-                <p>
-                @tagsByArticleId.getOrElse(a.id, Seq()).map { case (id, tag) =>
-                  <div class="chip">
-                    <a href="@root/tag/@tag.id">@tag.name</a>
-                  </div>
-                }
-                </p>
-              </div>
-            </div>
-          }
-          *@
-        </div>
+            <button class="waves-effect waves-light btn" data-bind="visible: hasNext, click: append">もっと見る</button>
+          </div>
+        <!-- /ko -->
       </div>
     </div>
     </main>
@@ -117,10 +58,38 @@
 var ViewModel = function (){
   var self = this;
   
-  self.articlesAll = @{Html(Json.toJson( articleIds ))};
+  var TabModel = function (name, ids){
+    var self = this;
+    
+    self.name = name;
+    self.ids = ko.observableArray(ids);
+    self.articles = ko.observableArray([]);
+    
+    self.append = function() {
+      $.post('@root/api/article/list', { ids: self.ids.shift() }, function (response){ self.articles(self.articles().concat(response)) } );
+    };
+    self.load = function() {
+      if (!self.articles().length){ self.append(); }
+    };
+    self.hasNext = ko.pureComputed(function (){ return self.ids().length !== 0; });
+  };
   
-  self.articles = ko.observableArray(@{Html(Json.toJson( articles ))});
+  self.allIds   = @{Html(Json.toJson( articleIds ))};
+  self.stockIds = @{Html(Json.toJson( stockIds ))};
+  self.ownIds   = @{Html(Json.toJson( ownIds ))};
   
+  self.whole = new TabModel("whole", self.allIds),
+  self.stock = new TabModel("stock", self.stockIds),
+  self.own   = new TabModel("own",   self.ownIds)
+  
+  self.tabs = ko.observableArray([self.whole, self.stock, self.own]);
+  
+  self.selectedTab = ko.observable('whole');
+  self.whole.load();
+  
+  self.showWhole = function (){ self.selectedTab("whole");self.whole.load(); };
+  self.showStock = function (){ self.selectedTab("stock");self.stock.load(); };
+  self.showOwn   = function (){ self.selectedTab("own");  self.own.load(); };
 };
 
 

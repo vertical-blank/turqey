@@ -130,9 +130,9 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   
   def findLatestsByIds(articleIds: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, DateTime] = {
     withSQL {
-      select.from(ArticleHistory as ah)
+      select(ah.articleId, ah.created).from(ArticleHistory as ah)
       .where.in(ah.articleId, articleIds)
-    }.map{ rs => ( rs.long(ah.articleId), rs.jodaDateTime(ah.created) ) }.list.apply().toMap
+    }.map{ rs => ( rs.long(1), rs.jodaDateTime(2) ) }.list.apply().toMap
   }
 
 }

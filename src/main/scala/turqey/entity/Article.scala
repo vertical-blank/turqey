@@ -169,7 +169,10 @@ object Article extends SQLSyntaxSupport[Article] {
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
   
-  case class ArticleForList(id: Long, title: String, created: String, updated: String, user: User, tags: Seq[Tag])
+  case class ArticleForList(id: Long, title: String, created: String, updated: String, owner: UserForList, tags: Seq[Tag])
+  case class UserForList(id: Long, name: String, imgUrl: String)
+  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name, user.imgUrl) }
+  
   def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
     val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
     val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
@@ -180,7 +183,7 @@ object Article extends SQLSyntaxSupport[Article] {
       title   = a.title,
       created = a.created.toString("yyyy/MM/dd"),
       updated = lastUpdatesByIds.get(a.id).map(_.toString("yyyy/MM/dd")).getOrElse(""),
-      user    = a.owner.get,
+      owner   = UserForList(a.owner.get),
       tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2)
     ) }
   }
@@ -188,6 +191,13 @@ object Article extends SQLSyntaxSupport[Article] {
   def findAllId()(implicit session: DBSession = autoSession) :Seq[Long] = {
     withSQL {
       select(a.result.id).from(Article as a).orderBy(a.id).desc
+    }.map(_.long(1)).list.apply()
+  }
+  
+  def findAllIdBy(where: SQLSyntax)(implicit session: DBSession = autoSession) :Seq[Long] = {
+    withSQL {
+      select(a.result.id).from(Article as a)
+      .where.append(where).orderBy(a.id).desc
     }.map(_.long(1)).list.apply()
   }
 
