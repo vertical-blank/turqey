@@ -7,6 +7,9 @@
 @(article: Option[Article], tags: Seq[Tag])
 <html>
   @css()
+  <style>
+    html, body { height:100%; margin:0; }
+  </style>
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
@@ -58,16 +61,16 @@
           </div>
         </div>
         
-        <div style="height: 500px;">
+        <div style="position: absolute; top: 240px; bottom: 40px; width: 100%;">
+          <div style="height: 36px; width: 100%;border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0;">
+            <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false"><i class="small material-icons">code</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
+            <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
+          </div>
           <div style="float: left; width: 50%; height: 100%;">
-            <div style="height: 36px; width: 100%;">
-              <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false"><i class="small material-icons">code</i></a>
-              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
-              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
-              <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
-              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
-              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
-            </div>
             <div class="editor"
               style="height: 100%; width: 100%;"
               id="input_content"
@@ -78,17 +81,12 @@
                             fontSize: '14px',
                             change: changeContent
                           }"></div>
-            <textarea name="content"
-              data-bind="value: content, visible: false"></textarea>
+            <textarea name="content" data-bind="value: content" style="display: none;"></textarea>
             <label for="input_content" class="active" ></label>
           </div>
-          <div>
-            <div class="right-align" style="height: 36px; width: 100%;">
-              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">fullscreen</i></a>
-            </div>
-            <div style="overflow: auto;">
-              <div id="preview" class="markdown" style="height: 100%;"
-                data-bind="html: marked"></div>
+          <div style="overflow: auto; height: 100%;">
+            <div>
+              <div id="preview" class="markdown" data-bind="html: marked"></div>
             </div>
           </div>
         </div>
