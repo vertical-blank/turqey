@@ -27,8 +27,13 @@ class AdminController(adminPath: String) extends ControllerBase {
     html.index()
   }
 
-  get("/system") {
+  val systemView = get("/system") {
     html.system()
   }
+  
+  post("/system") {
+    redirect(url(systemView))
+  }
+  
 
 }

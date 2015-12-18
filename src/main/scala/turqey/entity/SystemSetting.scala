@@ -12,6 +12,37 @@ case class SystemSetting(
 
 }
 
+case class SmtpSettings(
+  smtpHost: String,
+  smtpPort: Int,
+  smtpUser: String,
+  smtpPassword: String,
+  smtpSSL: Boolean,
+  smtpFromAddr: String,
+  smtpFromName: String
+)
+/*
+object SmtpSettings {
+  def apply(vals: Seq[SystemSetting]) = {
+    apply(vals.map(s => (s.key, s.value)).toMap)
+  }
+  def apply(vals: Map[String, SystemSetting]) = {
+    try {
+      Some(new SmtpSettings(
+        vals.get("smtpHost").value,
+        vals.get("smtpPort").value.toInt,
+        vals.get("smtpUser").value,
+        vals.get("smtpPassword").value,
+        vals.get("smtpSSL").value,
+        vals.get("smtpFromAddr").value,
+        vals.get("smtpFromName").value
+      ))
+    } catch {
+      case _ => None
+    }
+  }
+}
+*/
 
 object SystemSetting extends SQLSyntaxSupport[SystemSetting] {
 

@@ -68,8 +68,6 @@
             <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
             <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
             <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
-            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_bulleted</i></a>
-            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons">format_list_numbered</i></a>
           </div>
           <div style="float: left; width: 50%; height: 100%;">
             <div class="editor"
@@ -102,9 +100,9 @@
         <p><textarea id="textarea1" class="materialize-textarea" data-bind="value: contentCsv"></textarea></p>
         <p>
           <input type="checkbox" class="filled-in" id="first_header" data-bind="checked: setFirstLineAsHeader"><label for="first_header">先頭行をヘッダとする</label>
-          <input name="sep_char" type="radio" id="sep_comma" value="," data-bind="checked: sepChar" />
+          <input name="sep_char" type="radio" id="sep_comma" value="c" data-bind="checked: sepChar" />
           <label for="sep_comma">カンマ</label>
-          <input name="sep_char" type="radio" id="sep_tab" value="tab" data-bind="checked: sepChar" />
+          <input name="sep_char" type="radio" id="sep_tab" value="t" data-bind="checked: sepChar" />
           <label for="sep_tab">タブ</label>
         </p>
       </div>
@@ -205,13 +203,18 @@ var ViewModel = function (initialTags){
   
   self.insertLink  = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "[text](url)") })(ace.edit("input_content")) };
   self.insertPhoto = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "![alt_text](image_url)") })(ace.edit("input_content")) };
-  self.insertTable = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), csvToMarkdown(self.contentCsv(), self.sepChar(), self.setFirstLineAsHeader())) })(ace.edit("input_content")); self.contentCsv(""); };
+  self.insertTable = function(){ 
+    (function(editor){
+      editor.getSession().insert(editor.getSelection().getCursor(), csvToMarkdown(self.contentCsv(), {"c": ",", "t":"\t"}[self.sepChar()], self.setFirstLineAsHeader()))
+    })(ace.edit("input_content"));
+    self.contentCsv("");
+  };
   
   self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
   self.content = ko.observable(@{Html(Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") ))});
   self.contentCsv = ko.observable("");
   self.setFirstLineAsHeader = ko.observable(true);
-  self.sepChar = ko.observable(",");
+  self.sepChar = ko.observable("c");
   self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
 };
 
