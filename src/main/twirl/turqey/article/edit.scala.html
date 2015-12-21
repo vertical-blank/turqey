@@ -45,7 +45,8 @@
                          autocomplete: {
                            data    : allTags,
                            format  : formatTagItem,
-                           onSelect: select
+                           onSelect: select,
+                           visible : autoCompleteVisible
                          }">
             <label>Tag</label>
             </input>
@@ -139,10 +140,13 @@ var ViewModel = function (initialTags){
   self.allTags = allTags;
   self.formatTagItem = function(i) { return i.name; };
   self.select = function(i) {
-    self.tagText(self.formatTagItem(i));
-    self.tagId(i.id);
-    self.add(i);
+    if (self.autoCompleteVisible()){
+      self.tagText(self.formatTagItem(i));
+      self.tagId(i.id);
+    }
+    self.add();
   };
+  self.autoCompleteVisible = ko.observable(false);
 
   var delay = (function(){
     var timer = 0;
