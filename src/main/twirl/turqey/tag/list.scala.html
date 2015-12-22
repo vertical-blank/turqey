@@ -22,13 +22,18 @@
         <div id="following" class="col s12">W.I.P.</div>
         *@
         <div id="whole" class="col s12">
-          <div class="collection">
           @tags.map{ case (t, c) => 
-            <a class="collection-item waves-effect waves-light" href="@root/tag/@t.id">
-              <span class="title">@t.name 記事数:@c</span>
-            </a>
-          }
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">
+              <a href="@root/tag/@t.id">@t.name</a>
+              </span>
+              <p>
+                <span>記事数:@c</span>
+              </p>
+            </div>
           </div>
+          }
         </div>
       </div>
     </div>

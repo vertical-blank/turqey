@@ -22,6 +22,8 @@ case class Article(
       case None => false
     }
   }
+  
+  def view(): String = { "" + this.id.toString }
 
 }
 

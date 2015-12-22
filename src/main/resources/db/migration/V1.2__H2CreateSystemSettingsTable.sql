@@ -1,4 +1,4 @@
 CREATE TABLE SYSTEM_SETTINGS (
   KEY         VARCHAR(256) primary key,
-  VALUE       VARCHAR(256)
+  VALUE       VARCHAR(256) NOT NULL
 );

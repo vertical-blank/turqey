@@ -13,16 +13,18 @@
       <p>タグ @tag.name の記事一覧</p>
       <div class="row">
         <div id="whole" class="col s12">
-          <div class="collection">
           @articles.map{ a =>
-            <a href="@root/article/@a.id" class="collection-item waves-effect waves-light">
-              <span class="title">@a.title</span>
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">
+                <a href="@root/article/@a.id">@a.title</a>
+              </span>
               <p>
                 @a.owner.get.name @a.created.toString("yyyy/MM/dd")
               </p>
-            </a>
-          }
+            </div>
           </div>
+          }
         </div>
       </div>
     </div>

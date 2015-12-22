@@ -61,7 +61,7 @@ object ServletContextHolder {
 
   def init(instance: ServletContext): Unit = { this.srvCxt = instance }
 
-  def get():ServletContext = { this.srvCxt } 
+  def get:ServletContext = { this.srvCxt } 
   def root:String = { this.srvCxt.getContextPath }
   def assets:String = { this.root + "/assets" }
 }

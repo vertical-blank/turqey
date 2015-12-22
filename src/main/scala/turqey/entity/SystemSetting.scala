@@ -4,12 +4,16 @@ import scalikejdbc._
 
 case class SystemSetting(
   key: String,
-  value: Option[String] = None) {
+  value: String) {
 
   def save()(implicit session: DBSession = SystemSetting.autoSession): SystemSetting = SystemSetting.save(this)(session)
 
   def destroy()(implicit session: DBSession = SystemSetting.autoSession): Unit = SystemSetting.destroy(this)(session)
 
+}
+
+object Keys {
+  val baseUrl     = "baseUrl"
 }
 
 case class SmtpSettings(
@@ -20,29 +24,57 @@ case class SmtpSettings(
   smtpSSL: Boolean,
   smtpFromAddr: String,
   smtpFromName: String
-)
-/*
-object SmtpSettings {
-  def apply(vals: Seq[SystemSetting]) = {
-    apply(vals.map(s => (s.key, s.value)).toMap)
+) {
+/**
+  def toSeq: Seq[SmtpSetting] = {
+    Seq(
+      SystemSetting(Keys.),
+      SystemSetting(),
+      SystemSetting(),
+      SystemSetting(),
+      SystemSetting(),
+      SystemSetting(),
+      SystemSetting(),
+      SystemSetting()
+    )
   }
-  def apply(vals: Map[String, SystemSetting]) = {
-    try {
-      Some(new SmtpSettings(
-        vals.get("smtpHost").value,
-        vals.get("smtpPort").value.toInt,
-        vals.get("smtpUser").value,
-        vals.get("smtpPassword").value,
-        vals.get("smtpSSL").value,
-        vals.get("smtpFromAddr").value,
-        vals.get("smtpFromName").value
-      ))
-    } catch {
-      case _ => None
-    }
+  */
+}
+
+object SmtpSettings {
+  object Keys {
+    val enabled     = "smtpEnabled"
+    val host        = "smtpHost"
+    val port        = "smtpPort"
+    val user        = "smtpUser"
+    val password    = "smtpPassword"
+    val ssl         = "smtpSSL"
+    val fromAddress = "smtpFromAddr"
+    val fromName    = "smtpFromName"
+  }
+  def apply(vals: Seq[SystemSetting]):Option[SmtpSettings] = {
+    apply(vals.map(s => (s.key, s)).toMap)
+  }
+  def apply(vals: Map[String, SystemSetting]):Option[SmtpSettings] = {
+    for {
+      host <- vals.get(Keys.host)
+      port <- vals.get(Keys.port)
+      user <- vals.get(Keys.user)
+      password <- vals.get(Keys.password)
+      ssl <- vals.get(Keys.ssl)
+      fromAddress <- vals.get(Keys.fromAddress)
+      fromName <- vals.get(Keys.fromName)
+    } yield new SmtpSettings(
+      host.value,
+      port.value.toInt,
+      user.value,
+      password.value,
+      ssl.value.toBoolean,
+      fromAddress.value,
+      fromName.value
+    )
   }
 }
-*/
 
 object SystemSetting extends SQLSyntaxSupport[SystemSetting] {
 
@@ -96,7 +128,7 @@ object SystemSetting extends SQLSyntaxSupport[SystemSetting] {
 
   def create(
     key: String,
-    value: Option[String] = None)(implicit session: DBSession = autoSession): SystemSetting = {
+    value: String)(implicit session: DBSession = autoSession): SystemSetting = {
     withSQL {
       insert.into(SystemSetting).columns(
         column.key,
