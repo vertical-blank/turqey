@@ -2,7 +2,7 @@
 @import turqey.servlet._
 @import turqey.html._
 
-@(/* settings: SystemSettings */)
+@(smtpSettings: Option[SmtpSettings])
 <html>
   @css()
   <body>
@@ -16,12 +16,12 @@
         </div>
         <div class="row">
           <div class="input-field col s8">
-            <input type="text" name="smtpHost" value="" length="255">
+            <input type="text" name="smtpHost" value="@smtpSettings.map(s=>s.host)" length="255">
             <label>Host</label>
             </input>
           </div>
           <div class="input-field col s4">
-            <input type="text" name="smtpPort" value="" length="5">
+            <input type="text" name="smtpPort" value="@smtpSettings.map(s=>s.port.toString)" length="5">
             <label>Port</label>
             </input>
           </div>

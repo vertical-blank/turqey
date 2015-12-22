@@ -28,10 +28,17 @@ class AdminController(adminPath: String) extends ControllerBase {
   }
 
   val systemView = get("/system") {
-    html.system()
+  
+    val settings = SystemSetting.findAll()
+    val smtpSettings = SmtpSettings(settings)
+  
+    html.system(smtpSettings)
   }
   
   post("/system") {
+    
+    
+    
     redirect(url(systemView))
   }
   

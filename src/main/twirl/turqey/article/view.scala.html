@@ -9,6 +9,7 @@
   @css()
   <body>
   <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/jquery.toc.min.js"></script>
   <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav {
     <div class="">
@@ -55,53 +56,58 @@
       </div>
     </div>
     } 
-    <div class="container markdown" id="main_content">
-      <div>@Html(Markdown.html(article.content))</div>
-      <hr>
-      <div>
-        <div class="row">
-          <div class="col s10">
-            <i class="material-icons">comment</i>コメント
-          </div>
+    <div class="container">
+      <div class="row">
+        <div class="markdown col s12 m9 l10" id="main_content">
+          <div>@Html(Markdown.html(article.content))</div>
         </div>
-        <div class="row">
-          @comments.zipWithIndex.map { case (comment, idx) =>
-          <div class="card">
-            @if(comment.editable){
-            <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top: 10px;">
-              @*
-              <a class="btn-floating btn">
-                <i class="small material-icons">edit</i>
-              </a>
-              *@
-              <form action="@root/article/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
-              <button class="btn-floating btn red">
-                <i class="small material-icons">delete</i>
-              </button>
-              </form>
-            </div>
-            }
-            <div class="card-content">
-            <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
-              @Html(Markdown.html(comment.content))
-            </div>
+        <div id="toc" class="col hide-on-small-only m3 l2">
+          <ul class="section table-of-contents scrollspy"></ul>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col s10">
+          <i class="material-icons">comment</i>コメント
+        </div>
+      </div>
+      <div class="row">
+        @comments.zipWithIndex.map { case (comment, idx) =>
+        <div class="card">
+          @if(comment.editable){
+          <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top: 10px;">
+            @*
+            <a class="btn-floating btn">
+              <i class="small material-icons">edit</i>
+            </a>
+            *@
+            <form action="@root/article/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
+            <button class="btn-floating btn red">
+              <i class="small material-icons">delete</i>
+            </button>
+            </form>
           </div>
           }
+          <div class="card-content">
+          <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
+            @Html(Markdown.html(comment.content))
+          </div>
         </div>
-        <div class="row">
-          <form action="@root/article/@article.id/comment" method="post" id="formComment">
-            <div class="input-field col s12">
-              <textarea name="comment" class="materialize-textarea"
-                placeholder="Markdown" id="input_comment"
-                data-bind="textInput: comment"></textarea>
-              <label>Comment</label>
-            </div>
-            <div class="input-field col s12">
-              <button type="submit" class="waves-effect waves-light btn"
-                data-bind="enable: commentable"><i class="material-icons right">send</i>コメント</button>
-            </div>
-          </form>
-        </div>
+        }
+      </div>
+      <div class="row">
+        <form action="@root/article/@article.id/comment" method="post" id="formComment">
+          <div class="input-field col s12">
+            <textarea name="comment" class="materialize-textarea"
+              placeholder="Markdown" id="input_comment"
+              data-bind="textInput: comment"></textarea>
+            <label>Comment</label>
+          </div>
+          <div class="input-field col s12">
+            <button type="submit" class="waves-effect waves-light btn"
+              data-bind="enable: commentable"><i class="material-icons right">send</i>コメント</button>
+          </div>
+        </form>
       </div>
     </div>
   </body>
@@ -128,6 +134,13 @@ var vm = new ViewModel(@{Html(stocked.toString)});
 var commentVm = new CommentViewModel();
 ko.applyBindings(vm, document.getElementById('divStock'));
 ko.applyBindings(commentVm, document.getElementById('formComment'));
+
+$(document).ready(function(){
+  $("#toc").toc({content: "#main_content"});
+  $('#toc').pushpin({ top: $('#toc').offset().top });
+  $('.scrollspy').scrollSpy();
+});
+ 
 </script>
 </html>
 

@@ -17,61 +17,61 @@ object Keys {
 }
 
 case class SmtpSettings(
-  smtpHost: String,
-  smtpPort: Int,
-  smtpUser: String,
-  smtpPassword: String,
-  smtpSSL: Boolean,
-  smtpFromAddr: String,
-  smtpFromName: String
+  host: String,
+  port: Int,
+  user: String,
+  password: String,
+  ssl: Boolean,
+  fromAddr: String,
+  fromName: String
 ) {
-/**
-  def toSeq: Seq[SmtpSetting] = {
+  def toSeq: Seq[SystemSetting] = {
     Seq(
-      SystemSetting(Keys.),
-      SystemSetting(),
-      SystemSetting(),
-      SystemSetting(),
-      SystemSetting(),
-      SystemSetting(),
-      SystemSetting(),
-      SystemSetting()
+      SystemSetting(SmtpSettings.Keys.host, host),
+      SystemSetting(SmtpSettings.Keys.port, port.toString),
+      SystemSetting(SmtpSettings.Keys.user, user),
+      SystemSetting(SmtpSettings.Keys.password, password),
+      SystemSetting(SmtpSettings.Keys.ssl, ssl.toString),
+      SystemSetting(SmtpSettings.Keys.fromAddr, fromAddr),
+      SystemSetting(SmtpSettings.Keys.fromName, fromName)
     )
   }
-  */
 }
 
 object SmtpSettings {
   object Keys {
-    val enabled     = "smtpEnabled"
-    val host        = "smtpHost"
-    val port        = "smtpPort"
-    val user        = "smtpUser"
-    val password    = "smtpPassword"
-    val ssl         = "smtpSSL"
-    val fromAddress = "smtpFromAddr"
-    val fromName    = "smtpFromName"
+    val enabled   = "smtpEnabled"
+    val host      = "smtpHost"
+    val port      = "smtpPort"
+    val user      = "smtpUser"
+    val password  = "smtpPassword"
+    val ssl       = "smtpSSL"
+    val fromAddr  = "smtpFromAddr"
+    val fromName  = "smtpFromName"
+    
+    def all() = Seq(host, port, user, password, ssl, fromAddr, fromName)
   }
+  
   def apply(vals: Seq[SystemSetting]):Option[SmtpSettings] = {
-    apply(vals.map(s => (s.key, s)).toMap)
+    apply(vals.map(s => (s.key, s.value)).toMap)
   }
-  def apply(vals: Map[String, SystemSetting]):Option[SmtpSettings] = {
+  def apply(vals: Map[String, String]):Option[SmtpSettings] = {
     for {
       host <- vals.get(Keys.host)
       port <- vals.get(Keys.port)
       user <- vals.get(Keys.user)
       password <- vals.get(Keys.password)
       ssl <- vals.get(Keys.ssl)
-      fromAddress <- vals.get(Keys.fromAddress)
+      fromAddr <- vals.get(Keys.fromAddr)
       fromName <- vals.get(Keys.fromName)
     } yield new SmtpSettings(
-      host.value,
-      port.value.toInt,
-      user.value,
-      password.value,
-      ssl.value.toBoolean,
-      fromAddress.value,
-      fromName.value
+      host,
+      port.toInt,
+      user,
+      password,
+      ssl.toBoolean,
+      fromAddr,
+      fromName
     )
   }
 }
