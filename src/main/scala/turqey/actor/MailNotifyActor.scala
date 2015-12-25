@@ -36,7 +36,7 @@ object Smtp {
         property.put("mail.smtp.auth",            auth.toString)
         property.put("mail.smtp.starttls.enable", tls.toString)
         this.property = Some(property)
-        this.auth = Some(new PasswordAuthentication("youhei.yamana@casleyconsulting.co.jp", "YB1kinjo")) 
+        this.auth = Some(new PasswordAuthentication("", "")) 
       }
       case _ => {
         this.property = None
@@ -61,13 +61,13 @@ class MailNotificationActor extends Actor {
 
       val session = Session.getInstance(property, new javax.mail.Authenticator(){
         override def getPasswordAuthentication(): PasswordAuthentication = {
-          new PasswordAuthentication("youhei.yamana@casleyconsulting.co.jp", "YB1kinjo")
+          new PasswordAuthentication("", "")
         }
       })
 
       val mimeMessage = new MimeMessage(session)
 
-      val toAddr   = new InternetAddress("youhei.yamana@casleyconsulting.co.jp", "受信者の名前")
+      val toAddr   = new InternetAddress("", "")
       val fromAddr = new InternetAddress("noreply@casleyconsulting.co.jp", "Turqey@Casley");
       mimeMessage.setFrom(fromAddr);
       mimeMessage.setRecipient(Message.RecipientType.TO, toAddr)

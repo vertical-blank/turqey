@@ -11,6 +11,12 @@ import turqey.util._
 class ApiController extends ControllerBase {
   override val path = "api"
   override val shouldLoggedIn = false
+  
+  before (){
+    if (!SessionHolder.user.isDefined){
+      halt(403, "Not Logged In.")
+    }
+  }
 
   post("/markdown") {
     contentType = "text/plain"

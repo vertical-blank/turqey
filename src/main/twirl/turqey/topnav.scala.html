@@ -5,7 +5,7 @@
   <nav>
     <div class="container">
       <div class="nav-wrapper">
-        <a href="@root/" class="brand-logo">TurQey</a>
+        <a href="@root/" class="brand-logo" style="font-family: Roboto;font-weight: 100;">TurQey</a>
         <ul class="right hide-on-med-and-down">
           @SessionHolder.user.map{ u =>
           <li><a href="@root/tag" class="waves-effect waves-light" style="color: white;">タグ一覧</a></li>
@@ -19,12 +19,12 @@
         </ul>
         <a href="#" data-activates="mobile-menu" class="button-collapse right"><i class="material-icons">menu</i></a>
         <ul class="side-nav" id="mobile-menu">
-            <li><a href="@root/tag" class="waves-effect waves-light">タグ一覧</a></li>
+            <li><a href="@root/tag" class="waves-effect waves-light"><i class="material-icons small left">label</i>タグ一覧</a></li>
             <li class="divider"></li>
             <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
             <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
             <li class="divider"></li>
-            @SessionHolder.user.map { u => if(u.root){
+            @SessionHolder.user.map { u => @if(u.root){
               <li><a href="@root/user/"><i class="material-icons small left">people</i>ユーザ一覧</a></li>
             } }
             <li class="divider"></li>
@@ -35,7 +35,7 @@
     </div>
   </nav>
 @additional
-<ul id="dropdown1" class="dropdown-content" style="width: 12rem;">
+<ul id="dropdown1" class="dropdown-content" style="width: 12rem;overflow: hidden;">
   <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
   <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
   <li class="divider"></li>
