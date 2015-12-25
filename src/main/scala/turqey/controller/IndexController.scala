@@ -18,18 +18,21 @@ class IndexController extends ControllerBase {
     if (!(SessionHolder.user isDefined)){
       redirect(url(login))
     }
+    
+    val usrId = SessionHolder.user.get.id
 
     val articleIds = Article.findAllId().grouped(pagesize).toSeq
     val stockIds = ArticleStock.findAllBy(
-      sqls.eq(ArticleStock.column.userId, SessionHolder.user.get.id)
+      sqls.eq(ArticleStock.column.userId, usrId)
     ).map( x => x.articleId ).grouped(pagesize).toSeq
     val ownIds = Article.findAllIdBy(
-      sqls.eq(Article.column.ownerId, SessionHolder.user.get.id)
+      sqls.eq(Article.column.ownerId, usrId)
     ).grouped(pagesize).toSeq
-    
-    val articles = Article.findForList(articleIds.headOption.getOrElse(Seq()))
+    val commentedIds = ArticleComment.findAllBy(
+      sqls.eq(ArticleStock.column.userId, usrId)
+    ).map( x => x.articleId ).grouped(pagesize).toSeq
 
-    html.index(articleIds, stockIds, ownIds, articles)
+    html.index(articleIds, stockIds, ownIds, commentedIds)
   }
   
   val login = get("/login") {

@@ -25,7 +25,11 @@ object Markdown {
   class TurqyRenderer(options: Options) extends Renderer(options) {
     
     override def table(header: String, body: String):String = {
-        "<table class=\"bordered striped highlight\">\n<thead>\n" + header + "</thead>\n<tbody>\n" + body + "</tbody>\n</table>\n"
+      "<table class=\"bordered striped highlight\">\n<thead>\n" + header + "</thead>\n<tbody>\n" + body + "</tbody>\n</table>\n"
+    }
+    
+    override def link(href: String, title: String, text: String):String = {
+      "<a href=\"" + href + "\" target=\"_blank\" >" + text + "</a>"
     }
 
     override def text(text: String): String = {

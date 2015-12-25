@@ -27,6 +27,13 @@ class TagController extends ControllerBase {
 
     html.view(tag, articles)
   }
+  
+  post("/:id/follow"){
+    contentType = "text/json"
+    
+    val tagId = params.getOrElse("id", redirect("/")).toLong
+    
+    
+  }
 
 }
-

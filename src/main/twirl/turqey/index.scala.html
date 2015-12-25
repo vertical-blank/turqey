@@ -3,7 +3,10 @@
 @import turqey.controller._
 @import turqey.utils.Json
 
-@(articleIds: Seq[Seq[scala.Long]], stockIds: Seq[Seq[scala.Long]], ownIds: Seq[Seq[scala.Long]], articles: Seq[Article.ArticleForList])
+@(articleIds:   Seq[Seq[scala.Long]], 
+  stockIds:     Seq[Seq[scala.Long]],
+  ownIds:       Seq[Seq[scala.Long]],
+  commentedIds: Seq[Seq[scala.Long]])
 <html>
   @css()
   <body>
@@ -21,6 +24,7 @@
           <ul class="tabs">
             <li class="tab col"><a class="waves-effect active" data-bind="click: showWhole">全ての投稿</a></li>
             <li class="tab col"><a class="waves-effect" data-bind="click: showStock">ストック</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showCommented">コメントした投稿</a></li>
             <li class="tab col"><a class="waves-effect" data-bind="click: showOwn">自分の投稿</a></li>
           </ul>
         </div>
@@ -89,14 +93,17 @@ var ViewModel = function (){
     self.showNext = ko.pureComputed(function (){ return (self.ids().length !== 0) && !self.isLoading(); });
   };
   
-  self.allIds   = @{Html(Json.toJson( articleIds ))};
-  self.stockIds = @{Html(Json.toJson( stockIds ))};
-  self.ownIds   = @{Html(Json.toJson( ownIds ))};
+  self.allIds       = @{Html(Json.toJson( articleIds ))};
+  self.stockIds     = @{Html(Json.toJson( stockIds ))};
+  self.commentedIds = @{Html(Json.toJson( commentedIds ))};
+  self.ownIds       = @{Html(Json.toJson( ownIds ))};
   
-  self.whole = new TabModel("whole", self.allIds),
-  self.stock = new TabModel("stock", self.stockIds),
-  self.own   = new TabModel("own",   self.ownIds)
-  var tabs = [self.whole, self.stock, self.own];
+  self.whole     = new TabModel("whole", self.allIds);
+  self.stock     = new TabModel("stock", self.stockIds);
+  self.commented = new TabModel("commented", self.commentedIds);
+  self.own       = new TabModel("own",   self.ownIds);
+  
+  var tabs = [self.whole, self.stock, self.commented, self.own];
   (function() {
     for (var i = 0;i < tabs.length;i++){
       tabs[i].load();
@@ -107,9 +114,10 @@ var ViewModel = function (){
   
   self.selectedTab = ko.observable('whole');
   
-  self.showWhole = function (){ self.selectedTab("whole");self.whole.load(); };
-  self.showStock = function (){ self.selectedTab("stock");self.stock.load(); };
-  self.showOwn   = function (){ self.selectedTab("own");  self.own.load(); };
+  self.showWhole     = function (){ self.selectedTab("whole");    self.whole.load(); };
+  self.showStock     = function (){ self.selectedTab("stock");    self.stock.load(); };
+  self.showCommented = function (){ self.selectedTab("commented");self.commented.load(); };
+  self.showOwn       = function (){ self.selectedTab("own");      self.own.load(); };
 };
 
 
