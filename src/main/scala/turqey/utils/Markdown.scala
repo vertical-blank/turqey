@@ -13,6 +13,8 @@ object Markdown {
     val escaped = escapeTaskList(markdown)
     
     val opts = new Options()
+    opts.setBreaks(true)
+    
     Marked.marked(escaped, opts, new TurqyRenderer(opts))
   }
 

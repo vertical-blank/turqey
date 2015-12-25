@@ -40,7 +40,7 @@ dependencies {
   compile group: 'org.scalatra', name: 'scalatra_2.11', version: '2.3.0'
   compile group: 'com.typesafe.scala-logging', name: 'scala-logging-slf4j_2.11', version: '2.1.2'
 
-  compile 'io.github.gitbucket:markedj:1.0.3'
+  compile 'io.github.gitbucket:markedj:1.0.5'
   compile 'com.google.apis:google-api-services-oauth2:v1-rev99-1.20.0'
   compile 'com.google.apis:google-api-services-plus:v1-rev290-1.20.0'
   compile 'com.google.apis:google-api-services-plusDomains:v1-rev198-1.20.0'
