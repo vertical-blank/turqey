@@ -135,4 +135,19 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
     }.map( rs => (rs.long(1), rs.int(2)) ).list.apply()
   }
 
+  def followingArticleIds(userId: Long)(implicit session: DBSession = autoSession): Seq[Long] = {
+    val tf = TagFollowing.tf
+    withSQL {
+      select(at.articleId)
+        .from(ArticleTagging as at)
+        .where.exists(
+          select
+            .from(TagFollowing as tf)
+            .where.eq(tf.userId, userId)
+              .and.eq(tf.followedId, at.tagId)
+        )
+        .orderBy(at.articleId).desc
+    }.map(_.long(1)).list.apply()
+  }
+
 }

@@ -31,8 +31,9 @@ class IndexController extends ControllerBase {
     val commentedIds = ArticleComment.findAllBy(
       sqls.eq(ArticleStock.column.userId, usrId)
     ).map( x => x.articleId ).grouped(pagesize).toSeq
+    val followingIds = ArticleTagging.followingArticleIds(usrId).grouped(pagesize).toSeq
 
-    html.index(articleIds, stockIds, ownIds, commentedIds)
+    html.index(articleIds, stockIds, ownIds, commentedIds, followingIds)
   }
   
   val login = get("/login") {

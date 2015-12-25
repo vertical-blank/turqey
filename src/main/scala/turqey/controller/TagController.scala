@@ -25,15 +25,39 @@ class TagController extends ControllerBase {
     val tag = Tag.find(tagId).getOrElse(redirect("/"))
     val articles = Article.findTagged(tagId)
 
-    html.view(tag, articles)
+    val userId    = turqey.servlet.SessionHolder.user.get.id
+
+    val tf = TagFollowing.tf
+    val followed = TagFollowing.findBy(sqls
+      .eq(tf.userId, userId).and
+      .eq(tf.followedId, tagId)
+    ).isDefined
+
+    html.view(tag, articles, followed)
   }
   
   post("/:id/follow"){
     contentType = "text/json"
     
     val tagId = params.getOrElse("id", redirect("/")).toLong
+    val userId    = turqey.servlet.SessionHolder.user.get.id
+
+    val tf = TagFollowing.tf
+    val ret = TagFollowing.findBy(sqls
+      .eq(tf.userId, userId).and
+      .eq(tf.followedId, tagId)
+    ) match {
+      case Some(a)  => {
+        a.destroy()
+        "unfollow"
+      }
+      case None     => {
+        TagFollowing.create(userId = userId, followedId = tagId)
+        "follow"
+      }
+    }
     
-    
+    Json.toJson(Map("status" -> ret))
   }
 
 }
