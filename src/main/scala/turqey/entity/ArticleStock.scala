@@ -113,4 +113,13 @@ object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
     withSQL { delete.from(ArticleStock).where.eq(column.id, entity.id) }.update.apply()
   }
 
+  def countByIds(ids: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, Long] = {
+    withSQL {
+      select(as.result.articleId, sqls.count)
+      .from(ArticleStock as as)
+      .where.in(as.articleId, ids)
+      .groupBy(as.articleId)
+    }.map( rs => (rs.long(1), rs.long(2)) ).list.apply().toMap
+  }
+
 }

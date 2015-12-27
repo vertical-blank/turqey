@@ -171,7 +171,7 @@ object Article extends SQLSyntaxSupport[Article] {
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
   
-  case class ArticleForList(id: Long, title: String, created: String, updated: String, owner: UserForList, tags: Seq[Tag])
+  case class ArticleForList(id: Long, title: String, created: String, updated: String, owner: UserForList, tags: Seq[Tag], stock: Long)
   case class UserForList(id: Long, name: String, imgUrl: String)
   object UserForList{ def apply(user: User) = new UserForList(user.id, user.name, user.imgUrl) }
   
@@ -179,6 +179,7 @@ object Article extends SQLSyntaxSupport[Article] {
     val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
     val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
     val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
+    val countByArticleIds = ArticleStock.countByIds(ids)
     
     articles.map{ a => ArticleForList(
       id      = a.id,
@@ -186,7 +187,8 @@ object Article extends SQLSyntaxSupport[Article] {
       created = a.created.toString("yyyy/MM/dd"),
       updated = lastUpdatesByIds.get(a.id).map(_.toString("yyyy/MM/dd")).getOrElse(""),
       owner   = UserForList(a.owner.get),
-      tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2)
+      tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2),
+      stock   = countByArticleIds.getOrElse(a.id, 0)
     ) }
   }
   
