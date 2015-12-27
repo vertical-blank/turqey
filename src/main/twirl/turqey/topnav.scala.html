@@ -23,6 +23,7 @@
             <li class="divider"></li>
             <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
             <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
+            <li><a href="@root/tag/followings"><i class="material-icons small left">star</i>フォロー中のタグ</a></li>
             <li class="divider"></li>
             @SessionHolder.user.map { u => @if(u.root){
               <li><a href="@root/user/"><i class="material-icons small left">people</i>ユーザ一覧</a></li>
@@ -35,9 +36,10 @@
     </div>
   </nav>
 @additional
-<ul id="dropdown1" class="dropdown-content" style="width: 12rem;overflow: hidden;">
+<ul id="dropdown1" class="dropdown-content" style="width: 13rem;overflow: hidden;">
   <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
   <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
+  <li><a href="@root/tag/followings"><i class="material-icons small left">star</i>フォロー中のタグ</a></li>
   <li class="divider"></li>
   @SessionHolder.user.map { u => if(u.root){
     <li><a href="@root/user/"><i class="material-icons small left">people</i>ユーザ一覧</a></li>

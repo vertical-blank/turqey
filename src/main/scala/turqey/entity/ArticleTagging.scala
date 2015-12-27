@@ -124,12 +124,14 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
     Array.fill(tagIds.size)(articleId).zip(tagIds).foreach{ case(articleId, tagId) => this.create(articleId, tagId) }
   }
 
-  def countByTag()(implicit session: DBSession = autoSession): Seq[(Long, Int)] = {
+  def countByTag(ids :Seq[Long] = Seq())(implicit session: DBSession = autoSession): Seq[(Long, Int)] = {
     val at = ArticleTagging.at
-
     withSQL {
       select(at.tagId, sqls.count)
         .from(ArticleTagging as at)
+        .where(sqls.toAndConditionOpt {
+          if(ids.isEmpty) { None } else { Some(sqls.in(at.id, ids)) }
+        })
         .groupBy(at.tagId)
         .orderBy(sqls.count)
     }.map( rs => (rs.long(1), rs.int(2)) ).list.apply()

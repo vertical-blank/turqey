@@ -35,6 +35,14 @@ class TagController extends ControllerBase {
 
     html.view(tag, articles, followed)
   }
+
+  get("/followings"){
+    val userId    = turqey.servlet.SessionHolder.user.get.id
+    val ids = TagFollowing.findAllBy(sqls.eq(TagFollowing.tf.userId, userId)).map(_.followedId)
+    val tags = Tag.findAllWithArticleCount(ids)
+
+    html.list(tags)
+  }
   
   post("/:id/follow"){
     contentType = "text/json"

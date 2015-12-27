@@ -12,6 +12,8 @@ import turqey.servlet._
 
 class UserController extends ControllerBase {
   override val path = "user"
+  
+  val pagesize = 20
 
   val list = get("/") {
     html.list(User.findAll())
@@ -19,8 +21,13 @@ class UserController extends ControllerBase {
 
   val view = get("/:id"){
     val id = params.get("id").getOrElse(redirect("/")).toLong
+
+    val articleIds = Article.findAllIdBy(
+      sqls.eq(Article.column.ownerId, id)
+    ).grouped(pagesize).toSeq
+
     //show user detail
-    html.view(User.find(id).getOrElse(redirect("/")))
+    html.view(User.find(id).getOrElse(redirect("/")), articleIds)
   }
 
   val edit = get("/:id/edit"){
@@ -90,8 +97,13 @@ class UserController extends ControllerBase {
 
   val self = get("/self"){
     val id = SessionHolder.user.get.id;
+
+    val articleIds = Article.findAllIdBy(
+      sqls.eq(Article.column.ownerId, id)
+    ).grouped(pagesize).toSeq
+
     //show user detail
-    html.view(User.find(id).getOrElse(redirect("/")))
+    html.view(User.find(id).getOrElse(redirect("/")), articleIds)
   }
 
 }

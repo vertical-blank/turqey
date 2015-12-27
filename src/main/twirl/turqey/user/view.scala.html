@@ -1,12 +1,14 @@
 @import turqey.entity._
 @import turqey.servlet._
 @import turqey.html._
+@import turqey.utils.Json
 
-@(u: User)
+@(u: User, articleIds: Seq[Seq[scala.Long]])
 <html>
   @css()
   <body>
     <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav()
     <main>
     <div class="container">
@@ -56,7 +58,77 @@
         }
       </div>
       }
+        <!-- ko foreach: tabs -->
+          <div class="col s12" data-bind="foreach: articles">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                <a class="collection-item waves-effect waves-light" data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
+                </span>
+                <p>
+                  <span data-bind="text: owner.name"></span>
+                  <span data-bind="text: created"></span>
+                </p>
+                <p>
+                  <div data-bind="foreach: tags ">
+                    <div class="chip">
+                      <a data-bind="text: name, attr: { href: '@root/tag/' + id }" ></a>
+                    </div>
+                  </div>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col s12 center-align">
+            <button class="waves-effect waves-light btn" data-bind="visible: showNext, click: append" style="display: none;">もっと見る</button>
+            <div class="preloader-wrapper big active" data-bind="visible: isLoading" style="display: none;">
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- /ko -->
     </div>
     </main>
   </body>
+<script>
+var ViewModel = function (){
+  var self = this;
+  
+  var TabModel = function (name, ids){
+    var self = this;
+    
+    self.name = name;
+    self.ids = ko.observableArray(ids);
+    self.articles = ko.observableArray([]);
+    
+    self.append = function() {
+      self.isLoading(true);
+      $.post('@root/api/article/list', { ids: self.ids.shift() }, function (response){ self.articles(self.articles().concat(response));self.isLoading(false);; } );
+    };
+    self.isLoading = ko.observable(false);
+    self.load = function() {
+      if (!self.articles().length){ self.append(); }
+    };
+    self.showNext = ko.pureComputed(function (){ return (self.ids().length !== 0) && !self.isLoading(); });
+  };
+  
+  self.ownIds    = @{Html(Json.toJson( articleIds ))};
+  
+  self.own       = new TabModel("own",   self.ownIds);
+  self.tabs = ko.observableArray([self.own]);
+
+  self.own.load();
+};
+
+// Activates knockout.js
+var vm = new ViewModel();
+ko.applyBindings(vm, document.getElementById('container'));
+</script>
 </html>

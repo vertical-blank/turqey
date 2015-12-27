@@ -20,7 +20,7 @@
               <h2>@article.title</h2>
             <p>
             <p>
-              <span>@article.owner.get.name が @{article.created.toString("yyyy/MM/dd")} に投稿</span>
+              <span><a href="@root/user/@article.owner.get.id">@article.owner.get.name</a> が @{article.created.toString("yyyy/MM/dd")} に投稿</span>
             </p>
             <p>
             @tags.map { tag =>

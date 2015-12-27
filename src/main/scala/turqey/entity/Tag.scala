@@ -114,9 +114,9 @@ object Tag extends SQLSyntaxSupport[Tag] {
     withSQL { delete.from(Tag).where.eq(column.id, entity.id) }.update.apply()
   }
 
-  def findAllWithArticleCount(implicit session: DBSession = autoSession): Seq[(Tag, Int)] = {
-    val allTags = this.findAll()
-    val countByTag = ArticleTagging.countByTag().toMap
+  def findAllWithArticleCount(ids :Seq[Long] = Seq())(implicit session: DBSession = autoSession): Seq[(Tag, Int)] = {
+    val allTags = if(ids.isEmpty){ this.findAll() } else { this.findAllBy(sqls.in(t.id, ids)) }
+    val countByTag = ArticleTagging.countByTag(ids).toMap
     allTags map { x => ( x, countByTag.getOrElse(x.id, 0) ) }
   }
   
