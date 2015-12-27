@@ -130,7 +130,7 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
       select(at.tagId, sqls.count)
         .from(ArticleTagging as at)
         .where(sqls.toAndConditionOpt {
-          if(ids.isEmpty) { None } else { Some(sqls.in(at.id, ids)) }
+          if(ids.isEmpty) { None } else { Some(sqls.in(at.tagId, ids)) }
         })
         .groupBy(at.tagId)
         .orderBy(sqls.count)
