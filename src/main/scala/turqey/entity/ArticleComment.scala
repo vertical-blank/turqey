@@ -137,4 +137,13 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
     withSQL { delete.from(ArticleComment).where.eq(column.id, entity.id) }.update.apply()
   }
 
+  def countByIds(ids: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, Long] = {
+    withSQL {
+      select(ac.result.articleId, sqls.count)
+      .from(ArticleComment as ac)
+      .where.in(ac.articleId, ids)
+      .groupBy(ac.articleId)
+    }.map( rs => (rs.long(1), rs.long(2)) ).list.apply().toMap
+  }
+
 }
