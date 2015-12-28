@@ -32,8 +32,10 @@ class TagController extends ControllerBase {
       .eq(tf.userId, userId).and
       .eq(tf.followedId, tagId)
     ).isDefined
+    
+    val followers = Tag.getFollowers(tagId)
 
-    html.view(tag, articles, followed)
+    html.view(tag, articles, followers, followed)
   }
 
   get("/followings"){

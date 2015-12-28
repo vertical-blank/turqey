@@ -12,15 +12,6 @@
     <div class="container">
       <p>タグ一覧</p>
       <div class="row">
-        @*
-        <div class="col s12">
-          <ul class="tabs">
-            <li class="tab col s2"><a class="waves-effect" href="#following">フォロー中</a></li>
-            <li class="tab col s2"><a class="active waves-effect" href="#whole">全て</a></li>
-          </ul>
-        </div>
-        <div id="following" class="col s12">W.I.P.</div>
-        *@
         <div id="whole" class="col s12">
           @tags.map{ case (t, c) => 
           <div class="card">

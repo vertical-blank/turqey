@@ -128,5 +128,18 @@ object Tag extends SQLSyntaxSupport[Tag] {
       .where.in(at.articleId, articleIds)
     }.map{ rs => ( rs.long(at.resultName.articleId), Tag(t.resultName)(rs) ) }.list.apply().groupBy(_._1)
   }
+  
+  def getFollowers(id: Long)(implicit session: DBSession = autoSession): Seq[User] = {
+    val tf = TagFollowing.tf
+    val u = User.u
+    withSQL {
+      select.from(User as u)
+      .where.exists(
+        select.from(TagFollowing as tf)
+        .join(Tag as t).on(t.id, tf.followedId)
+        .where.eq(t.id, id).and.eq(tf.userId, u.id)
+      )
+    }.map( User(u.resultName) ).list.apply()
+  }
 
 }

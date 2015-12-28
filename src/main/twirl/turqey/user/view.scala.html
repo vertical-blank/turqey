@@ -12,6 +12,7 @@
     @topnav()
     <main>
     <div class="container">
+      @if(u.editable){
       <div class="row">
         <div class="col s2">
           ID
@@ -20,6 +21,7 @@
           @u.loginId
         </div>
       </div>
+      }
       <div class="row">
         <div class="col s2">
           Name
