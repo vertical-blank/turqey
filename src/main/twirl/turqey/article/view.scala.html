@@ -5,7 +5,7 @@
 @import org.joda.time.{DateTime}
 @import turqey.util.Markdown
 
-@(article: Article, latestEdit: Option[DateTime], tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean, count: Long)
+@(article: Article, latestEdit: Option[DateTime], tags: Seq[Tag], comments: Seq[ArticleComment], stockers: Seq[User], stocked: Boolean, count: Long)
 <html>
   @css()
   <body>
@@ -53,6 +53,11 @@
                 data-bind="click: toggleStock, visible: !stocked()"><i class="material-icons right">folder</i>ストック</button>
             <p>
             }
+            <p>
+              @stockers.map { st =>
+                <a href="@root/user/@st.id">@st.name</a>
+              }
+            </p>
           </div>
         </div>
       </div>

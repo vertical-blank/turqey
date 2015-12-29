@@ -25,6 +25,7 @@ class ArticleController extends ControllerBase {
     val tags = taggings.map( x => allTags(x.tagId) )
 
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
+    val stockers = Article.getStockers(articleId)
 
     val as = ArticleStock.as
     val stocked = ArticleStock.findBy(sqls
@@ -33,7 +34,7 @@ class ArticleController extends ControllerBase {
     ).isDefined
     val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
 
-    html.view(article, latestEdit, tags, comments, stocked, count)
+    html.view(article, latestEdit, tags, comments, stockers, stocked, count)
   }
 
   val edit = get("/:id/edit"){

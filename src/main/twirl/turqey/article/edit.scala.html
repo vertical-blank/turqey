@@ -235,7 +235,7 @@ var ViewModel = function (initialTags){
   self.setFirstLineAsHeader = ko.observable(true);
   self.sepChar = ko.observable("c");
   self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
-  self.beforeSubmit = function (){ $(window).unbind("beforeunload"); };
+  self.beforeSubmit = function (){ $(window).unbind("beforeunload"); return true; };
 };
 
 // Activates knockout.js

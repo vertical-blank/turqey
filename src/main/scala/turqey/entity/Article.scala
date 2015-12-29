@@ -215,4 +215,16 @@ object Article extends SQLSyntaxSupport[Article] {
     }.map(_.long(1)).list.apply()
   }
 
+  def getStockers(id: Long)(implicit session: DBSession = autoSession) :Seq[User] = {
+    val u = User.u
+    val as = ArticleStock.as
+    withSQL {
+      select.from(User as u)
+      .where.exists( 
+        select.from(ArticleStock as as)
+        .where.eq(as.articleId, id).and.eq(as.userId, u.id)
+      ).orderBy(u.resultName.id).desc
+    }.map(User(u.resultName)(_)).list.apply()
+  }
+
 }
