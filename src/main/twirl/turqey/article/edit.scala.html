@@ -63,7 +63,7 @@
           </div>
         </div>
         
-        <div style="position: absolute; top: 240px; bottom: 40px; width: 100%;">
+        <div style="position: absolute; top: 230px; bottom: 40px; width: 100%; background-color: white; z-index: 2;" data-bind="style: {top: editorTop}">
           <div style="height: 36px; width: 100%;border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0;">
             <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false"><i class="small material-icons">code</i></a>
             <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: insertLink"><i class="small material-icons">link</i></a>
@@ -72,6 +72,8 @@
             <div class="right">
               <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: shiftToPreview, css: {disabled: unshiftableToPreview}"><i class="small material-icons">chevron_left</i></a>
               <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: shiftToEditor, css: {disabled: unshiftableToEditor}"><i class="small material-icons">chevron_right</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: fullscreen, visible: !isFullscreen()"><i class="small material-icons">fullscreen</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: exitFullscreen, visible: isFullscreen"><i class="small material-icons">fullscreen_exit</i></a>
             </div>
           </div>
           <div style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())">
@@ -228,6 +230,11 @@ var ViewModel = function (initialTags){
   self.previewWidth = ko.pureComputed( function(){ return ["0%", "50%", "100%"][self.toggleState()]; } );
   self.editorVisible = ko.pureComputed( function(){ return ["100%", "50%", "0%"][self.toggleState()]; } );
   self.previewVisible = ko.pureComputed( function(){ return ["0%", "50%", "100%"][self.toggleState()]; } );
+
+  self.isFullscreen = ko.observable(false);
+  self.fullscreen = function(){ self.isFullscreen(true);ace.edit("input_content").resize(); };
+  self.exitFullscreen = function(){ self.isFullscreen(false);ace.edit("input_content").resize(); };
+  self.editorTop = ko.pureComputed(function(){ return self.isFullscreen()? "0px": "230px"; });
 
   self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
   self.content = ko.observable(@{Html(Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") ))});

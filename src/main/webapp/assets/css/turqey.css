@@ -1,3 +1,7 @@
+.markdown {
+  padding-left: 1rem;
+}
+
 .markdown ul {
   padding: 0 0 0 1.5rem;
 }
