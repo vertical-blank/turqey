@@ -76,7 +76,7 @@
                   <span data-bind="text: stock"></span>
                 </span>
                 <p>
-                  <span data-bind="text: owner.name"></span>
+                  <a data-bind="text: owner.name, attr: {href: '@root/user/' + owner.id}"></a>
                   作成: <span data-bind="text: created"></span>
                   <span data-bind="text: '更新: ' + updated, visible: updated !== ''"></span>
                 </p>
