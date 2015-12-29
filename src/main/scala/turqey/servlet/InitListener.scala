@@ -21,7 +21,7 @@ class InitListener extends ServletContextListener {
     flyway.setDataSource(ConnectionPool.dataSource())
     flyway.migrate()
     
-    if (User.countBy(sqls.eq(User.u.id, "root")) == 0){
+    if (User.countBy(sqls.eq(User.u.loginId, "root")) == 0){
       User.create(
         email    = "root",
         loginId  = "root",
