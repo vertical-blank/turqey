@@ -66,11 +66,15 @@
         <div style="position: absolute; top: 240px; bottom: 40px; width: 100%;">
           <div style="height: 36px; width: 100%;border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0;">
             <a class="dropdown-button waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false"><i class="small material-icons">code</i></a>
-            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertLink">link</i></a>
-            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;"><i class="small material-icons" data-bind="click: insertPhoto">insert_photo</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: insertLink"><i class="small material-icons">link</i></a>
+            <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: insertPhoto"><i class="small material-icons">insert_photo</i></a>
             <a class="waves-effect waves-grey btn-flat modal-trigger" href="#modal1" style="padding: 0 1rem;"><i class="small material-icons">grid_on</i></a>
+            <div class="right">
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: shiftToPreview, css: {disabled: unshiftableToPreview}"><i class="small material-icons">chevron_left</i></a>
+              <a class="waves-effect waves-grey btn-flat" style="padding: 0 1rem;" data-bind="click: shiftToEditor, css: {disabled: unshiftableToEditor}"><i class="small material-icons">chevron_right</i></a>
+            </div>
           </div>
-          <div style="float: left; width: 50%; height: 100%; border-right: 1px solid #E0E0E0;">
+          <div style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())">
             <div class="editor"
               style="height: 100%; width: 100%;"
               id="input_content"
@@ -84,7 +88,7 @@
             <textarea name="content" data-bind="value: content" style="display: none;"></textarea>
             <label for="input_content" class="active" ></label>
           </div>
-          <div style="overflow: auto; height: 100%;">
+          <div style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())">
             <div>
               <div id="preview" class="markdown" data-bind="html: marked"></div>
             </div>
@@ -214,6 +218,17 @@ var ViewModel = function (initialTags){
     self.contentCsv("");
   };
   
+  // 0: editorOnly, 1: half, 2: previewOnly
+  self.toggleState = ko.observable(1);
+  self.shiftToEditor = function() { var state = self.toggleState(); if (state !== 0){ self.toggleState(--state) }  };
+  self.shiftToPreview = function() { var state = self.toggleState(); if (state !== 2){ self.toggleState(++state) }  };
+  self.unshiftableToEditor = ko.pureComputed( function(){ return self.toggleState() === 0; } );
+  self.unshiftableToPreview = ko.pureComputed( function(){ return self.toggleState() === 2; } );
+  self.editorWidth = ko.pureComputed( function(){ return ["100%", "50%", "0%"][self.toggleState()]; } );
+  self.previewWidth = ko.pureComputed( function(){ return ["0%", "50%", "100%"][self.toggleState()]; } );
+  self.editorVisible = ko.pureComputed( function(){ return ["100%", "50%", "0%"][self.toggleState()]; } );
+  self.previewVisible = ko.pureComputed( function(){ return ["0%", "50%", "100%"][self.toggleState()]; } );
+
   self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
   self.content = ko.observable(@{Html(Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") ))});
   self.contentCsv = ko.observable("");
