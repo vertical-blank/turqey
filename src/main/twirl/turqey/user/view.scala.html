@@ -77,7 +77,8 @@
                 </span>
                 <p>
                   <span data-bind="text: owner.name"></span>
-                  <span data-bind="text: created"></span>
+                  作成: <span data-bind="text: created"></span>
+                  <span data-bind="text: '更新: ' + updated, visible: updated !== ''"></span>
                 </p>
                 <p>
                   <div data-bind="foreach: tags ">

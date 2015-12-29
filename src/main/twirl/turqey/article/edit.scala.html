@@ -33,7 +33,7 @@
           </div>
           <div class="input-field col s4 right-align">
             <button type="submit" class="waves-effect waves-light btn"
-              data-bind="enable: postable" disabled><i class="material-icons right">save</i>保存</button>
+              data-bind="enable: postable, click: beforeSubmit" disabled><i class="material-icons right">save</i>保存</button>
           </div>
         </div>
         <div class="row">
@@ -235,6 +235,7 @@ var ViewModel = function (initialTags){
   self.setFirstLineAsHeader = ko.observable(true);
   self.sepChar = ko.observable("c");
   self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
+  self.beforeSubmit = function (){ $(window).unbind("beforeunload"); };
 };
 
 // Activates knockout.js
@@ -242,6 +243,9 @@ var vm = new ViewModel(@{Html(Json.toJson(tags))});
 ko.applyBindings(vm, document.getElementById('form'));
 
 $('.modal-trigger').leanModal();
+$(window).bind("beforeunload", function() {
+  return "保存せずに移動しますか？";
+});
 </script>
 </html>
 

@@ -19,7 +19,7 @@ class ArticleController extends ControllerBase {
 
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
-    //val latestEdit = ArticleHistory.findAllBy(sql.eq(ArticleHistory.ah.articleId, articleId)).tail
+    val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
     val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
     val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
     val tags = taggings.map( x => allTags(x.tagId) )
@@ -33,7 +33,7 @@ class ArticleController extends ControllerBase {
     ).isDefined
     val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
 
-    html.view(article, tags, comments, stocked, count)
+    html.view(article, latestEdit, tags, comments, stocked, count)
   }
 
   val edit = get("/:id/edit"){

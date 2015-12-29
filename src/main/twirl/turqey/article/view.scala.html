@@ -2,9 +2,10 @@
 @import turqey.html._
 @import turqey.utils.Implicits._
 @import turqey.controller._
+@import org.joda.time.{DateTime}
 @import turqey.util.Markdown
 
-@(article: Article, tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean, count: Long)
+@(article: Article, latestEdit: Option[DateTime], tags: Seq[Tag], comments: Seq[ArticleComment], stocked: Boolean, count: Long)
 <html>
   @css()
   <body>
@@ -18,9 +19,10 @@
           <div class="col s8">
             <p>
               <h2>@article.title</h2>
-            <p>
+            </p>
             <p>
               <span><a href="@root/user/@article.owner.get.id">@article.owner.get.name</a> が @{article.created.toString("yyyy/MM/dd")} に投稿</span>
+              @latestEdit.map(_.toString("yyyy/MM/dd") + "に更新")
             </p>
             <p>
             @tags.map { tag =>
