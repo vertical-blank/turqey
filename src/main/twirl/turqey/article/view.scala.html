@@ -105,14 +105,21 @@
       <div class="row">
         <form action="@root/article/@article.id/comment" method="post" id="formComment">
           <div class="input-field col s12">
-            <textarea name="comment" class="materialize-textarea"
-              placeholder="Markdown" id="input_comment"
-              data-bind="textInput: comment"></textarea>
-            <label>Comment</label>
+            <div data-bind="visible: editting">
+              <textarea name="comment" class="materialize-textarea"
+                placeholder="Markdown" id="input_comment"
+                data-bind="textInput: comment"></textarea>
+              <label>Comment</label>
+            </div>
+            <div data-bind="visible: !editting(), html: preview" class="markdown"></div>
           </div>
           <div class="input-field col s12">
             <button type="submit" class="waves-effect waves-light btn"
               data-bind="enable: commentable"><i class="material-icons right">send</i>コメント</button>
+            <button type="button" class="waves-effect waves-light btn right"
+              data-bind="visible: editting, click: togglePreview"><i class="material-icons right">search</i>プレビュー</button>
+            <button type="button" class="waves-effect waves-light btn right"
+              data-bind="visible: !editting(), click: togglePreview"><i class="material-icons right">arrow_back</i>戻る</button>
           </div>
         </form>
       </div>
@@ -122,7 +129,7 @@
 var ViewModel = function (initialState){
   var self = this;
   self.stocked = ko.observable(initialState);
-  self.toggleStock = function(obj, e){
+  self.toggleStock = function (obj, e){
     $.post('@root/article/@article.id/stock', function(dat){
       self.stocked(!self.stocked());
       self.count(dat.count);
@@ -135,6 +142,23 @@ var CommentViewModel = function (){
   var self = this;
   self.comment = ko.observable('');
   self.commentable = ko.pureComputed( function (){ return self.comment().length != 0; } );
+
+  self.preview = ko.observable('');
+  self.editting = ko.observable(true);
+  self.togglePreview = function (){
+    if (self.editting()){
+      $.post(
+        '@root/api/markdown',
+        { content: self.comment() },
+        function(response) {
+          self.preview(response);
+          Prism.highlightAll();
+        }
+      );
+    }
+    self.editting(!self.editting());
+  };
+  
 };
 // Activate knockout.js
 var vm = new ViewModel(@{Html(stocked.toString)});
