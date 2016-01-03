@@ -7,6 +7,10 @@
 	font-weight: bold;
 }
 
+.markdown img {
+	max-width: 100%;
+}
+
 .markdown ul {
   padding: 0 0 0 1.5rem;
 }
