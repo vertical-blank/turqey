@@ -166,7 +166,7 @@ var ViewModel = function (initialTags){
     delay(function(){
       $.post(
         '@root/api/markdown',
-        { content: ace.edit("input_content").getValue() },
+        { content: self.getEditor().getValue() },
         function(response) {
           self.marked(response);
           Prism.highlightAll();
@@ -202,21 +202,38 @@ var ViewModel = function (initialTags){
     {name: 'typescript'},
     {name: 'yaml'}
   ]);
-  self.insertLang = function(lang){ 
+  
+  self.insertLang = function(lang){
     (function(editor){
       var selection = editor.getSelection();
       var row = selection.getCursor().row;
       editor.getSession().insert({ row: row + 1, column: 0 }, "```" + lang.name + "\r\nInsert_Code_Here\r\n```");
       selection.setSelectionRange({start:{row: row + 1, column: 0}, end:{row: row + 1, column:20}});
-    })(ace.edit("input_content"))
+    })(self.getEditor())
   };
   
-  self.insertLink  = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "[text](url)") })(ace.edit("input_content")) };
-  self.insertPhoto = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "![alt_text](image_url)") })(ace.edit("input_content")) };
+  self.editor = null;
+  self.getEditor = function(){
+    if (!self.editor) {
+      self.editor = ace.edit("input_content");
+    }
+    return self.editor;
+  };
+  
+  self.extractLink = function(){
+    var selectedText = self.getEditor().getSession().doc.getTextRange(self.getEditor().selection.getRange());
+    $.get("https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent("select * from html where url='" + selectedText + "' and (xpath='/html/head/meta' or xpath='/html/head/title')"),
+      function(response) {
+        console.log(response.query.results.title);
+      });
+  };
+  
+  self.insertLink  = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "[text](url)") })(self.getEditor()) };
+  self.insertPhoto = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "![alt_text](image_url)") })(self.getEditor()) };
   self.insertTable = function(){ 
     (function(editor){
       editor.getSession().insert(editor.getSelection().getCursor(), csvToMarkdown(self.contentCsv(), {"c": ",", "t":"\t"}[self.sepChar()], self.setFirstLineAsHeader()))
-    })(ace.edit("input_content"));
+    })(self.getEditor());
     self.contentCsv("");
   };
   
@@ -232,8 +249,8 @@ var ViewModel = function (initialTags){
   self.previewVisible = ko.pureComputed( function(){ return ["0%", "50%", "100%"][self.toggleState()]; } );
 
   self.isFullscreen = ko.observable(false);
-  self.fullscreen = function(){ self.isFullscreen(true);ace.edit("input_content").resize(); };
-  self.exitFullscreen = function(){ self.isFullscreen(false);ace.edit("input_content").resize(); };
+  self.fullscreen = function(){ self.isFullscreen(true);self.getEditor().resize(); };
+  self.exitFullscreen = function(){ self.isFullscreen(false);self.getEditor().resize(); };
   self.editorTop = ko.pureComputed(function(){ return self.isFullscreen()? "0px": "230px"; });
 
   self.title = ko.observable(@{Html(Json.toJson( article.map(_.title).getOrElse("") ))});
