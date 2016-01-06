@@ -220,16 +220,56 @@ var ViewModel = function (initialTags){
     return self.editor;
   };
   
-  self.extractLink = function(){
-    var selectedText = self.getEditor().getSession().doc.getTextRange(self.getEditor().selection.getRange());
-    $.get("https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent("select * from html where url='" + selectedText + "' and (xpath='/html/head/meta' or xpath='/html/head/title')"),
-      function(response) {
-        console.log(response.query.results.title);
-      });
+  self.insertLink  = function(){
+    var editor = self.getEditor();
+    var range = editor.selection.getRange();
+    
+    if (range.isEmpty()) {
+      editor.getSession().insert(editor.getSelection().getCursor(), "[text](url)");
+    }
+    else {
+      var lines = editor.getSession().doc.getLinesForRange(range);
+      
+      var queries = [];
+      for (var i in lines){
+        queries.push("select * from html where url = '" + lines[i] + "' and (xpath='/html/head')");
+      }
+      
+      var query = 'select * from yql.query.multi where queries = \"' + queries.join(";") + '\"';
+      
+      $.get("https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(query),
+        function(response) {
+          var replaceTexts = [];
+          
+          var results = response.query.results.results;
+          if (!$.isArray(results)){
+            results = [results];
+          }
+          
+          for (var i in results){
+            var result = results[i];
+            var head = result ? result.head:null;
+            replaceTexts.push( head ? "[" + head.title + "](" + lines[i] + ")": lines[i] );
+          }
+          
+          editor.getSession().replace(editor.selection.getRange(), replaceTexts.join("\r\n"));
+        }
+      );
+    }
+      
   };
-  
-  self.insertLink  = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "[text](url)") })(self.getEditor()) };
-  self.insertPhoto = function(){ (function(editor){ editor.getSession().insert(editor.getSelection().getCursor(), "![alt_text](image_url)") })(self.getEditor()) };
+  self.insertPhoto = function(){
+    var editor = self.getEditor();
+    var range = editor.selection.getRange();
+    
+    if (range.isEmpty()) {
+      editor.getSession().insert(editor.getSelection().getCursor(), "![alt_text](image_url)");
+    }
+    else {
+      var selectedText = editor.getSession().doc.getTextRange(editor.selection.getRange());
+      editor.getSession().replace(editor.selection.getRange(), "![alt_text](" + selectedText + ")");
+    }
+  };
   self.insertTable = function(){ 
     (function(editor){
       editor.getSession().insert(editor.getSelection().getCursor(), csvToMarkdown(self.contentCsv(), {"c": ",", "t":"\t"}[self.sepChar()], self.setFirstLineAsHeader()))
