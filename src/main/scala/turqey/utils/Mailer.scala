@@ -1,43 +1,27 @@
 package turqey.utils
 
 import turqey.entity._
+import turqey.helpers._
 import turqey.mail._
 import scalikejdbc._
 
 import javax.mail._
 import javax.mail.internet._
 
-object Mailer {
+object Mailer extends NotifacationHelper {
   case class Mail(toAddr: String, subject: String, content: String = null)
 
-  case class StockedMail(article: Article, user: User)
-  case class CommentedMail(article: Article, comment: ArticleComment)
-
   def sendAllNotifications()(implicit session: DBSession) = {
-    val stockNotifs   = getStockNotifications()
-    val commentNotifs = getCommentNotifications()
+    val stockMails   = getStockMails()
+    val commentMails = getCommentMails()
 
-    val notifsByToAddr = (stockNotifs ++ commentNotifs) groupBy(_.toAddr)
-
+    val notifsByToAddr = (stockMails ++ commentMails) groupBy(_.toAddr)
   }
 
-  def getStockNotifications()(implicit session: DBSession): Seq[Mail] = {
-    val u = User.u
-    val o = User.syntax("o")
-    val a = Article.a
-    val stocksAll: Seq[StockedMail] = withSQL{
-      val sn = StockNotification.sn
-      select
-        .from(StockNotification as sn)
-        .join(User as u).on(sn.userId, u.id)
-        .join(Article as a).on(a.id, sn.articleId)
-        .join(User as o).on(a.ownerId, o.id)
-    }.map{ rs => StockedMail(
-      article = Article(a.resultName, Some(o.resultName))(rs),
-      user    = User(u.resultName)(rs) )
-    }.list.apply()
+  def getStockMails()(implicit session: DBSession): Seq[Mail] = {
+    val notifs = getStockNotifications()
 
-    stocksAll.groupBy(_.article).map {
+    notifs.groupBy(_.article).map {
       case(article, stocks) => new Mail(
         toAddr  = article.owner.get.email,
         subject = s"${article.owner.get.name} さん 記事「${article.title}」を${stocks.size}人がストックしました",
@@ -46,25 +30,10 @@ object Mailer {
     }.toSeq
   }
 
-  def getCommentNotifications()(implicit session: DBSession): Seq[Mail] = {
-    val u = User.u
-    val o = User.syntax("o")
-    val a = Article.a
-    val c = ArticleComment.ac
-    val commentsAll: Seq[CommentedMail] = withSQL{
-      val cn = CommentNotification.cn
-      select
-        .from(CommentNotification as cn)
-        .join(ArticleComment as c).on(c.id, cn.commentId)
-        .join(User as u).on(c.userId, u.id)
-        .join(Article as a).on(a.id, c.articleId)
-        .join(User as o).on(a.ownerId, o.id)
-    }.map{ rs => CommentedMail(
-      article   = Article(a.resultName, Some(o.resultName))(rs),
-      comment   = ArticleComment(c.resultName, Some(u.resultName))(rs) )
-    }.list.apply()
+  def getCommentMails()(implicit session: DBSession): Seq[Mail] = {
+    val notifs = getCommentNotifications()
 
-    commentsAll.groupBy(_.article).map {
+    notifs.groupBy(_.article).map {
       case(article, comments) => new Mail(
         toAddr  = article.owner.get.email,
         subject = s"${article.owner.get.name} さん 記事「${article.title}」に${comments.size}件のコメントがあります",

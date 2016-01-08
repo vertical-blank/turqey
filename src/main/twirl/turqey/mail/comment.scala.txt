@@ -1,9 +1,9 @@
 @import turqey.entity._
 @import turqey.utils.Mailer
-@import turqey.utils.Mailer._
+@import turqey.helpers.CommentedNotif
 @import turqey.utils.Implicits._
 
-@(article: Article, comments: Seq[CommentedMail])
+@(article: Article, comments: Seq[CommentedNotif])
 
 @{article.owner.get.name} さん
 

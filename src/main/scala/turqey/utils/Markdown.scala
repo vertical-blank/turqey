@@ -1,5 +1,5 @@
 
-package turqey.util
+package turqey.utils
 import io.github.gitbucket.markedj._
 import io.github.gitbucket.markedj.Utils._
 
