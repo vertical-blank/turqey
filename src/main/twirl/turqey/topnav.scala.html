@@ -10,9 +10,14 @@
         <ul class="right hide-on-med-and-down">
           @SessionHolder.user.map{ u =>
           <li><a href="@root/tag" class="waves-effect waves-light" style="color: white;">タグ一覧</a></li>
-          <li><span data-bind="text: notifCount"></span></li>
-          <li><a class="dropdown-button waves-effect waves-light" href="#" 
-            data-activates="dropdown1"
+          <li><a id="notifInd" 
+            data-activates="notifDropdown" 
+            data-bind="text: notifCount" 
+            data-constrainwidth="false"
+            data-beloworigin="true"
+            class="dropdown-button waves-effect waves-light" ></a></li>
+          <li><a id="menuDrop" class="dropdown-button waves-effect waves-light" href="#" 
+            data-activates="menuDropdown"
             data-constrainwidth="false"
             data-beloworigin="true"
             data-alignment="right" >@u.name</a></li>
@@ -35,17 +40,40 @@
         </ul>
       </div>
     </div>
+    <ul id="notifDropdown" class="dropdown-content">
+      <!-- ko foreach:notifs -->
+        <!-- ko if:$index !== 0 -->
+          <li class="divider"></li>
+        <!-- /ko -->
+        <li><a data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead"></a></li>
+      <!-- /ko -->
+    </ul>
   </nav>
 <script>
 $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
 var TopnavVM = function (){
   var self = this;
-  self.notifCount = ko.observable('');
+  self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
+  self.notifs = ko.observableArray([]);
+  self.loadNotifs = function (){
+    $.get('@root/api/notifs', function (response){
+      self.notifs(response);
+      $('#notifInd').dropdown();
+      setTimeout(self.loadNotifs, 30000);
+    });
+  };
+  self.setAsRead = function (item){
+    $.post('@root/api/notif_read', item, function (response){
+    });
+    return true;
+  }
 };
-ko.applyBindings(new TopnavVM(), document.getElementById('topnav'));
+var topnavVM = new TopnavVM();
+ko.applyBindings(topnavVM, document.getElementById('topnav'));
+topnavVM.loadNotifs();
 </script>
 @additional
-<ul id="dropdown1" class="dropdown-content" style="width: 13rem;overflow: hidden;">
+<ul id="menuDropdown" class="dropdown-content" style="width: 13rem;overflow: hidden;">
   <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
   <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
   <li><a href="@root/tag/followings"><i class="material-icons small left">star</i>フォロー中のタグ</a></li>

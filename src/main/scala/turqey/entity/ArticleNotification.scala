@@ -1,10 +1,13 @@
 package turqey.entity
 
 import scalikejdbc._
+import org.joda.time.{DateTime}
 
 case class ArticleNotification(
   id: Long,
-  articleId: Long) {
+  articleId: Long,
+  read: Boolean = false,
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = ArticleNotification.autoSession): ArticleNotification = ArticleNotification.save(this)(session)
 
@@ -19,12 +22,14 @@ object ArticleNotification extends SQLSyntaxSupport[ArticleNotification] {
 
   override val tableName = "ARTICLE_NOTIFICATIONS"
 
-  override val columns = Seq("ID", "ARTICLE_ID")
+  override val columns = Seq("ID", "ARTICLE_ID", "READ", "CREATED")
 
   def apply(an: SyntaxProvider[ArticleNotification])(rs: WrappedResultSet): ArticleNotification = apply(an.resultName)(rs)
   def apply(an: ResultName[ArticleNotification])(rs: WrappedResultSet): ArticleNotification = new ArticleNotification(
     id = rs.get(an.id),
-    articleId = rs.get(an.articleId)
+    articleId = rs.get(an.articleId),
+    read = rs.get(an.read),
+    created = rs.get(an.created)
   )
 
   val an = ArticleNotification.syntax("an")

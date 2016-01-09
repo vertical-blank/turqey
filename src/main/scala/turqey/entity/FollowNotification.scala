@@ -1,10 +1,13 @@
 package turqey.entity
 
 import scalikejdbc._
+import org.joda.time.{DateTime}
 
 case class FollowNotification(
   id: Long,
-  userId: Long) {
+  userId: Long,
+  read: Option[Boolean] = None,
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = FollowNotification.autoSession): FollowNotification = FollowNotification.save(this)(session)
 
@@ -19,12 +22,14 @@ object FollowNotification extends SQLSyntaxSupport[FollowNotification] {
 
   override val tableName = "FOLLOW_NOTIFICATIONS"
 
-  override val columns = Seq("ID", "USER_ID")
+  override val columns = Seq("ID", "USER_ID", "READ", "CREATED")
 
   def apply(fn: SyntaxProvider[FollowNotification])(rs: WrappedResultSet): FollowNotification = apply(fn.resultName)(rs)
   def apply(fn: ResultName[FollowNotification])(rs: WrappedResultSet): FollowNotification = new FollowNotification(
     id = rs.get(fn.id),
-    userId = rs.get(fn.userId)
+    userId = rs.get(fn.userId),
+    read = rs.get(fn.read),
+    created = rs.get(fn.created)
   )
 
   val fn = FollowNotification.syntax("fn")

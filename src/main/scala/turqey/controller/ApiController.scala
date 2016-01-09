@@ -8,6 +8,8 @@ import turqey.utils._
 import turqey.servlet._
 import turqey.helpers._
 
+case class SiteNotif(linkTo: String, content: String, notifType: String, ids: Seq[Long])
+
 class ApiController extends ControllerBase with NotifacationHelper {
   override val path = "api"
   override val shouldLoggedIn = false
@@ -31,33 +33,48 @@ class ApiController extends ControllerBase with NotifacationHelper {
     Json.toJson(Article.findForList(ids))
   }
   
-  case class SiteNotif(linkTo: String, content: String)
-  
   get("/notifs") {
     contentType = "application/json"
     
     val userId    = Some(SessionHolder.user.get.id)
     
     DB readOnly { implicit session => 
-      val stockNotifs   = getStockNotifications(userId).groupBy(_.article).map {
-        case(article, stocks) => SiteNotif(
-          linkTo = turqey.servlet.ServletContextHolder.root + "/articles/" + article.id.toString,
-          content = s"記事「${article.title}」を${stocks.size}人がストックしました"
-        )
+      val stockNotifs   = getStockNotifications(userId).groupBy(_.article.id).map {
+        case(id, notifs) => 
+          val article = notifs.head.article
+          SiteNotif(
+            linkTo    = turqey.servlet.ServletContextHolder.root + "/article/" + id.toString,
+            content   = s"記事「${article.title}」を${notifs.size}人がストックしました",
+            notifType = "stock",
+            ids       = notifs.map( _.id )
+          )
       }.toSeq
       
-      val commentNotifs = getCommentNotifications(userId).groupBy(_.article).map {
-        case(article, comments) => SiteNotif(
-          linkTo = turqey.servlet.ServletContextHolder.root + "/articles/" + article.id.toString,
-          content = s"記事「${article.title}」に${comments.size}件のコメントがあります"
-        )
+      val commentNotifs = getCommentNotifications(userId).groupBy(_.article.id).map {
+        case(id, notifs) => 
+          val article = notifs.head.article
+          SiteNotif(
+            linkTo    = turqey.servlet.ServletContextHolder.root + "/article/" + id.toString,
+            content   = s"記事「${article.title}」に${notifs.size}件のコメントがあります",
+            notifType = "comment",
+            ids       = notifs.map( _.id )
+          )
       }.toSeq
       
       val notifs = (stockNotifs ++ commentNotifs)
-      
       Json.toJson(notifs)
     }
 
+  }
+  
+  post("/notif_read") {
+    contentType = "application/json"
+    val ids       = multiParams("ids").map(_.toLong)
+    val notifType = params("notifType")
+
+    DB localTx { implicit session =>
+      setNotifcationAsRead(notifType, ids)
+    }
   }
 
 }

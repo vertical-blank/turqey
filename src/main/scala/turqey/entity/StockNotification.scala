@@ -1,11 +1,14 @@
 package turqey.entity
 
 import scalikejdbc._
+import org.joda.time.{DateTime}
 
 case class StockNotification(
   id: Long,
   articleId: Long,
-  userId: Long) {
+  userId: Long,
+  read: Boolean = false,
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = StockNotification.autoSession): StockNotification = StockNotification.save(this)(session)
 
@@ -20,13 +23,15 @@ object StockNotification extends SQLSyntaxSupport[StockNotification] {
 
   override val tableName = "STOCK_NOTIFICATIONS"
 
-  override val columns = Seq("ID", "ARTICLE_ID", "USER_ID")
+  override val columns = Seq("ID", "ARTICLE_ID", "USER_ID", "READ", "CREATED")
 
   def apply(sn: SyntaxProvider[StockNotification])(rs: WrappedResultSet): StockNotification = apply(sn.resultName)(rs)
   def apply(sn: ResultName[StockNotification])(rs: WrappedResultSet): StockNotification = new StockNotification(
     id = rs.get(sn.id),
     articleId = rs.get(sn.articleId),
-    userId = rs.get(sn.userId)
+    userId = rs.get(sn.userId),
+    read = rs.get(sn.read),
+    created = rs.get(sn.created)
   )
 
   val sn = StockNotification.syntax("sn")
