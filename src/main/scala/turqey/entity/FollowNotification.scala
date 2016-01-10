@@ -6,7 +6,7 @@ import org.joda.time.{DateTime}
 case class FollowNotification(
   id: Long,
   userId: Long,
-  read: Option[Boolean] = None,
+  read: Boolean = false,
   created: DateTime = null) {
 
   def save()(implicit session: DBSession = FollowNotification.autoSession): FollowNotification = FollowNotification.save(this)(session)
