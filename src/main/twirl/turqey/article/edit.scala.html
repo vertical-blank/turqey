@@ -15,6 +15,8 @@
   <link href="@assets/vender/css/knockout.autocomplete.css" rel="stylesheet" />
 
   <script type="text/javascript" src="@assets/vender/ace/ace.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/diffDOM.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/jquery.scrollTo.min.js"></script>
   <script type="text/javascript" src="@assets/vender/js/CsvToMarkdown.js"></script>
 
   @topnav()
@@ -89,7 +91,7 @@
             <textarea name="content" data-bind="value: content" style="display: none;"></textarea>
             <label for="input_content" class="active" ></label>
           </div>
-          <div style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())">
+          <div style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())" id="prev_container">
             <div>
               <div id="preview" class="markdown" data-bind="html: marked"></div>
             </div>
@@ -167,8 +169,50 @@ var ViewModel = function (initialTags){
         '@root/api/markdown',
         { content: self.getEditor().getValue() },
         function(response) {
+          var prev = $($('#preview').parent().html())[0];
+          
           self.marked(response);
+          
           Prism.highlightAll();
+          
+          var current = $('#preview')[0];
+          
+          var dd = new diffDOM();
+          var diffs = dd.diff(prev, current);
+
+ 
+          //setTimeout(function() {
+            var elem;
+            while (true){
+              if (diffs.length === 0){ break; }
+              
+              var diff = diffs.shift();
+              
+              if (diff.action === "modifyAttribute" && diff.newValue.trim() === diff.oldValue.trim() ){
+                continue;
+              }
+              
+              var elem = $(dd.getFromRoute(current, diff.route));
+              if (elem.length === 0){
+                continue;
+              }
+              
+              while (elem.offset().left === 0){
+                elem = elem.parent();
+                if (elem.attr('id') === 'preview'){
+                  break;
+                }
+              }
+              if (elem.attr('id') === 'preview'){
+                continue;
+              }
+              
+              $('#prev_container').scrollTo(elem);
+              
+              break;
+            }
+          //}, 200);
+          
         }
     )}, 800);
   };
