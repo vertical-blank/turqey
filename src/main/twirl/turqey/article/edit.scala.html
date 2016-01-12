@@ -180,38 +180,36 @@ var ViewModel = function (initialTags){
           var dd = new diffDOM();
           var diffs = dd.diff(prev, current);
 
- 
-          //setTimeout(function() {
-            var elem;
-            while (true){
-              if (diffs.length === 0){ break; }
-              
-              var diff = diffs.shift();
-              
-              if (diff.action === "modifyAttribute" && diff.newValue.trim() === diff.oldValue.trim() ){
-                continue;
-              }
-              
-              var elem = $(dd.getFromRoute(current, diff.route));
-              if (elem.length === 0){
-                continue;
-              }
-              
-              while (elem.offset().left === 0){
-                elem = elem.parent();
-                if (elem.attr('id') === 'preview'){
-                  break;
-                }
-              }
-              if (elem.attr('id') === 'preview'){
-                continue;
-              }
-              
-              $('#prev_container').scrollTo(elem);
-              
-              break;
+          // sync scroll
+          var elem;
+          while (true){
+            if (diffs.length === 0){ break; }
+            
+            var diff = diffs.shift();
+            
+            if (diff.action === "modifyAttribute" && diff.newValue.trim() === diff.oldValue.trim() ){
+              continue;
             }
-          //}, 200);
+            
+            var elem = $(dd.getFromRoute(current, diff.route));
+            if (elem.length === 0){
+              continue;
+            }
+            
+            while (elem.offset().left === 0){
+              elem = elem.parent();
+              if (elem.attr('id') === 'preview'){
+                break;
+              }
+            }
+            if (elem.attr('id') === 'preview'){
+              continue;
+            }
+            
+            $('#prev_container').scrollTo(elem);
+            
+            break;
+          }
           
         }
     )}, 800);
