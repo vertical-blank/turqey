@@ -61,7 +61,34 @@ class ApiController extends ControllerBase with NotifacationHelper {
           )
       }.toSeq
       
-      val notifs = (stockNotifs ++ commentNotifs)
+      val articleNotifs = getArticleNotifications(userId)
+      
+      val articleUpdateNotifs = articleNotifs
+        .filter( _.notifType == ArticleNotification.TYPES.UPDATE )
+        .groupBy(_.article.id).map {
+        case(id, notifs) => 
+          val article = notifs.head.article
+          SiteNotif(
+            linkTo    = turqey.servlet.ServletContextHolder.root + "/article/" + id.toString,
+            content   = s"記事「${article.title}」が更新されました",
+            notifType = "article",
+            ids       = notifs.map( _.id )
+          )
+      }.toSeq
+      
+      val articleCreateNotifs = articleNotifs
+        .filter( _.notifType == ArticleNotification.TYPES.CREATE ).map {
+          notif => 
+          val article = notif.article
+          SiteNotif(
+            linkTo    = turqey.servlet.ServletContextHolder.root + "/article/" + article.id.toString,
+            content   = s"記事「${article.title}」が投稿されました",
+            notifType = "article",
+            ids       = Seq(notif.id)
+          )
+      }.toSeq
+      
+      val notifs = (stockNotifs ++ commentNotifs ++ articleUpdateNotifs ++ articleCreateNotifs)
       Json.toJson(notifs)
     }
 

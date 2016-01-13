@@ -91,7 +91,9 @@ class ArticleController extends ControllerBase {
           userId    = userId
         ).id
         
-        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet - userId
+        val article = Article.find(articleId)
+        
+        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + article.get.ownerId - userId
         
         commenterIds.foreach { c =>
           CommentNotification.create(
@@ -128,6 +130,14 @@ class ArticleController extends ControllerBase {
       diff      = diff,
       userId    = Some(turqey.servlet.SessionHolder.user.get.id)
     )
+    
+    Article.getStockers(articleId).foreach { s =>
+      ArticleNotification.create(
+        articleId  = articleId,
+        notifyToId = s.id,
+        notifyType = ArticleNotification.TYPES.UPDATE
+      )
+    }
 
     refreshTaggings(articleId, tagIds, tagNames);
     
