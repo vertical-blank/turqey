@@ -21,7 +21,7 @@ trait NotifacationHelper {
         .join(Article as a).on(a.id, sn.articleId)
         .join(User as o).on(a.ownerId, o.id)
         .where.not.eq(sn.read, true).and(sqls.toAndConditionOpt {
-          userId.map { u => sqls.eq(o.id, userId) }
+          userId.map ( sqls.eq(o.id, _) )
         })
     }.map{ rs => StockedNotif(
       article = Article(a.resultName, Some(o.resultName))(rs),
@@ -45,7 +45,7 @@ trait NotifacationHelper {
         .join(Article as a).on(a.id, c.articleId)
         .join(User as o).on(a.ownerId, o.id)
         .where.not.eq(cn.read, true).and(sqls.toAndConditionOpt {
-          userId.map { u => sqls.eq(o.id, userId) }
+          userId.map ( sqls.eq(cn.notifyToId, _) )
         })
     }.map{ rs => CommentedNotif(
       article   = Article(a.resultName, Some(o.resultName))(rs),

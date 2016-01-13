@@ -7,7 +7,8 @@ case class CommentNotification(
   id: Long,
   commentId: Long,
   read: Boolean = false, 
-  created: DateTime = null) {
+  created: DateTime = null,
+  notifyToId: Long) {
 
   def save()(implicit session: DBSession = CommentNotification.autoSession): CommentNotification = CommentNotification.save(this)(session)
 
@@ -22,14 +23,15 @@ object CommentNotification extends SQLSyntaxSupport[CommentNotification] {
 
   override val tableName = "COMMENT_NOTIFICATIONS"
 
-  override val columns = Seq("ID", "COMMENT_ID", "READ", "CREATED")
+  override val columns = Seq("ID", "COMMENT_ID", "READ", "CREATED", "NOTIFY_TO_ID")
 
   def apply(cn: SyntaxProvider[CommentNotification])(rs: WrappedResultSet): CommentNotification = apply(cn.resultName)(rs)
   def apply(cn: ResultName[CommentNotification])(rs: WrappedResultSet): CommentNotification = new CommentNotification(
     id = rs.get(cn.id),
     commentId = rs.get(cn.commentId),
     read = rs.get(cn.read),
-    created = rs.get(cn.created)
+    created = rs.get(cn.created),
+    notifyToId = rs.get(cn.notifyToId)
   )
 
   val cn = CommentNotification.syntax("cn")
@@ -69,18 +71,23 @@ object CommentNotification extends SQLSyntaxSupport[CommentNotification] {
   }
 
   def create(
-    commentId: Long)(implicit session: DBSession = autoSession): CommentNotification = {
+    commentId: Long,
+    notifyToId: Long)(implicit session: DBSession = autoSession): CommentNotification = {
     val generatedKey = withSQL {
       insert.into(CommentNotification).columns(
-        column.commentId
+        column.commentId,
+        column.notifyToId
       ).values(
-        commentId
+        commentId,
+        notifyToId
       )
     }.updateAndReturnGeneratedKey.apply()
 
     CommentNotification(
       id = generatedKey,
-      commentId = commentId)
+      commentId = commentId,
+      notifyToId = notifyToId
+      )
   }
 
   def batchInsert(entities: Seq[CommentNotification])(implicit session: DBSession = autoSession): Seq[Int] = {

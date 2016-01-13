@@ -76,6 +76,7 @@ class ArticleController extends ControllerBase {
   post("/:id/comment"){
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
+    var userId    = turqey.servlet.SessionHolder.user.get.id
     
     params.get("commentId") match {
       case Some(commentId) => {
@@ -87,11 +88,17 @@ class ArticleController extends ControllerBase {
         val commentId = ArticleComment.create(
           articleId = articleId,
           content   = comment,
-          userId    = turqey.servlet.SessionHolder.user.get.id
+          userId    = userId
         ).id
-        CommentNotification.create(
-          commentId = commentId
-        );
+        
+        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet - userId
+        
+        commenterIds.foreach { c =>
+          CommentNotification.create(
+            commentId  = commentId,
+            notifyToId = c
+          )
+        }
       }
     }
 

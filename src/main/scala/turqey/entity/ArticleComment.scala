@@ -145,5 +145,13 @@ object ArticleComment extends SQLSyntaxSupport[ArticleComment] {
       .groupBy(ac.articleId)
     }.map( rs => (rs.long(1), rs.long(2)) ).list.apply().toMap
   }
+  
+  def getCommenterIds(id: Long)(implicit session: DBSession = autoSession) :Seq[Long] = {
+    withSQL {
+      select( sqls.distinct(ac.result.userId) )
+      .from(ArticleComment as ac)
+      .where.eq(ac.articleId, id)
+    }.map( rs => rs.long(1) ).list.apply()
+  }
 
 }
