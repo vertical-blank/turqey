@@ -7,23 +7,40 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.article._
-
-import scalaz._
-import scalaz.Scalaz._
+import turqey.admin._
+import turqey.servlet.SessionHolder
 
 import turqey.utils.Implicits._
 
 class AdminController(adminPath: String) extends ControllerBase {
-  override val path = "/" + adminPath
+  override val path = adminPath
 
-  get("/"){
-    <html>
-      <body>
-        ADMIN CONSOLE!!!
-      </body>
-    </html>
+  before() {
+    SessionHolder.set(session)
+    val user = SessionHolder.user
+    if (shouldLoggedIn && !user.isDefined && !user.get.root){
+      redirect("")
+    }
   }
 
-}
+  get("/") {
+    html.index()
+  }
 
+  val systemView = get("/system") {
+  
+    val settings = SystemSetting.findAll()
+    val smtpSettings = SmtpSettings(settings)
+  
+    html.system(smtpSettings)
+  }
+  
+  post("/system") {
+    
+    
+    
+    redirect(url(systemView))
+  }
+  
+
+}

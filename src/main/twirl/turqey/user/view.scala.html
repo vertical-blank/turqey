@@ -1,0 +1,145 @@
+@import turqey.entity._
+@import turqey.servlet._
+@import turqey.html._
+@import turqey.utils.Json
+
+@(u: User, articleIds: Seq[Seq[scala.Long]])
+<html>
+  @css()
+  <body>
+    <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      @if(u.editable){
+      <div class="row">
+        <div class="col s2">
+          ID
+        </div>
+        <div class="col s6">
+          @u.loginId
+        </div>
+      </div>
+      }
+      <div class="row">
+        <div class="col s2">
+          Name
+        </div>
+        <div class="col s6">
+          @u.name
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s2">
+          Email
+        </div>
+        <div class="col s6">
+          @u.email
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s2">
+          最終ログイン
+        </div>
+        <div class="col s6">
+          @{u.lastLogin.map { d => d.toString("yyyy/MM/dd HH:mm:ss")} }
+        </div>
+      </div>
+      @if(u.editable){
+      <div class="row">
+        <div class="col s6">
+          <a href="@root/user/@u.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+        </div>
+        @if(SessionHolder.root){
+        <div class="col s6">
+          <form method="post" action="@root/user/@u.id/reset" >
+            <button class="waves-effect waves-light btn red"><i class="material-icons right">person_outline</i>パスワードリセット</button>
+          </form>
+        </div>
+        }
+      </div>
+      }
+        <!-- ko foreach: tabs -->
+          <div class="col s12" data-bind="foreach: articles">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                  <a data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
+                </span>
+                <span class="right">
+                  <i class="material-icons">comment</i>
+                  <span data-bind="text: comment"></span>
+                </span>
+                <span class="right">
+                  <i class="material-icons">folder</i>
+                  <span data-bind="text: stock"></span>
+                </span>
+                <p>
+                  <a data-bind="text: owner.name, attr: {href: '@root/user/' + owner.id}"></a>
+                  作成: <span data-bind="text: created"></span>
+                  <span data-bind="text: '更新: ' + updated, visible: updated !== ''"></span>
+                </p>
+                <p>
+                  <div data-bind="foreach: tags ">
+                    <div class="chip">
+                      <a data-bind="text: name, attr: { href: '@root/tag/' + id }" ></a>
+                    </div>
+                  </div>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col s12 center-align">
+            <button class="waves-effect waves-light btn" data-bind="visible: showNext, click: append" style="display: none;">もっと見る</button>
+            <div class="preloader-wrapper big active" data-bind="visible: isLoading" style="display: none;">
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- /ko -->
+    </div>
+    </main>
+  </body>
+<script>
+var ViewModel = function (){
+  var self = this;
+  
+  var TabModel = function (name, ids){
+    var self = this;
+    
+    self.name = name;
+    self.ids = ko.observableArray(ids);
+    self.articles = ko.observableArray([]);
+    
+    self.append = function() {
+      self.isLoading(true);
+      $.post('@root/api/article/list', { ids: self.ids.shift() }, function (response){ self.articles(self.articles().concat(response));self.isLoading(false);; } );
+    };
+    self.isLoading = ko.observable(false);
+    self.load = function() {
+      if (!self.articles().length){ self.append(); }
+    };
+    self.showNext = ko.pureComputed(function (){ return (self.ids().length !== 0) && !self.isLoading(); });
+  };
+  
+  self.ownIds    = @{Html(Json.toJson( articleIds ))};
+  
+  self.own       = new TabModel("own",   self.ownIds);
+  self.tabs = ko.observableArray([self.own]);
+
+  self.own.load();
+};
+
+// Activates knockout.js
+var vm = new ViewModel();
+ko.applyBindings(vm, document.getElementsByTagName('main')[0]);
+</script>
+</html>

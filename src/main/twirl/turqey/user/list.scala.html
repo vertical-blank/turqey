@@ -1,0 +1,36 @@
+@import turqey.entity._
+@import turqey.servlet._
+@import turqey.html._
+
+@(users: Seq[User])
+<html>
+  @css()
+  <body>
+    <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      <div class="row">
+        <div class="col s12">
+          @users.map{ u =>
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">
+                <a href="@root/user/@u.id">@u.name</a>
+              </span>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      @if(SessionHolder.root){
+      <div class="row">
+        <div class="col s12">
+          <a href="@root/user/edit" class="waves-effect waves-light btn"><i class="material-icons right">person_add</i>追加</a>
+        </div>
+      </div>
+      }
+    </div>
+    </main>
+  </body>
+</html>

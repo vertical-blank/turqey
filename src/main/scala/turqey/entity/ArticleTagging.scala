@@ -7,7 +7,7 @@ case class ArticleTagging(
   id: Long,
   articleId: Long,
   tagId: Long,
-  created: Option[DateTime] = None) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = ArticleTagging.autoSession): ArticleTagging = ArticleTagging.save(this)(session)
 
@@ -17,6 +17,8 @@ case class ArticleTagging(
 
 
 object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
+
+  override val schemaName = Some("PUBLIC")
 
   override val tableName = "ARTICLE_TAGGINGS"
 
@@ -68,41 +70,34 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
 
   def create(
     articleId: Long,
-    tagId: Long,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): ArticleTagging = {
+    tagId: Long)(implicit session: DBSession = autoSession): ArticleTagging = {
     val generatedKey = withSQL {
       insert.into(ArticleTagging).columns(
         column.articleId,
-        column.tagId,
-        column.created
+        column.tagId
       ).values(
         articleId,
-        tagId,
-        created
+        tagId
       )
     }.updateAndReturnGeneratedKey.apply()
 
     ArticleTagging(
       id = generatedKey,
       articleId = articleId,
-      tagId = tagId,
-      created = created)
+      tagId = tagId)
   }
 
   def batchInsert(entities: Seq[ArticleTagging])(implicit session: DBSession = autoSession): Seq[Int] = {
     val params: Seq[Seq[(Symbol, Any)]] = entities.map(entity => 
       Seq(
         'articleId -> entity.articleId,
-        'tagId -> entity.tagId,
-        'created -> entity.created))
+        'tagId -> entity.tagId))
         SQL("""insert into ARTICLE_TAGGINGS(
         ARTICLE_ID,
-        TAG_ID,
-        CREATED
+        TAG_ID
       ) values (
         {articleId},
-        {tagId},
-        {created}
+        {tagId}
       )""").batchByName(params: _*).apply()
     }
 
@@ -111,8 +106,7 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
       update(ArticleTagging).set(
         column.id -> entity.id,
         column.articleId -> entity.articleId,
-        column.tagId -> entity.tagId,
-        column.created -> entity.created
+        column.tagId -> entity.tagId
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity
@@ -120,6 +114,42 @@ object ArticleTagging extends SQLSyntaxSupport[ArticleTagging] {
 
   def destroy(entity: ArticleTagging)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(ArticleTagging).where.eq(column.id, entity.id) }.update.apply()
+  }
+
+  def deleteTagsOfArticle(articleId: Long, tagIds: Seq[Long])(implicit session: DBSession = autoSession): Unit = {
+    withSQL { delete.from(ArticleTagging).where.eq(column.articleId, articleId).and.in(column.tagId, tagIds) }.update.apply()
+  }
+
+  def insertTagsOfArticle(articleId: Long, tagIds: Seq[Long])(implicit session: DBSession = autoSession): Unit = {
+    Array.fill(tagIds.size)(articleId).zip(tagIds).foreach{ case(articleId, tagId) => this.create(articleId, tagId) }
+  }
+
+  def countByTag(ids :Seq[Long] = Seq())(implicit session: DBSession = autoSession): Seq[(Long, Int)] = {
+    val at = ArticleTagging.at
+    withSQL {
+      select(at.tagId, sqls.count)
+        .from(ArticleTagging as at)
+        .where(sqls.toAndConditionOpt {
+          if(ids.isEmpty) { None } else { Some(sqls.in(at.tagId, ids)) }
+        })
+        .groupBy(at.tagId)
+        .orderBy(sqls.count)
+    }.map( rs => (rs.long(1), rs.int(2)) ).list.apply()
+  }
+
+  def followingArticleIds(userId: Long)(implicit session: DBSession = autoSession): Seq[Long] = {
+    val tf = TagFollowing.tf
+    withSQL {
+      select(at.articleId)
+        .from(ArticleTagging as at)
+        .where.exists(
+          select
+            .from(TagFollowing as tf)
+            .where.eq(tf.userId, userId)
+              .and.eq(tf.followedId, at.tagId)
+        )
+        .orderBy(at.articleId).desc
+    }.map(_.long(1)).list.apply()
   }
 
 }

@@ -16,6 +16,8 @@ case class ArticleStock(
 
 object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "ARTICLE_STOCKS"
 
   override val columns = Seq("ID", "ARTICLE_ID", "USER_ID")
@@ -27,7 +29,7 @@ object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
     userId = rs.get(as.userId)
   )
 
-  val as = ArticleStock.syntax("as")
+  val as = ArticleStock.syntax("astk")
 
   override val autoSession = AutoSession
 
@@ -109,6 +111,15 @@ object ArticleStock extends SQLSyntaxSupport[ArticleStock] {
 
   def destroy(entity: ArticleStock)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(ArticleStock).where.eq(column.id, entity.id) }.update.apply()
+  }
+
+  def countByIds(ids: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, Long] = {
+    withSQL {
+      select(as.result.articleId, sqls.count)
+      .from(ArticleStock as as)
+      .where.in(as.articleId, ids)
+      .groupBy(as.articleId)
+    }.map( rs => (rs.long(1), rs.long(2)) ).list.apply().toMap
   }
 
 }

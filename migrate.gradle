@@ -14,6 +14,7 @@ apply plugin: 'org.flywaydb.flyway'
 flyway {
   driver = 'org.h2.Driver'
   url = 'jdbc:h2:file:./db/turqey'
+  // url = 'jdbc:h2:file:/usr/share/tomcat/db/turqey'
   user = 'sa'
   password = 'sa'
   locations=["filesystem:src/main/resources/db/migration"]

@@ -17,9 +17,7 @@ object DiffUtil {
   }
   
   def restore(current: String, diffs: Seq[String]): String = {
-    
-    
-    "a"
+    ""
   }
 
 }

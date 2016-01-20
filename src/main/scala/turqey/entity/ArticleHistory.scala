@@ -9,7 +9,7 @@ case class ArticleHistory(
   articleId: Long,
   diff: Clob,
   userId: Option[Long] = None,
-  created: Option[DateTime] = None) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = ArticleHistory.autoSession): ArticleHistory = ArticleHistory.save(this)(session)
 
@@ -19,6 +19,8 @@ case class ArticleHistory(
 
 
 object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
+
+  override val schemaName = Some("PUBLIC")
 
   override val tableName = "ARTICLE_HISTORIES"
 
@@ -72,19 +74,17 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   def create(
     articleId: Long,
     diff: Clob,
-    userId: Option[Long] = None,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): ArticleHistory = {
+    userId: Option[Long] = None
+    )(implicit session: DBSession = autoSession): ArticleHistory = {
     val generatedKey = withSQL {
       insert.into(ArticleHistory).columns(
         column.articleId,
         column.diff,
-        column.userId,
-        column.created
+        column.userId
       ).values(
         articleId,
         diff,
-        userId,
-        created
+        userId
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -92,8 +92,7 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
       id = generatedKey,
       articleId = articleId,
       diff = diff,
-      userId = userId,
-      created = created)
+      userId = userId)
   }
 
   def batchInsert(entities: Seq[ArticleHistory])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -101,18 +100,15 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
       Seq(
         'articleId -> entity.articleId,
         'diff -> entity.diff,
-        'userId -> entity.userId,
-        'created -> entity.created))
+        'userId -> entity.userId))
         SQL("""insert into ARTICLE_HISTORIES(
         ARTICLE_ID,
         DIFF,
-        USER_ID,
-        CREATED
+        USER_ID
       ) values (
         {articleId},
         {diff},
-        {userId},
-        {created}
+        {userId}
       )""").batchByName(params: _*).apply()
     }
 
@@ -122,8 +118,7 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
         column.id -> entity.id,
         column.articleId -> entity.articleId,
         column.diff -> entity.diff,
-        column.userId -> entity.userId,
-        column.created -> entity.created
+        column.userId -> entity.userId
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity
@@ -131,6 +126,13 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
 
   def destroy(entity: ArticleHistory)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(ArticleHistory).where.eq(column.id, entity.id) }.update.apply()
+  }
+  
+  def findLatestsByIds(articleIds: Seq[Long])(implicit session: DBSession = autoSession): Map[Long, DateTime] = {
+    withSQL {
+      select(ah.articleId, ah.created).from(ArticleHistory as ah)
+      .where.in(ah.articleId, articleIds)
+    }.map{ rs => ( rs.long(1), rs.jodaDateTime(2) ) }.list.apply().toMap
   }
 
 }

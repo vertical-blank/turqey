@@ -1,8 +1,6 @@
 package turqey.controller
 
 import org.scalatra._
-import javax.servlet.http.HttpServletRequest
-import io.github.gitbucket.markedj._
 import scalikejdbc._
 
 import turqey.entity._
@@ -10,92 +8,63 @@ import turqey.utils._
 import turqey.servlet._
 import turqey.html
 
-import com.google.api.client.googleapis.auth.oauth2._
-import com.google.api.client.googleapis.javanet._
-import com.google.api.client.json.jackson2._
-import com.google.api.client.http._
-import com.google.api.services.plus._
-import com.google.api.services.plusDomains._
-import com.google.api.services.plusDomains.model._
-import collection.JavaConversions._
-import java.util.Arrays.asList
+class IndexController extends ControllerBase {
+  override val path = ""
+  override val shouldLoggedIn = false
+  
+  val pagesize = 20
 
-import scalaz._
-import scalaz.Scalaz._
-
-import turqey.utils.Implicits._
-
-class IndexController extends ControllerBase  {
-  override val path = "/"
-
-  get("/") {
-    val articles = 
-    if (SessionHolder.user isDefined){
-      implicit val session = AutoSession
-      val a = Article.syntax("a")
-      withSQL {
-        select.from(Article as a)
-      }.map(rs => Article(a)(rs)).list.apply
-    }
-    else {
+  val entry = get("/") {
+    if (!(SessionHolder.user isDefined)){
       redirect(url(login))
     }
+    
+    val usrId = SessionHolder.user.get.id
 
-    html.index(articles)
+    val articleIds = Article.findAllId().grouped(pagesize).toSeq
+    val stockIds = ArticleStock.findAllBy(
+      sqls.eq(ArticleStock.column.userId, usrId)
+    ).map( x => x.articleId ).grouped(pagesize).toSeq
+    val ownIds = Article.findAllIdBy(
+      sqls.eq(Article.column.ownerId, usrId)
+    ).grouped(pagesize).toSeq
+    val commentedIds = ArticleComment.findAllBy(
+      sqls.eq(ArticleStock.column.userId, usrId)
+    ).map( x => x.articleId ).grouped(pagesize).toSeq
+    val followingIds = ArticleTagging.followingArticleIds(usrId).grouped(pagesize).toSeq
+
+    html.index(articleIds, stockIds, ownIds, commentedIds, followingIds)
   }
-
+  
   val login = get("/login") {
     html.login()
   }
 
-  // TODO need to be refactored.
-  get("/googleAuth") {
-    //TODO LoadFromFileOrDB.
-    val clientSecret = "9DcPVivtQlBS3YdX-pkxlReG"
-    val cliendId = "553877725807-nh4mfmq8di4e2h2tqtbkgu6g36iu2h8r.apps.googleusercontent.com"
-    // TODO request.getRequestURL
-    val redirectUrl = "http://www.words-words.net:8080/googleAuth"
-    
-    val flow = new GoogleAuthorizationCodeFlow.Builder(
-      GoogleNetHttpTransport.newTrustedTransport,
-      JacksonFactory.getDefaultInstance,
-      cliendId,
-      clientSecret,
-      asList(PlusDomainsScopes.PLUS_PROFILES_READ ,PlusDomainsScopes.USERINFO_EMAIL)
-    ).build
+  post("/login") {
+    val id   = params.get("loginId")
+    val pass = params.get("password")
 
-    val code = params.get("code")
-    // if denied  ?error=access_denied 
-    if (code.isDefined) {
-      val googleResponse = flow.newTokenRequest(code.get).setRedirectUri(redirectUrl).execute
-      val payload = googleResponse.parseIdToken().getPayload
-      val credential = new GoogleCredential.Builder()
-        .setTransport(GoogleNetHttpTransport.newTrustedTransport)
-        .setJsonFactory(JacksonFactory.getDefaultInstance)
-        .setClientSecrets(cliendId, clientSecret)
-        .build
-        .setFromTokenResponse(googleResponse)
-      val plus = new PlusDomains.Builder(
-        GoogleNetHttpTransport.newTrustedTransport,
-        JacksonFactory.getDefaultInstance,
-        credential).setApplicationName("TurQey").build 
+    val digestedPass = turqey.utils.Digest.get(pass.get)
 
-      val googleUser:Option[Person] = try{
-          Some(plus.people.get("me").execute)
-        } catch {
-          case e:Exception => None
-        }
+    val usr = User.findBy(sqls.eq(User.u.loginId, id).and.eq(User.u.password, digestedPass))
+    usr  match {
+      case Some(user: User) => {
+        session("user") = new UserSession(user.id, user.name, user.imgUrl, user.root)
 
-      println (googleUser)
-
-      googleUser.foreach { u => 
-        session("user") = new UserSession(1, u.getDisplayName(), u.getImage.getUrl)
-      } 
-
-      redirect(url("/"))
-    } else {
-      redirect(flow.newAuthorizationUrl.setRedirectUri(redirectUrl).toString)
+        user.copy(
+          lastLogin = Some(new org.joda.time.DateTime())
+        ).save()
+        
+        redirect(fullUrl("/", includeServletPath = false) + "/")
+      }
+      case None => html.login()
     }
+    
+  }
+
+  val logout = get("/logout") {
+    session.invalidate()
+    redirect(url(login))
   }
 
 }

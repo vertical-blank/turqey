@@ -17,6 +17,8 @@ case class GroupMember(
 
 object GroupMember extends SQLSyntaxSupport[GroupMember] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "GROUP_MEMBERS"
 
   override val columns = Seq("ID", "GROUP_ID", "MEMBER_USER_ID", "MEMBER_GROUP_ID")

@@ -1,0 +1,17 @@
+@import turqey.entity._
+@import turqey.utils.Mailer
+@import turqey.helpers.CommentedNotif
+@import turqey.utils.Implicits._
+
+@(article: Article, comments: Seq[CommentedNotif])
+
+@{article.owner.get.name} さん
+
+記事 @{article.title}
+に以下のコメントが届いています。
+
+@comments.map{ c =>
+@{c.comment.user.get.name}さん より
+  @clobToString(c.comment.content)
+  
+}

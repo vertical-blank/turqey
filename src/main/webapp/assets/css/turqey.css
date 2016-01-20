@@ -1,0 +1,84 @@
+
+div.articleHeader {
+  background-color: #1976d2;
+  color: white;
+  box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
+}
+div.articleHeader a {
+  color: white;
+}
+
+.chip a {
+  color: black !important;
+}
+
+.markdown {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.markdown strong {
+	font-weight: bold;
+}
+
+.markdown img {
+	max-width: 100%;
+}
+
+.markdown ol {
+  padding: 0 0 0 1.5rem;
+}
+
+.markdown ul {
+  padding: 0 0 0 1.5rem;
+}
+.markdown ul li { 
+   list-style-type: disc !important;
+}
+.markdown ul li ul li { 
+   list-style-type: circle !important; 
+}
+.markdown ul li ul li ul li { 
+   list-style-type: square !important; 
+}
+
+.markdown h1 {
+    border-bottom : solid 3px #eee;
+    font-size : 3em;
+    line-height : 1.2;
+    margin-bottom : 12px;
+    margin-top : 64px;
+    padding-bottom : 8px
+}
+.markdown h1 + h2 {
+    margin-top: 24px;
+}
+.markdown h2 {
+    border-bottom : solid 1px #eee;
+    font-size : 2.5em;
+    line-height : 1.225;
+    margin-bottom : 12px;
+    margin-top : 64px;
+    padding-bottom : 8px
+}
+.markdown h2 + h3 {
+    margin-top: 24px;
+}
+.markdown h3 {
+    font-size : 2em;
+    line-height : 1.43;
+    margin-top : 64px;
+}
+.markdown h4 {
+    font-size : 1.8em;
+    margin-top : 1.3em
+}
+.markdown h5 {
+    margin-top : 1.5em;
+    font-size : 1.5em
+}
+.markdown h6 {
+    margin-top : 1.5em;
+    font-size : 1.3em;
+    color : #777
+}

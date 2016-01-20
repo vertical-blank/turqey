@@ -1,0 +1,14 @@
+@import turqey.entity._
+@import turqey.utils.Mailer
+@import turqey.helpers.StockedNotif
+
+@(article: Article, stocks: Seq[StockedNotif])
+
+@{article.owner.get.name} さん
+
+記事 @{article.title}
+を以下のユーザーがストックしました。
+
+@stocks.map{ s =>
+  @{s.user.name} さん
+}

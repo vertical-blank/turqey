@@ -17,6 +17,8 @@ case class ArticleSharing(
 
 object ArticleSharing extends SQLSyntaxSupport[ArticleSharing] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "ARTICLE_SHARINGS"
 
   override val columns = Seq("ID", "PARENT_ID", "USER_ID", "GROUP_ID")
@@ -29,7 +31,7 @@ object ArticleSharing extends SQLSyntaxSupport[ArticleSharing] {
     groupId = rs.get(as.groupId)
   )
 
-  val as = ArticleSharing.syntax("as")
+  val as = ArticleSharing.syntax("ashr")
 
   override val autoSession = AutoSession
 

@@ -1,36 +1,142 @@
-@(articles: Seq[turqey.entity.Article])
+@import turqey.entity._
+@import turqey.servlet._
+@import turqey.controller._
+@import turqey.utils.Json
+
+@(articleIds:   Seq[Seq[scala.Long]], 
+  stockIds:     Seq[Seq[scala.Long]],
+  ownIds:       Seq[Seq[scala.Long]],
+  commentedIds: Seq[Seq[scala.Long]],
+  followingIds: Seq[Seq[scala.Long]])
 <html>
   @css()
   <body>
     <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
     @topnav()
     <main>
-    <div class="container">
+    <div class="container" id="container">
       <p>CSV知識を共有しよう。</p>
       <p>
-        <a href="/article/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
+        <a href="@root/article/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>新規作成</a>
       </p>
       <div class="row">
         <div class="col s12">
           <ul class="tabs">
-            <li class="tab col s2"><a class="waves-effect" href="#following">フォロー中</a></li>
-            <li class="tab col s2"><a class="active waves-effect" href="#whole">全ての投稿</a></li>
-            <li class="tab col s2 disabled"><a href="#"></a></li>
-            <li class="tab col s2 disabled"><a href="#"></a></li>
-            <li class="tab col s2"><a class="waves-effect" href="#stock">ストック</a></li>
-            <li class="tab col s2"><a class="waves-effect" href="#own">自分の投稿</a></li>
+            <li class="tab col"><a class="waves-effect active" data-bind="click: showWhole">全ての投稿</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showFollowing">フォロー中</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showStock">ストック</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showCommented">コメントした投稿</a></li>
+            <li class="tab col"><a class="waves-effect" data-bind="click: showOwn">自分の投稿</a></li>
           </ul>
         </div>
-        <div id="following" class="col s12">W.I.P.</div>
-        <div id="whole" class="col s12">
-          <ul class="collection">
-          @articles.map{ a => <li class="collection-item"><a href="@root/article/@a.id">@a.title</a></li> }
-          </ul>
+        <!-- ko foreach: tabs -->
+        <div data-bind="visible: (name == $root.selectedTab())">
+          <div class="col s12" data-bind="foreach: articles">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">
+                  <a data-bind="text: title, attr: { href: '@root/article/' + id }"></a>
+                </span>
+                <span class="right">
+                  <i class="material-icons">folder</i>
+                  <span data-bind="text: stock"></span>
+                </span>
+                <span class="right">
+                  <i class="material-icons">comment</i>
+                  <span data-bind="text: comment"></span>
+                </span>
+                <p>
+                  <a data-bind="text: owner.name, attr: {href: '@root/user/' + owner.id}"></a>
+                  作成: <span data-bind="text: created"></span>
+                  <span data-bind="text: '更新: ' + updated, visible: updated !== ''"></span>
+                </p>
+                <p>
+                  <div data-bind="foreach: tags ">
+                    <div class="chip">
+                      <a data-bind="text: name, attr: { href: '@root/tag/' + id }" ></a>
+                    </div>
+                  </div>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col s12 center-align">
+            <button class="waves-effect waves-light btn" data-bind="visible: showNext, click: append" style="display: none;">もっと見る</button>
+            <div class="preloader-wrapper big active" data-bind="visible: isLoading" style="display: none;">
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="stock" class="col s12">W.I.P.</div>
-        <div id="own" class="col s12">W.I.P.</div>
+        <!-- /ko -->
       </div>
     </div>
     </main>
   </body>
+<script>
+
+var ViewModel = function (){
+  var self = this;
+  
+  var TabModel = function (name, ids){
+    var self = this;
+    
+    self.name = name;
+    self.ids = ko.observableArray(ids);
+    self.articles = ko.observableArray([]);
+    
+    self.append = function() {
+      self.isLoading(true);
+      $.post('@root/api/article/list', { ids: self.ids.shift() }, function (response){ self.articles(self.articles().concat(response));self.isLoading(false);; } );
+    };
+    self.isLoading = ko.observable(false);
+    self.load = function() {
+      if (!self.articles().length){ self.append(); }
+    };
+    self.showNext = ko.pureComputed(function (){ return (self.ids().length !== 0) && !self.isLoading(); });
+  };
+  
+  self.allIds       = @{Html(Json.toJson( articleIds ))};
+  self.followingIds = @{Html(Json.toJson( followingIds ))};
+  self.stockIds     = @{Html(Json.toJson( stockIds ))};
+  self.commentedIds = @{Html(Json.toJson( commentedIds ))};
+  self.ownIds       = @{Html(Json.toJson( ownIds ))};
+  
+  self.whole     = new TabModel("whole", self.allIds);
+  self.following = new TabModel("following", self.followingIds);
+  self.stock     = new TabModel("stock", self.stockIds);
+  self.commented = new TabModel("commented", self.commentedIds);
+  self.own       = new TabModel("own",   self.ownIds);
+  
+  var tabs = [self.whole, self.following, self.stock, self.commented, self.own];
+  (function() {
+    for (var i = 0;i < tabs.length;i++){
+      tabs[i].load();
+    }
+  })();
+  
+  self.tabs = ko.observableArray(tabs);
+  
+  self.selectedTab = ko.observable('whole');
+  
+  self.showWhole     = function (){ self.selectedTab("whole");    self.whole.load(); };
+  self.showStock     = function (){ self.selectedTab("stock");    self.stock.load(); };
+  self.showFollowing = function (){ self.selectedTab("following");self.following.load(); };
+  self.showCommented = function (){ self.selectedTab("commented");self.commented.load(); };
+  self.showOwn       = function (){ self.selectedTab("own");      self.own.load(); };
+};
+
+
+// Activates knockout.js
+var vm = new ViewModel();
+ko.applyBindings(vm, document.getElementById('container'));
+</script>
 </html>

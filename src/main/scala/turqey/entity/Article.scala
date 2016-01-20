@@ -9,30 +9,43 @@ case class Article(
   projectId: Option[Long] = None,
   title: String,
   content: Clob,
-  owner: Long,
-  created: Option[DateTime] = None) {
+  ownerId: Long,
+  created: DateTime = null,
+  owner: Option[User] = None) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
   def destroy()(implicit session: DBSession = Article.autoSession): Unit = Article.destroy(this)(session)
+
+  def editable(): Boolean = { turqey.servlet.SessionHolder.user match {
+      case Some(u) => u.id == ownerId || u.root
+      case None => false
+    }
+  }
+  
+  def view(): String = { "" + this.id.toString }
 
 }
 
 
 object Article extends SQLSyntaxSupport[Article] {
 
+  override val schemaName = Some("PUBLIC")
+
   override val tableName = "ARTICLES"
 
-  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER", "CREATED")
+  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED")
 
-  def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName)(rs)
-  def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = new Article(
+  def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
+  def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = apply(a, None)(rs)
+  def apply(a: ResultName[Article], u: Option[ResultName[User]])(rs: WrappedResultSet): Article = new Article(
     id = rs.get(a.id),
     projectId = rs.get(a.projectId),
     title = rs.get(a.title),
     content = rs.get(a.content),
-    owner = rs.get(a.owner),
-    created = rs.get(a.created)
+    ownerId = rs.get(a.ownerId),
+    created = rs.get(a.created),
+    owner = u.map{ u => User(u)(rs) }
   )
 
   val a = Article.syntax("a")
@@ -40,13 +53,20 @@ object Article extends SQLSyntaxSupport[Article] {
   override val autoSession = AutoSession
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Article] = {
+    val u = User.u
     withSQL {
-      select.from(Article as a).where.eq(a.id, id)
-    }.map(Article(a.resultName)).single.apply()
+      select
+      .from(Article as a)
+      .join(User as u).on(a.ownerId, u.id)
+      .where.eq(a.id, id)
+    }.map( Article(a.resultName, Option(u.resultName)) ).single.apply()
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[Article] = {
-    withSQL(select.from(Article as a)).map(Article(a.resultName)).list.apply()
+    val u = User.u
+    withSQL{
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).orderBy(a.id).desc
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = {
@@ -54,15 +74,20 @@ object Article extends SQLSyntaxSupport[Article] {
   }
 
   def findBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Option[Article] = {
+    val u = User.u
     withSQL {
-      select.from(Article as a).where.append(where)
-    }.map(Article(a.resultName)).single.apply()
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.append(where)
+    }.map(Article(a.resultName, Option(u.resultName))).single.apply()
   }
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[Article] = {
+    val u = User.u
+    val h = ArticleHistory.ah
     withSQL {
-      select.from(Article as a).where.append(where)
-    }.map(Article(a.resultName)).list.apply()
+      select.from(Article as a)
+      .join(User as u).on(a.ownerId, u.id)
+      .where.append(where).orderBy(a.id).desc
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = {
@@ -75,21 +100,18 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId: Option[Long] = None,
     title: String,
     content: Clob,
-    owner: Long,
-    created: Option[DateTime] = None)(implicit session: DBSession = autoSession): Article = {
+    ownerId: Long)(implicit session: DBSession = autoSession): Article = {
     val generatedKey = withSQL {
       insert.into(Article).columns(
         column.projectId,
         column.title,
         column.content,
-        column.owner,
-        column.created
+        column.ownerId
       ).values(
         projectId,
         title,
         content,
-        owner,
-        created
+        ownerId
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -98,8 +120,7 @@ object Article extends SQLSyntaxSupport[Article] {
       projectId = projectId,
       title = title,
       content = content,
-      owner = owner,
-      created = created)
+      ownerId = ownerId)
   }
 
   def batchInsert(entities: Seq[Article])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -108,20 +129,17 @@ object Article extends SQLSyntaxSupport[Article] {
         'projectId -> entity.projectId,
         'title -> entity.title,
         'content -> entity.content,
-        'owner -> entity.owner,
-        'created -> entity.created))
+        'ownerId -> entity.ownerId))
         SQL("""insert into ARTICLES(
         PROJECT_ID,
         TITLE,
         CONTENT,
-        OWNER,
-        CREATED
+        OWNER_ID
       ) values (
         {projectId},
         {title},
         {content},
-        {owner},
-        {created}
+        {ownerId}
       )""").batchByName(params: _*).apply()
     }
 
@@ -132,8 +150,7 @@ object Article extends SQLSyntaxSupport[Article] {
         column.projectId -> entity.projectId,
         column.title -> entity.title,
         column.content -> entity.content,
-        column.owner -> entity.owner,
-        column.created -> entity.created
+        column.ownerId -> entity.ownerId
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity
@@ -141,6 +158,73 @@ object Article extends SQLSyntaxSupport[Article] {
 
   def destroy(entity: Article)(implicit session: DBSession = autoSession): Unit = {
     withSQL { delete.from(Article).where.eq(column.id, entity.id) }.update.apply()
+  }
+
+  def findTagged(tagId: Long)(implicit session: DBSession = autoSession): Seq[Article] = {
+    val u = User.u
+    withSQL {
+      val a = Article.a
+      val at = ArticleTagging.at
+      select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.exists(
+        select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
+      )
+    }.map(Article(a.resultName, Option(u.resultName))).list.apply()
+  }
+  
+  case class ArticleForList(
+    id: Long,
+    title: String,
+    created: String,
+    updated: String,
+    owner: UserForList,
+    tags: Seq[Tag],
+    stock: Long,
+    comment: Long)
+  case class UserForList(id: Long, name: String, imgUrl: String)
+  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name, user.imgUrl) }
+  
+  def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
+    val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
+    val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
+    val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
+    val stockCountByArticleIds = ArticleStock.countByIds(ids)
+    val commentCountByArticleIds = ArticleComment.countByIds(ids)
+    
+    articles.map{ a => ArticleForList(
+      id      = a.id,
+      title   = a.title,
+      created = a.created.toString("yyyy/MM/dd"),
+      updated = lastUpdatesByIds.get(a.id).map(_.toString("yyyy/MM/dd")).getOrElse(""),
+      owner   = UserForList(a.owner.get),
+      tags    = tagsOfArticleIds.getOrElse(a.id, Seq()).map(_._2),
+      stock   = stockCountByArticleIds.getOrElse(a.id, 0),
+      comment = commentCountByArticleIds.getOrElse(a.id, 0)
+    ) }
+  }
+  
+  def findAllId()(implicit session: DBSession = autoSession) :Seq[Long] = {
+    withSQL {
+      select(a.result.id).from(Article as a).orderBy(a.id).desc
+    }.map(_.long(1)).list.apply()
+  }
+  
+  def findAllIdBy(where: SQLSyntax)(implicit session: DBSession = autoSession) :Seq[Long] = {
+    withSQL {
+      select(a.result.id).from(Article as a)
+      .where.append(where).orderBy(a.id).desc
+    }.map(_.long(1)).list.apply()
+  }
+
+  def getStockers(id: Long)(implicit session: DBSession = autoSession) :Seq[User] = {
+    val u = User.u
+    val as = ArticleStock.as
+    withSQL {
+      select.from(User as u)
+      .where.exists( 
+        select.from(ArticleStock as as)
+        .where.eq(as.articleId, id).and.eq(as.userId, u.id)
+      ).orderBy(u.resultName.id).desc
+    }.map(User(u.resultName)(_)).list.apply()
   }
 
 }
