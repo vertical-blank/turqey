@@ -1,6 +1,7 @@
 package turqey.controller
 
 import org.scalatra._
+import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 import javax.servlet.http.HttpServletRequest
 import io.github.gitbucket.markedj._
 import scalikejdbc._
@@ -10,7 +11,9 @@ import turqey.utils._
 import turqey.user._
 import turqey.servlet._
 
-class UserController extends ControllerBase {
+class UserController extends ControllerBase with FileUploadSupport {
+  configureMultipartHandling(MultipartConfig(maxFileSize = Some(3*1024*1024)))
+  
   override val path = "user"
   
   val pagesize = 20
@@ -104,6 +107,21 @@ class UserController extends ControllerBase {
 
     //show user detail
     html.view(User.find(id).getOrElse(redirect("/")), articleIds)
+  }
+  
+  post("/prof_upload") {
+    
+    val id = SessionHolder.user.get.id;
+    
+    fileParams.get("file") match {
+      case Some(file)  =>
+        //file.getContentType 
+        
+      case _ => BadRequest
+    }
+    error {
+      case e: SizeConstraintExceededException => ("too much!")
+    }
   }
 
 }

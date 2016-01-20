@@ -20,19 +20,24 @@ class ArticleController extends ControllerBase {
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
     val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
-    val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-    val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-    val tags = taggings.map( x => allTags(x.tagId) )
+    
+    val tags = {
+      val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
+      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
+      taggings.map( x => allTags(x.tagId) )
+    }
 
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
     val stockers = Article.getStockers(articleId)
 
-    val as = ArticleStock.as
-    val stocked = ArticleStock.findBy(sqls
-      .eq(as.articleId, articleId).and
-      .eq(as.userId, userId)
-    ).isDefined
-    val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
+    val stocked = {
+      val as = ArticleStock.as 
+      ArticleStock.findBy(sqls
+        .eq(as.articleId, articleId).and
+        .eq(as.userId, userId)
+      ).isDefined
+    }
+    val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
 
     html.view(article, latestEdit, tags, comments, stockers, stocked, count)
   }
@@ -42,9 +47,11 @@ class ArticleController extends ControllerBase {
     val article = Article.find(articleId).getOrElse(redirect("/"))
     if (!article.editable) { redirect("/") }
 
-    val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-    val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-    val tags = taggings.map( x => allTags(x.tagId) )
+    val tags = {
+      val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
+      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
+      taggings.map( x => allTags(x.tagId) )
+    }
 
     html.edit(Some(article), tags)
   }
@@ -144,8 +151,18 @@ class ArticleController extends ControllerBase {
     redirect(url(view, "id" -> articleId.toString))
   }
 
+  post("/:id/delete"){
+    val articleId = params.getOrElse("id", redirect("/")).toLong
+    
+    Article.find(articleId) match {
+      case Some(rec) => rec.destroy()
+      case _ =>
+    }
+
+    redirect(url("/"))
+  }
+
   val newEdit = get("/edit"){
-    // TODO Pass NULL Object to View.
     html.edit(None, Seq())
   }
 
@@ -161,7 +178,7 @@ class ArticleController extends ControllerBase {
       ownerId = turqey.servlet.SessionHolder.user.get.id
     ).id
 
-    refreshTaggings(newId, tagIds, tagNames);
+    refreshTaggings(newId, tagIds, tagNames)
     
     redirect(url(view, "id" -> newId.toString))
   }
