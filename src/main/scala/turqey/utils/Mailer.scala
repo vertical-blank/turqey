@@ -55,7 +55,7 @@ object Mailer extends NotifacationHelper {
 
     Session.getInstance(property, new javax.mail.Authenticator(){
       override def getPasswordAuthentication(): PasswordAuthentication = {
-        new PasswordAuthentication("youhei.yamana@casleyconsulting.co.jp", "YB1kinjo")
+        new PasswordAuthentication("noreply@casleyconsulting.co.jp", "")
       }
     })
   }

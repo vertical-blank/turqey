@@ -27,11 +27,13 @@ class TagController extends ControllerBase {
 
     val userId    = turqey.servlet.SessionHolder.user.get.id
 
-    val tf = TagFollowing.tf
-    val followed = TagFollowing.findBy(sqls
-      .eq(tf.userId, userId).and
-      .eq(tf.followedId, tagId)
-    ).isDefined
+    val followed = {
+      val tf = TagFollowing.tf
+      TagFollowing.findBy(sqls
+        .eq(tf.userId, userId).and
+        .eq(tf.followedId, tagId)
+      ).isDefined
+    }
     
     val followers = Tag.getFollowers(tagId)
 
@@ -49,21 +51,23 @@ class TagController extends ControllerBase {
   post("/:id/follow"){
     contentType = "text/json"
     
-    val tagId = params.getOrElse("id", redirect("/")).toLong
-    val userId    = turqey.servlet.SessionHolder.user.get.id
+    val tagId  = params.getOrElse("id", redirect("/")).toLong
+    val userId = turqey.servlet.SessionHolder.user.get.id
 
-    val tf = TagFollowing.tf
-    val ret = TagFollowing.findBy(sqls
-      .eq(tf.userId, userId).and
-      .eq(tf.followedId, tagId)
-    ) match {
-      case Some(a)  => {
-        a.destroy()
-        "unfollow"
-      }
-      case None     => {
-        TagFollowing.create(userId = userId, followedId = tagId)
-        "follow"
+    val ret = {
+      val tf = TagFollowing.tf 
+      TagFollowing.findBy(sqls
+        .eq(tf.userId, userId).and
+        .eq(tf.followedId, tagId)
+      ) match {
+        case Some(a)  => {
+          a.destroy()
+          "unfollow"
+        }
+        case None     => {
+          TagFollowing.create(userId = userId, followedId = tagId)
+          "follow"
+        }
       }
     }
     
