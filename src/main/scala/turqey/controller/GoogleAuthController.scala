@@ -26,8 +26,8 @@ class GoogleAuthController extends ControllerBase {
   // TODO need to be refactored.
   val googleAuth = get("/") {
     //TODO LoadFromFileOrDB.
-    val clientSecret = "9DcPVivtQlBS3YdX-pkxlReG"
-    val cliendId = "553877725807-nh4mfmq8di4e2h2tqtbkgu6g36iu2h8r.apps.googleusercontent.com"
+    val clientSecret = ""
+    val cliendId = ""
     // TODO request.getRequestURL
     val redirectUrl = Some(new java.net.URL(request.getRequestURL.toString))
       .map{ x:java.net.URL => "%s://%s:%s/googleAuth".format(x.getProtocol, x.getHost, x.getPort) }

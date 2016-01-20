@@ -36,15 +36,9 @@ class InitListener extends ServletContextListener {
 
     import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
     import akka._
-    // スケジューラを生成
+    
     val system = ActorSystem("SampleSystem")
     val scheduler = QuartzSchedulerExtension(system)
-    // アクターをスケジューリング
-    scheduler.schedule(
-      "Every5Seconds",                       // アクターの名前
-      system.actorOf(Props[HogeActor]), // ActorRef
-      "Hello"                                 // アクターに送信するメッセージ
-    )
 
   }
 
@@ -66,15 +60,4 @@ object ServletContextHolder {
   def assets:String = { this.root + "/assets" }
 }
 
-import akka.actor.Actor
-
-class HogeActor extends Actor {
-  def receive = { case x: String => {
-      DB readOnly { implicit session =>
-        println( Mailer.getStockNotifications() )
-        println( Mailer.getCommentNotifications() )
-      }
-    }
-  }
-}
 
