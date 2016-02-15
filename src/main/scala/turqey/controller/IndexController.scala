@@ -1,6 +1,7 @@
 package turqey.controller
 
 import org.scalatra._
+import org.scalatra.scalate.ScalateSupport._
 import scalikejdbc._
 
 import turqey.entity._
@@ -34,6 +35,10 @@ class IndexController extends ControllerBase {
     val followingIds = ArticleTagging.followingArticleIds(usrId).grouped(pagesize).toSeq
 
     html.index(articleIds, stockIds, ownIds, commentedIds, followingIds)
+  }
+  
+  get("/hoge") {
+    jade("/index", "foo" -> "bar")
   }
   
   val login = get("/login") {
