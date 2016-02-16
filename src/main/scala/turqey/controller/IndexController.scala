@@ -34,15 +34,16 @@ class IndexController extends ControllerBase {
     ).map( x => x.articleId ).grouped(pagesize).toSeq
     val followingIds = ArticleTagging.followingArticleIds(usrId).grouped(pagesize).toSeq
 
-    html.index(articleIds, stockIds, ownIds, commentedIds, followingIds)
-  }
-  
-  get("/hoge") {
-    jade("/index", "foo" -> "bar")
+    jade("/index", 
+      "articleIds" -> articleIds,
+      "stockIds" -> stockIds,
+      "ownIds" -> ownIds,
+      "commentedIds" -> commentedIds,
+      "followingIds" -> followingIds)
   }
   
   val login = get("/login") {
-    html.login()
+    jade("/login")
   }
 
   post("/login") {
