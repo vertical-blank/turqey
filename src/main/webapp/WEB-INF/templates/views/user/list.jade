@@ -1,0 +1,19 @@
+- import turqey.servlet.ServletContextHolder._
+- import turqey.entity._
+- import turqey.servlet._
+
+-@val users: Seq[User]
+div.container
+  div.row
+    div.col.s12
+      - for(u <- users)
+        div.card
+          div.card-content
+            span.card-title
+              a(href="#{root}/user/#{u.id}") #{u.name}
+  - if(SessionHolder.root)
+    div.row
+      div.col.s12
+        a.waves-effect.waves-light.btn(href="#{root}/user/edit")
+          i.material-icons.right person_add
+          |追加

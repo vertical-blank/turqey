@@ -14,11 +14,11 @@ html
     
     link(href="#{assets}/vender/css/themes/prism.css" rel="stylesheet")
     script(src="#{assets}/vender/js/prism.min.js")
-
+    
     link(href="#{assets}/css/turqey.css" rel="stylesheet")
     
     meta(name="viewport" content="width=device-width,initial-scale=1")
-  
+    
     title #{title}
 
   body
@@ -79,16 +79,13 @@ html
                 a(href="#{root}/logout")
                   i.material-icons.small.left exit_to_app
                   |ログアウト
-      
-      ul#notifDropdown.dropdown-content
-        / ko foreach:notifs
-        /   ko if:$index !== 0
-        li.divider
-        /   /ko
-        / /ko
-        li
-          a(data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead")
-          
+        ul#notifDropdown.dropdown-content(data-bind="foreach:notifs")
+          /   ko if:$index !== 0
+          li.divider
+          /   /ko
+          li
+            a(data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead")
+
       ul#menuDropdown.dropdown-content(style="width: 13rem;overflow: hidden;")
         li
           a(href="#{root}/user/self")
@@ -109,11 +106,11 @@ html
             |ユーザ一覧
         li.divider
         li
-          a(href="@root/logout")
+          a(href="#{root}/logout")
             i.material-icons.small.left exit_to_app
             |ログアウト
       
-      :&javascript
+      :!javascript
         $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
         var TopnavVM = function (){
           var self = this;

@@ -39,8 +39,6 @@ class ArticleController extends ControllerBase {
       ).isDefined
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
-
-    //html.view(article, latestEdit, tags, comments, stockers, stocked, count)
     
     jade("/article/view", 
       "article"    -> article,
@@ -63,7 +61,6 @@ class ArticleController extends ControllerBase {
       taggings.map( x => allTags(x.tagId) )
     }
 
-    //html.edit(Some(article), tags)
     jade("/article/edit", 
       "article"    -> Some(article),
       "tags"       -> tags)
@@ -76,7 +73,9 @@ class ArticleController extends ControllerBase {
 
     val histories = ArticleHistory.findAll()
 
-    html.history(article, histories)
+    jade("article/history", 
+      "article" -> article,
+      "histories" -> histories)
   }
 
 // TODO Validate that articleId equals comment.articleId
@@ -176,8 +175,6 @@ class ArticleController extends ControllerBase {
   }
 
   val newEdit = get("/edit"){
-    //html.edit(None, Seq())
-    
     jade("/article/edit", 
       "article"    -> None,
       "tags"       -> Seq())

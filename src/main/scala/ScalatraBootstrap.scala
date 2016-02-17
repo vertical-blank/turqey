@@ -6,6 +6,8 @@ import turqey._
 import turqey.controller._
 import turqey.servlet._
 
+class AssetsController extends ScalatraServlet
+
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     val servlets: Seq[ControllerBase] = Seq(
@@ -14,7 +16,6 @@ class ScalatraBootstrap extends LifeCycle {
       new ArticleController(),
       new TagController(),
       new IndexController(),
-      //new AssetsController(),
       new UserController()
     )
 
@@ -23,7 +24,6 @@ class ScalatraBootstrap extends LifeCycle {
     }
     
     context.mount(new AssetsController(), "/assets")
-    
   }
 }
 

@@ -7,7 +7,6 @@ import scalikejdbc._
 import turqey.entity._
 import turqey.utils._
 import turqey.servlet._
-import turqey.html
 
 class IndexController extends ControllerBase {
   override val path = ""
@@ -63,7 +62,7 @@ class IndexController extends ControllerBase {
         
         redirect(fullUrl("/", includeServletPath = false) + "/")
       }
-      case None => html.login()
+      case None => jade("/login")
     }
     
   }

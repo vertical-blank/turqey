@@ -4,7 +4,6 @@ import org.scalatra._
 import org.scalatra.scalate.ScalateSupport._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 import javax.servlet.http.HttpServletRequest
-import io.github.gitbucket.markedj._
 import scalikejdbc._
 
 import turqey.entity._
@@ -20,7 +19,8 @@ class UserController extends ControllerBase with FileUploadSupport {
   val pagesize = 20
 
   val list = get("/") {
-    html.list(User.findAll())
+    jade("/user/list",
+      "users" -> User.findAll())
   }
 
   val view = get("/:id"){
@@ -110,7 +110,10 @@ class UserController extends ControllerBase with FileUploadSupport {
     ).grouped(pagesize).toSeq
 
     //show user detail
-    html.view(User.find(id).getOrElse(redirect("/")), articleIds)
+    jade("/user/view",
+      "u" -> User.find(id).getOrElse(redirect("/")),
+      "articleIds" -> articleIds
+    )
   }
   
   post("/prof_upload") {
