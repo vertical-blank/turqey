@@ -91,7 +91,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
-  "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "container",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided"
 )
 
