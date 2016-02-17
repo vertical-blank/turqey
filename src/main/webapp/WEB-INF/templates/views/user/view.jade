@@ -1,0 +1,107 @@
+- import turqey.servlet.ServletContextHolder._
+- import turqey.entity._
+- import turqey.servlet._
+- import turqey.html._
+- import turqey.utils.Implicits._
+- import turqey.utils.Json
+
+-@val u: User
+-@val articleIds: Seq[Seq[scala.Long]]
+div.container
+  - if (u.editable)
+    div.row
+      div.col.s2 ID
+      div.col.s6 #{u.loginId}
+  div.row
+    div.col.s2 Name
+    div.col.s6 #{u.name}
+  div.row
+    div.col.s2 Email
+    div.col.s6 #{u.email}
+  div.row
+    div.col.s2 最終ログイン
+    div.col.s6 ={u.lastLogin.map { d => d.toString("yyyy/MM/dd HH:mm:ss")}} 
+  - if(u.editable)
+    div.row
+      div.col.s6
+        a.waves-effect.waves-light.btn(href="#{root}/user/#{u.id}/edit")
+          i.material-icons.right edit
+          |編集
+      - if(SessionHolder.root)
+        div.col.s6
+          form(method="post" action="#{root}/user/#{u.id}/reset")
+            button.waves-effect.waves-light.btn.red
+              i.material-icons.right person_outline
+              |パスワードリセット
+
+  / ko foreach: tabs
+  div.col.s12(data-bind="foreach: articles")
+    div.card
+      div.card-content
+        span.card-title
+          a(data-bind="text: title, attr: { href: '#{root}/article/' + id }")
+        span.right
+          i.material-icons comment
+          span(data-bind="text: comment")
+        span.right
+          i.material-icons folder
+          span(data-bind="text: stock")
+        p
+          a(data-bind="text: owner.name, attr: {href: '#{root}/user/' + owner.id}")
+          |作成:
+          span(data-bind="text: created")
+          span(data-bind="text: '更新: ' + updated, visible: updated !== ''")
+        p
+          div(data-bind="foreach: tags ")
+            div.chip
+              a(data-bind="text: name, attr: { href: '#{root}/tag/' + id }")
+  div.col.s12.center-align
+    button.waves-effect.waves-light.btn(data-bind="visible: showNext, click: append" style="display: none;") もっと見る
+    div.preloader-wrapper.big.active(data-bind="visible: isLoading" style="display: none;")
+      div.spinner-layer.spinner-blue-only
+        div.circle-clipper.left
+          div.circle
+        div.gap-patch
+          div.circle
+        div.circle-clipper.right
+          div.circle
+  / /ko
+
+:!javascript
+  var ViewModel = function (){
+    var self = this;
+    
+    var TabModel = function (name, ids){
+      var self = this;
+      
+      self.name = name;
+      self.ids = ko.observableArray(ids);
+      self.articles = ko.observableArray([]);
+      
+      self.append = function() {
+        self.isLoading(true);
+        $.post(
+          '#{root}/api/article/list', { ids: self.ids.shift() }, 
+          function (response){
+            self.articles(self.articles().concat(response));
+            self.isLoading(false);
+          });
+      };
+      self.isLoading = ko.observable(false);
+      self.load = function() {
+        if (!self.articles().length){ self.append(); }
+      };
+      self.showNext = ko.pureComputed(function (){ return (self.ids().length !== 0) && !self.isLoading(); });
+    };
+    
+    self.ownIds    = #{Json.toJson( articleIds )};
+    
+    self.own       = new TabModel("own",   self.ownIds);
+    self.tabs = ko.observableArray([self.own]);
+
+    self.own.load();
+  };
+
+  // Activates knockout.js
+  var vm = new ViewModel();
+  ko.applyBindings(vm, document.getElementsByTagName('main')[0]);
