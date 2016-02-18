@@ -6,7 +6,6 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.tag._
 
 import turqey.utils.Implicits._
 
@@ -16,7 +15,7 @@ class TagController extends ControllerBase {
   val list = get("/"){
     val tags = Tag.findAllWithArticleCount()
 
-    html.list(tags)
+    jade("/tag/list", "tags" -> tags)
   }
 
   val view = get("/:id"){
@@ -37,7 +36,11 @@ class TagController extends ControllerBase {
     
     val followers = Tag.getFollowers(tagId)
 
-    html.view(tag, articles, followers, followed)
+    jade("/tag/view", 
+      "tag" -> tag, 
+      "articles" -> articles, 
+      "followers" -> followers, 
+      "followed" -> followed)
   }
 
   get("/followings"){
@@ -45,7 +48,7 @@ class TagController extends ControllerBase {
     val ids = TagFollowing.findAllBy(sqls.eq(TagFollowing.tf.userId, userId)).map(_.followedId)
     val tags = Tag.findAllWithArticleCount(ids)
 
-    html.list(tags)
+    jade("/tag/list", "tags" -> tags)
   }
   
   post("/:id/follow"){

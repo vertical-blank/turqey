@@ -7,7 +7,6 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.admin._
 import turqey.servlet.SessionHolder
 
 import turqey.utils.Implicits._
@@ -24,7 +23,7 @@ class AdminController(adminPath: String) extends ControllerBase {
   }
 
   get("/") {
-    html.index()
+    jade("/admin/index")
   }
 
   val systemView = get("/system") {
@@ -32,7 +31,7 @@ class AdminController(adminPath: String) extends ControllerBase {
     val settings = SystemSetting.findAll()
     val smtpSettings = SmtpSettings(settings)
   
-    html.system(smtpSettings)
+    jade("/admin/system", "settings" -> smtpSettings)
   }
   
   post("/system") {
