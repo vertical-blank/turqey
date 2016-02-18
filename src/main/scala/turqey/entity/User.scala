@@ -19,8 +19,9 @@ case class User(
 
   def destroy()(implicit session: DBSession = User.autoSession): Unit = User.destroy(this)(session)
 
-  def editable = { this.id == SessionHolder.user.get.id || SessionHolder.root }
-
+  def editable = { this.self || SessionHolder.root }
+  
+  def self = { this.id == SessionHolder.user.get.id }
 }
 
 

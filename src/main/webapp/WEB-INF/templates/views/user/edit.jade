@@ -10,11 +10,12 @@ div.container
     div.row
       - if(!u.isDefined)
         div.input-field.col.s12
-          input(type="text" name="loginId" value="#{u.map(_.loginId)}" length="120" )
+          input(type="text" name="loginId" value="#{u.map(_.loginId)}" length="120")
           label ID
       - if(u.isDefined)
-        div.col.s2 ID
-        div.col.s6 #{u.get.loginId}
+        div.input-field.col.s12
+          input(type="text" value="#{u.map(_.loginId)}" readonly="true")
+          label ID
     div.row
       div.input-field.col.s12
         input(type="text" name="name" value="#{u.map(_.name)}" length="120")
@@ -27,6 +28,15 @@ div.container
       div.input-field.col.s12
         input(type="text" name="password" length="120")
         label Pass
+    div.row
+      div.input-field.col.s12
+        input.filled-in#filled-in-box{
+          :type=>"checkbox",
+          :name=>"root",
+          :checked=>{u.map(_.root).getOrElse(false)},
+          :disabled=>{!(u.map(u => SessionHolder.root && !u.self ).getOrElse(false))} }
+        label(for="filled-in-box") 管理者
+    
     button.waves-effect.waves-light.btn(type="submit")
       i.material-icons.right check
       |保存

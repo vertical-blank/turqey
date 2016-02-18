@@ -64,7 +64,8 @@ class UserController extends ControllerBase with FileUploadSupport {
         case Some("") | None => { user.password }
         case Some(p)  => { Digest.get(p) }
       },
-      imgUrl   = ""
+      imgUrl   = "",
+      root     = SessionHolder.root && params.get("root").isDefined
     ).save()
 
     val sessionUsr = SessionHolder.user.get
@@ -94,7 +95,8 @@ class UserController extends ControllerBase with FileUploadSupport {
       name     = params.get("name").get,
       email    = params.get("email").get,
       password = params.get("password").map { p => Digest.get(p) }.get,
-      imgUrl   = ""
+      imgUrl   = "",
+      root     = SessionHolder.root && params.get("root").isDefined
     ).id
 
     //update user

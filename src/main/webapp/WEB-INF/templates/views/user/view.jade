@@ -6,20 +6,31 @@
 
 -@val u: User
 -@val articleIds: Seq[Seq[scala.Long]]
-div.container
-  - if (u.editable)
-    div.row
-      div.col.s2 ID
-      div.col.s6 #{u.loginId}
+div.container(style="margin-top: 10px;")
   div.row
-    div.col.s2 Name
-    div.col.s6 #{u.name}
-  div.row
-    div.col.s2 Email
-    div.col.s6 #{u.email}
-  div.row
-    div.col.s2 最終ログイン
-    div.col.s6 ={u.lastLogin.map { d => d.toString("yyyy/MM/dd HH:mm:ss")}} 
+    div.col.s4
+      div()
+        img(src="" style="width: 200px;height: 200px;")
+    div.col.s8
+      - if (u.editable)
+        div.row
+          div.col.s2 ID
+          div.col.s4 #{u.loginId}
+      div.row
+        div.col.s2 Name
+        div.col.s4 #{u.name}
+      div.row
+        div.col.s2 Email
+        div.col.s4 #{u.email}
+      div.row
+        div.col.s2 最終ログイン
+        div.col.s4 ={u.lastLogin.map { d => d.toString("yyyy/MM/dd HH:mm:ss")}}
+      div.row
+        div.col.s2 管理者
+        div.col.s4
+          input.filled-in#filled-in-box{:type=>"checkbox", :checked=>{u.root}, :disabled=>true}
+          label(for="filled-in-box")
+
   - if(u.editable)
     div.row
       div.col.s6
@@ -29,7 +40,7 @@ div.container
       - if(SessionHolder.root)
         div.col.s6
           form(method="post" action="#{root}/user/#{u.id}/reset")
-            button.waves-effect.waves-light.btn.red
+            button.waves-effect.waves-light.btn.red.right
               i.material-icons.right person_outline
               |パスワードリセット
 
