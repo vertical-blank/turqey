@@ -1,0 +1,177 @@
+@import turqey.entity._
+@import turqey.html._
+@import turqey.utils.Implicits._
+@import turqey.controller._
+@import org.joda.time.{DateTime}
+@import turqey.utils.Markdown
+
+@(article: Article, latestEdit: Option[DateTime], tags: Seq[Tag], comments: Seq[ArticleComment], stockers: Seq[User], stocked: Boolean, count: Long)
+<html>
+  @css()
+  <body>
+  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/jquery.toc.min.js"></script>
+  <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
+    @topnav {
+    <div class="articleHeader">
+      <div class="container">
+        <div class="row">
+          <div class="col s8">
+            <p>
+              <h2>@article.title</h2>
+            </p>
+            <p>
+              <span><a href="@root/user/@article.owner.get.id">@article.owner.get.name</a> が @{article.created.toString("yyyy/MM/dd")} に投稿</span>
+              @latestEdit.map(_.toString("yyyy/MM/dd") + "に更新")
+            </p>
+            <p>
+            @tags.map { tag =>
+              <div class="chip">
+                <a href="@root/tag/@tag.id">@tag.name</a>
+              </div>
+            }
+            </p>
+            @if(article.editable){
+            <p>
+              <a href="@root/article/@article.id/edit" class="waves-effect waves-light btn"><i class="material-icons right">edit</i>編集</a>
+            </p>
+            }
+          </div>
+          <div class="col s4 right-align" id="divStock">
+            <p>
+              <span data-bind="text: count"></span> ストック
+            </p>
+            @if(SessionHolder.user.get.id != article.ownerId) {
+            <p>
+              <button type="button"
+                class="waves-effect waves-light btn"
+                style="display: none"
+                data-bind="click: toggleStock, visible: stocked"><i class="material-icons right">cancel</i>解除</button>
+              <button type="button"
+                class="waves-effect waves-light btn"
+                style="display: none"
+                data-bind="click: toggleStock, visible: !stocked()"><i class="material-icons right">folder</i>ストック</button>
+            <p>
+            }
+            <p>
+              @stockers.map { st =>
+                <a href="@root/user/@st.id">@st.name</a>
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    } 
+    <div class="container">
+      <div class="row">
+        <div class="markdown col s10 m9 l00" id="main_content">
+          <div>@Html(Markdown.html(article.content))</div>
+        </div>
+        <div class="col hide-on-small-only m3 l3">
+          <ul class="section table-of-contents scrollspy" id="toc"></ul>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col s10">
+          <i class="material-icons">comment</i>コメント
+        </div>
+      </div>
+      <div class="row">
+        @comments.zipWithIndex.map { case (comment, idx) =>
+        <div class="card">
+          @if(comment.editable){
+          <div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top: 10px;">
+            @*
+            <a class="btn-floating btn">
+              <i class="small material-icons">edit</i>
+            </a>
+            *@
+            <form action="@root/article/@article.id/comment/@comment.id/delete" method="post" style="display: inline;">
+            <button class="btn-floating btn red">
+              <i class="small material-icons">delete</i>
+            </button>
+            </form>
+          </div>
+          }
+          <div class="card-content markdown">
+          <span class="card-title">@comment.user.get.name @comment.created.toString("yyyy/MM/dd")</span>
+            @Html(Markdown.html(comment.content))
+          </div>
+        </div>
+        }
+      </div>
+      <div class="row">
+        <form action="@root/article/@article.id/comment" method="post" id="formComment">
+          <div class="input-field col s12">
+            <div data-bind="visible: editting">
+              <textarea name="comment" class="materialize-textarea"
+                placeholder="Markdown" id="input_comment"
+                data-bind="textInput: comment"></textarea>
+              <label>Comment</label>
+            </div>
+            <div data-bind="visible: !editting(), html: preview" class="markdown"></div>
+          </div>
+          <div class="input-field col s12">
+            <button type="submit" class="waves-effect waves-light btn"
+              data-bind="enable: commentable"><i class="material-icons right">send</i>コメント</button>
+            <button type="button" class="waves-effect waves-light btn right"
+              data-bind="visible: editting, click: togglePreview"><i class="material-icons right">search</i>プレビュー</button>
+            <button type="button" class="waves-effect waves-light btn right"
+              data-bind="visible: !editting(), click: togglePreview"><i class="material-icons right">arrow_back</i>戻る</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+<script>
+var ViewModel = function (initialState){
+  var self = this;
+  self.stocked = ko.observable(initialState);
+  self.toggleStock = function (obj, e){
+    $.post('@root/article/@article.id/stock', function(dat){
+      self.stocked(!self.stocked());
+      self.count(dat.count);
+    });
+  };
+  self.count = ko.observable(@count);
+};
+
+var CommentViewModel = function (){
+  var self = this;
+  self.comment = ko.observable('');
+  self.commentable = ko.pureComputed( function (){ return self.comment().length != 0; } );
+
+  self.preview = ko.observable('');
+  self.editting = ko.observable(true);
+  self.togglePreview = function (){
+    if (self.editting()){
+      $.post(
+        '@root/api/markdown',
+        { content: self.comment() },
+        function(response) {
+          self.preview(response);
+          Prism.highlightAll();
+        }
+      );
+    }
+    self.editting(!self.editting());
+  };
+  
+};
+// Activate knockout.js
+var vm = new ViewModel(@{Html(stocked.toString)});
+var commentVm = new CommentViewModel();
+ko.applyBindings(vm, document.getElementById('divStock'));
+ko.applyBindings(commentVm, document.getElementById('formComment'));
+
+$(document).ready(function(){
+  $("#toc").toc({content: "#main_content"});
+  $('#toc').pushpin({ top: $('#toc').offset().top });
+  $('.scrollspy').scrollSpy();
+});
+ 
+</script>
+</html>
+

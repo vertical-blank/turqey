@@ -1,13 +1,14 @@
 package turqey.controller
 
 import org.scalatra._
-import org.scalatra.scalate.ScalateSupport._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 import javax.servlet.http.HttpServletRequest
+import io.github.gitbucket.markedj._
 import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
+import turqey.user._
 import turqey.servlet._
 
 class UserController extends ControllerBase with FileUploadSupport {
@@ -18,8 +19,7 @@ class UserController extends ControllerBase with FileUploadSupport {
   val pagesize = 20
 
   val list = get("/") {
-    jade("/user/list",
-      "users" -> User.findAll())
+    html.list(User.findAll())
   }
 
   val view = get("/:id"){
@@ -30,10 +30,7 @@ class UserController extends ControllerBase with FileUploadSupport {
     ).grouped(pagesize).toSeq
 
     //show user detail
-    jade("/user/view",
-      "u" -> User.find(id).getOrElse(redirect("/")),
-      "articleIds" -> articleIds
-    )
+    html.view(User.find(id).getOrElse(redirect("/")), articleIds)
   }
 
   val edit = get("/:id/edit"){
@@ -42,13 +39,13 @@ class UserController extends ControllerBase with FileUploadSupport {
     
     if(!user.editable){ redirect("/") }
 
-    jade("/user/edit", "u" -> Some(user))
+    html.edit(Some(user))
   }
 
   val editNew = get("/edit"){
     if(!SessionHolder.root){ redirect("/") }
     
-    jade("/user/edit", "u" -> None)
+    html.edit(None)
   }
 
   post("/:id"){
@@ -109,10 +106,7 @@ class UserController extends ControllerBase with FileUploadSupport {
     ).grouped(pagesize).toSeq
 
     //show user detail
-    jade("/user/view",
-      "u" -> User.find(id).getOrElse(redirect("/")),
-      "articleIds" -> articleIds
-    )
+    html.view(User.find(id).getOrElse(redirect("/")), articleIds)
   }
   
   post("/prof_upload") {

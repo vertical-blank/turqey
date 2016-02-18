@@ -1,0 +1,42 @@
+@import turqey.entity._
+@import turqey.html._
+
+@(article: Article, histories: Seq[ArticleHistory])
+<html>
+  @css()
+  <body>
+  <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('select').material_select();
+    });
+  </script>
+  @topnav {
+    <nav class="top-nav">
+      <div class="container">
+        <div class="nav-wrapper"><a class="page-title">@article.title</a></div>
+      </div>
+    </nav>
+  } 
+    <main>
+    <div class="container">
+      <form method="get" class="col s12">
+        <div class="row">
+          <div class="input-field col s12">
+            <select id="history_id">
+              <option value="" disabled selected>Choose your option</option>
+              @histories.map { h => <option value="@h.id">@h.created</option> }
+            </select>
+            <label>Materialize Select</label>
+          </div>
+          <div class="input-field col s12">
+            <input type="text" name="title" value="" id="input_title" length="120">
+            <label>Materialize Select</label>
+          </div>
+        </div>
+      </form>
+    </div>
+    </main>
+  </body>
+</html>
+

@@ -1,0 +1,87 @@
+@import turqey.servlet._
+
+@(additional: Html = null)
+<header>
+  <script type="text/javascript" src="@assets/vender/js/knockout.js"></script>
+  <nav id="topnav">
+    <div class="container">
+      <div class="nav-wrapper">
+        <a href="@root/" class="brand-logo" style="font-family: Roboto;font-weight: 100;">TurQey</a>
+        <ul class="right hide-on-med-and-down">
+          @SessionHolder.user.map{ u =>
+          <li><a href="@root/tag" class="waves-effect waves-light" style="color: white;">タグ一覧</a></li>
+          <li><a id="notifInd" 
+            data-activates="notifDropdown" 
+            data-bind="text: notifCount" 
+            data-constrainwidth="false"
+            data-beloworigin="true"
+            class="dropdown-button waves-effect waves-light" ></a></li>
+          <li><a id="menuDrop" class="dropdown-button waves-effect waves-light" href="#" 
+            data-activates="menuDropdown"
+            data-constrainwidth="false"
+            data-beloworigin="true"
+            data-alignment="right" >@u.name</a></li>
+          @*<li><img src="@u.imgUrl" class="waves-effect waves-light"></li>*@
+          }
+        </ul>
+        <a href="#" data-activates="mobile-menu" class="button-collapse right"><i class="material-icons">menu</i></a>
+        <ul class="side-nav" id="mobile-menu">
+            <li><a href="@root/tag" class="waves-effect waves-light"><i class="material-icons small left">label</i>タグ一覧</a></li>
+            <li class="divider"></li>
+            <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
+            <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
+            <li><a href="@root/tag/followings"><i class="material-icons small left">star</i>フォロー中のタグ</a></li>
+            <li class="divider"></li>
+            @SessionHolder.user.map { u => @if(u.root){
+              <li><a href="@root/user/"><i class="material-icons small left">people</i>ユーザ一覧</a></li>
+            } }
+            <li class="divider"></li>
+            <li><a href="@root/logout"><i class="material-icons small left">exit_to_app</i>ログアウト</a></li>
+        </ul>
+      </div>
+    </div>
+    <ul id="notifDropdown" class="dropdown-content">
+      <!-- ko foreach:notifs -->
+        <!-- ko if:$index !== 0 -->
+          <li class="divider"></li>
+        <!-- /ko -->
+        <li><a data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead"></a></li>
+      <!-- /ko -->
+    </ul>
+  </nav>
+<script>
+$( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
+var TopnavVM = function (){
+  var self = this;
+  self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
+  self.notifs = ko.observableArray([]);
+  self.loadNotifs = function (){
+    $.get('@root/api/notifs', function (response){
+      self.notifs(response);
+      $('#notifInd').dropdown();
+      setTimeout(self.loadNotifs, 30000);
+    });
+  };
+  self.setAsRead = function (item){
+    $.post('@root/api/notif_read', item, function (response){
+    });
+    return true;
+  }
+};
+var topnavVM = new TopnavVM();
+ko.applyBindings(topnavVM, document.getElementById('topnav'));
+topnavVM.loadNotifs();
+</script>
+@additional
+<ul id="menuDropdown" class="dropdown-content" style="width: 13rem;overflow: hidden;">
+  <li><a href="@root/user/self"><i class="material-icons small left">person</i>プロフィール</a></li>
+  <li><a href="@root/article/edit"><i class="material-icons small left">edit</i>記事作成</a></li>
+  <li><a href="@root/tag/followings"><i class="material-icons small left">star</i>フォロー中のタグ</a></li>
+  <li class="divider"></li>
+  @SessionHolder.user.map { u => if(u.root){
+    <li><a href="@root/user/"><i class="material-icons small left">people</i>ユーザ一覧</a></li>
+  } }
+  <li class="divider"></li>
+  <li><a href="@root/logout"><i class="material-icons small left">exit_to_app</i>ログアウト</a></li>
+</ul>
+</header>

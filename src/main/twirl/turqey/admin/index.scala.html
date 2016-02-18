@@ -1,0 +1,30 @@
+@import turqey.entity._
+@import turqey.servlet._
+@import turqey.html._
+
+<html>
+  @css()
+  <body>
+    <script type="text/javascript" src="@assets/vender/js/materialize.js"></script>
+    @topnav()
+    <main>
+    <div class="container">
+      <div class="row">
+        <div class="col s12">
+          <div class="collection">
+            <a href="@root/admin/user" class="collection-item">
+              <span class="title">ユーザ</span>
+            </a>
+          </div>
+          <div class="collection">
+            <a href="@root/admin/system" class="collection-item">
+              <span class="title">システム</span>
+            </a>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+    </main>
+  </body>
+</html>

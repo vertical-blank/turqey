@@ -6,7 +6,7 @@ import collection.mutable
 
 import turqey.servlet._
 
-trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport with scalate.ScalateSupport {
+trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport {
   def path: String
   
   val shouldLoggedIn = true
@@ -18,7 +18,6 @@ trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport with scala
     if (shouldLoggedIn && !SessionHolder.user.isDefined){
       redirect(fullUrl(appRoot + "/login", includeServletPath = false))
     }
-    contentType="text/html"
   }
   after() {
     SessionHolder.set(session)

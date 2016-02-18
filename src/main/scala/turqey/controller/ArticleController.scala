@@ -1,12 +1,12 @@
 package turqey.controller
 
 import org.scalatra._
-import org.scalatra.scalate.ScalateSupport._
 import io.github.gitbucket.markedj._
 import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
+import turqey.article._
 import turqey.utils.Json
 
 import turqey.utils.Implicits._
@@ -38,15 +38,8 @@ class ArticleController extends ControllerBase {
       ).isDefined
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
-    
-    jade("/article/view", 
-      "article"    -> article,
-      "latestEdit" -> latestEdit,
-      "tags"       -> tags,
-      "comments"   -> comments,
-      "stockers"   -> stockers,
-      "stocked"    -> stocked,
-      "count"      -> count)
+
+    html.view(article, latestEdit, tags, comments, stockers, stocked, count)
   }
 
   val edit = get("/:id/edit"){
@@ -60,9 +53,7 @@ class ArticleController extends ControllerBase {
       taggings.map( x => allTags(x.tagId) )
     }
 
-    jade("/article/edit", 
-      "article"    -> Some(article),
-      "tags"       -> tags)
+    html.edit(Some(article), tags)
   }
 
   val history = get("/:id/history"){
@@ -72,9 +63,7 @@ class ArticleController extends ControllerBase {
 
     val histories = ArticleHistory.findAll()
 
-    jade("article/history", 
-      "article" -> article,
-      "histories" -> histories)
+    html.history(article, histories)
   }
 
 // TODO Validate that articleId equals comment.articleId
@@ -174,9 +163,7 @@ class ArticleController extends ControllerBase {
   }
 
   val newEdit = get("/edit"){
-    jade("/article/edit", 
-      "article"    -> None,
-      "tags"       -> Seq())
+    html.edit(None, Seq())
   }
 
   post("/"){

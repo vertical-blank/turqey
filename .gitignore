@@ -69,7 +69,9 @@ jrebel.lic
 /.lib/
 
 .gradle/*
+project/*
+sbt
 
 db/*
 
-.history
+
