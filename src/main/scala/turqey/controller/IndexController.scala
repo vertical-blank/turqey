@@ -1,12 +1,12 @@
 package turqey.controller
 
 import org.scalatra._
+import org.scalatra.scalate.ScalateSupport._
 import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
 import turqey.servlet._
-import turqey.html
 
 class IndexController extends ControllerBase {
   override val path = ""
@@ -33,11 +33,16 @@ class IndexController extends ControllerBase {
     ).map( x => x.articleId ).grouped(pagesize).toSeq
     val followingIds = ArticleTagging.followingArticleIds(usrId).grouped(pagesize).toSeq
 
-    html.index(articleIds, stockIds, ownIds, commentedIds, followingIds)
+    jade("/index", 
+      "articleIds" -> articleIds,
+      "stockIds" -> stockIds,
+      "ownIds" -> ownIds,
+      "commentedIds" -> commentedIds,
+      "followingIds" -> followingIds)
   }
   
   val login = get("/login") {
-    html.login()
+    jade("/login")
   }
 
   post("/login") {
@@ -57,7 +62,7 @@ class IndexController extends ControllerBase {
         
         redirect(fullUrl("/", includeServletPath = false) + "/")
       }
-      case None => html.login()
+      case None => jade("/login")
     }
     
   }
