@@ -8,7 +8,6 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.user._
 import turqey.servlet._
 
 class UserController extends ControllerBase with FileUploadSupport {

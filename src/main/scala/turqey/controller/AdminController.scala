@@ -7,7 +7,6 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.admin._
 import turqey.servlet.SessionHolder
 
 import turqey.utils.Implicits._

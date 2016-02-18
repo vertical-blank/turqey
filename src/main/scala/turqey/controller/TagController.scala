@@ -6,7 +6,6 @@ import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
-import turqey.tag._
 
 import turqey.utils.Implicits._
 

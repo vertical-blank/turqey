@@ -7,23 +7,23 @@ val JettyVersion = "8.1.18.v20150929"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
+
 import ScalateKeys._
 seq(scalateSettings:_*)
-
 scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
   Seq(
     TemplateConfig(
       base / "webapp" / "WEB-INF" / "templates",
-      Seq(
-      ),
-      Seq(
-      ),
-      Some("templates")
+      Seq(),
+      Seq(),
+      None
     )
   )
 }
 
-
+containerLibs in Jetty := Seq("org.mortbay.jetty" % "jetty-runner" % "8.0.0.v20110901" intransitive())
+containerMain in Jetty := "org.mortbay.jetty.runner.Runner"
+containerPort := 8081
 
 sourcesInBase := false
 organization := Organization
@@ -64,8 +64,8 @@ libraryDependencies ++= Seq(
   
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
-  "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
-  "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "container",
+  "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "container;provided",
+  "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided"
 )
 
@@ -128,7 +128,7 @@ executableKey	:= {
 
   // include launcher classes
   val classDir		= (Keys.classDirectory in Compile).value
-  val launchClasses	= Seq("JettyLauncher.class" /*, "HttpsSupportConnector.class" */)
+  val launchClasses	= Seq("JettyLauncher.class")
   launchClasses foreach { name =>
     IO copyFile (classDir / name, temp / name)
   }
