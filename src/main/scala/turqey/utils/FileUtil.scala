@@ -7,7 +7,11 @@ import java.io.File
 import java.io.InputStream
 
 object FileUtil {
-
+  
+  val envKey = "TURQEY_HOME"
+  
+  lazy val homeDir = Option(System.getenv(envKey)).getOrElse{ new java.io.File(".").getAbsolutePath() }
+  
   def getMimeType(file: java.io.File): String = {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     val mimeTypes = MimeUtil.getMimeTypes(file);
