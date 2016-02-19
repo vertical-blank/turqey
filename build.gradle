@@ -5,15 +5,18 @@ buildscript {
     maven{ 
       url 'http://oss.sonatype.org/content/repositories/snapshots/'
     }
+    mavenLocal()
   }
   dependencies {
     classpath "us.hexcoder:gradle-twirl:1.0.0-SNAPSHOT"
     classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
+    classpath 'murtools:gradle-scalate-plugin:0.0.3'
   }
 }
 
 apply plugin: "twirl"
 apply plugin: "scala"
+apply plugin: "scalate"
 apply plugin: "java"
 apply plugin: "war"
 apply plugin: "application"
@@ -141,6 +144,15 @@ war {
   exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 
   manifest.attributes('Main-Class': 'JettyLauncher')
+}
+
+run {
+  if (project.gradle.startParameter.taskNames.pop() == 'run'){
+    println "remove precompiled templates..."
+    new File("$buildDir/classes/main/templates/").deleteDir()
+    println 'disable precompile task'
+    tasks.scalatePreCompile.enabled = false
+  }
 }
 
 
