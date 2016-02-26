@@ -1,6 +1,8 @@
 package turqey.servlet
 
 import javax.servlet._
+import com.typesafe.scalalogging.slf4j._
+
 import akka.actor.{Props, ActorSystem}
 
 import scalikejdbc._
@@ -12,10 +14,31 @@ import turqey.entity.User
 import turqey.utils._
 import turqey.actor._
 
-class InitListener extends ServletContextListener {
+class InitListener extends ServletContextListener with Logging {
+
+  class DBInitializer extends TypesafeConfigReader with StandardTypesafeConfig with EnvPrefix {
+    def setupDB = {
+      val dbName = ConnectionPool.DEFAULT_NAME
+      
+      val rawSettings = readJDBCSettings(dbName)
+      
+      val JDBCSettings(url, user, password, driver) = rawSettings.copy(
+        url = rawSettings.url.format(FileUtil.homeDir)
+      )
+      
+      logger.info(JDBCSettings)
+      
+      val cpSettings = readConnectionPoolSettings(dbName)
+      if (driver != null && driver.trim.nonEmpty) {
+        Class.forName(driver)
+      }
+      ConnectionPool.add(dbName, url, user, password, cpSettings)
+    }
+  }
 
   override def contextInitialized(event: ServletContextEvent):Unit = {
-    DBs.setupAll()
+    
+    DBInitializer.setupDB
 
     val flyway = new Flyway()
     flyway.setDataSource(ConnectionPool.dataSource())
