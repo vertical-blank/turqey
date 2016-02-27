@@ -1,7 +1,8 @@
 package turqey.servlet
 
 import javax.servlet._
-import com.typesafe.scalalogging.slf4j._
+import com.typesafe.scalalogging.{LazyLogging => Logging}
+import org.slf4j.{Logger, LoggerFactory}
 
 import akka.actor.{Props, ActorSystem}
 
@@ -16,17 +17,16 @@ import turqey.actor._
 
 class InitListener extends ServletContextListener with Logging {
 
-  class DBInitializer extends TypesafeConfigReader with StandardTypesafeConfig with EnvPrefix {
+  object DBInitializer extends TypesafeConfigReader with StandardTypesafeConfig with EnvPrefix {
     def setupDB = {
       val dbName = ConnectionPool.DEFAULT_NAME
       
-      val rawSettings = readJDBCSettings(dbName)
+      val settings = readJDBCSettings(dbName)
+      val JDBCSettings(rawUrl, user, password, driver) = settings
       
-      val JDBCSettings(url, user, password, driver) = rawSettings.copy(
-        url = rawSettings.url.format(FileUtil.homeDir)
-      )
+      val url = rawUrl.format(FileUtil.homeDir)
       
-      logger.info(JDBCSettings)
+      logger.info(s"DBURL: ${url}")
       
       val cpSettings = readConnectionPoolSettings(dbName)
       if (driver != null && driver.trim.nonEmpty) {
