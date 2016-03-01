@@ -1,7 +1,7 @@
 package turqey.controller
 
 import org.scalatra._
-import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
+import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession }
 import collection.mutable
 
 import turqey.servlet._
@@ -33,5 +33,8 @@ trait AuthedController extends ControllerBase {
 
 trait ScalateSupport extends org.scalatra.scalate.ScalateSupport {
   override var contentType = "text/html"
+  
+  def jade(template: String, params: (String, Any)* )(implicit session: HttpSession)
+    = { super.jade(template, (params :+ ("session", session)):_*  ) }
 }
 
