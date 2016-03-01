@@ -10,7 +10,7 @@ object FileUtil {
   
   val envKey = "TURQEY_HOME"
   
-  lazy val homeDir = Option(System.getenv(envKey)).getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() }
+  lazy val homeDir = Option(System.getenv(envKey)).getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() + "/.turqey/" }
   
   def getMimeType(file: java.io.File): String = {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");

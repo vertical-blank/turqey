@@ -74,11 +74,23 @@ dependencies {
   compile 'eu.medsea.mimeutil:mime-util:2.1.3'
   compile 'com.google.guava:guava:19.0'
 
-  compile 'org.eclipse.jetty:jetty-webapp:8.1.18.v20150929'
-  compile 'org.eclipse.jetty:jetty-server:8.1.18.v20150929'
-
-  executableWar 'org.eclipse.jetty:jetty-webapp:8.1.18.v20150929'
-  executableWar 'org.eclipse.jetty:jetty-server:8.1.18.v20150929'
+  compile 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-servlet:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-util:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-security:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-http:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
+  compile 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
+  
+  executableWar 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-servlet:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-util:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-security:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-http:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
+  executableWar 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
 
   testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
   testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
