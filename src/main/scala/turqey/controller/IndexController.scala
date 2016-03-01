@@ -1,16 +1,14 @@
 package turqey.controller
 
 import org.scalatra._
-import org.scalatra.scalate.ScalateSupport._
 import scalikejdbc._
 
 import turqey.entity._
 import turqey.utils._
 import turqey.servlet._
 
-class IndexController extends ControllerBase {
+class IndexController extends AuthedController with ScalateSupport {
   override val path = ""
-  override val shouldLoggedIn = false
   
   val pagesize = 20
 

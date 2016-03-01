@@ -11,13 +11,13 @@ import turqey.servlet.SessionHolder
 
 import turqey.utils.Implicits._
 
-class AdminController(adminPath: String) extends ControllerBase {
+class AdminController(adminPath: String) extends AuthedController with ScalateSupport {
   override val path = adminPath
 
   before() {
     SessionHolder.set(session)
     val user = SessionHolder.user
-    if (shouldLoggedIn && !user.isDefined && !user.get.root){
+    if (!user.isDefined && !user.get.root){
       redirect("")
     }
   }

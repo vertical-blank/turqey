@@ -10,9 +10,8 @@ import turqey.helpers._
 
 case class SiteNotif(linkTo: String, content: String, notifType: String, ids: Seq[Long])
 
-class ApiController extends ControllerBase with NotifacationHelper {
+class ApiController extends AuthedController with NotifacationHelper {
   override val path = "api"
-  override val shouldLoggedIn = false
   
   before (){
     if (!SessionHolder.user.isDefined){

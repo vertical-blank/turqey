@@ -16,6 +16,7 @@ class ScalatraBootstrap extends LifeCycle {
       new ArticleController(),
       new TagController(),
       new IndexController(),
+      new LoginController(),
       new UserController()
     )
 

@@ -9,7 +9,7 @@ import turqey.utils._
 
 import turqey.utils.Implicits._
 
-class TagController extends ControllerBase {
+class TagController extends AuthedController with ScalateSupport {
   override val path = "tag"
 
   val list = get("/"){

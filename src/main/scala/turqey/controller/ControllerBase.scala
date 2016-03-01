@@ -6,27 +6,32 @@ import collection.mutable
 
 import turqey.servlet._
 
-trait ControllerBase extends ScalatraServlet with UrlGeneratorSupport with scalate.ScalateSupport {
+trait ControllerBase extends ScalatraServlet
+  with UrlGeneratorSupport {
+  
   def path: String
   
-  val shouldLoggedIn = true
+  notFound {
+    serveStaticResource() getOrElse resourceNotFound()
+  }
+}
 
+trait AuthedController extends ControllerBase {
   def appRoot:String = ServletContextHolder.root
 
   before() {
     SessionHolder.set(session)
-    if (shouldLoggedIn && !SessionHolder.user.isDefined){
+    if (!SessionHolder.user.isDefined){
       redirect(fullUrl(appRoot + "/login", includeServletPath = false))
     }
-    contentType="text/html"
   }
+  
   after() {
     SessionHolder.set(session)
   }
+}
 
-  notFound {
-    serveStaticResource() getOrElse resourceNotFound()
-  }
-
+trait ScalateSupport extends org.scalatra.scalate.ScalateSupport {
+  override var contentType = "text/html"
 }
 

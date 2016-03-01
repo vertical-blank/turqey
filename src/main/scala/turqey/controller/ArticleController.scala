@@ -1,7 +1,6 @@
 package turqey.controller
 
 import org.scalatra._
-import org.scalatra.scalate.ScalateSupport._
 import io.github.gitbucket.markedj._
 import scalikejdbc._
 
@@ -11,7 +10,7 @@ import turqey.utils.Json
 
 import turqey.utils.Implicits._
 
-class ArticleController extends ControllerBase {
+class ArticleController extends AuthedController with ScalateSupport {
   override val path = "article"
 
   val view = get("/:id"){

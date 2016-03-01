@@ -1,7 +1,6 @@
 package turqey.controller
 
 import org.scalatra._
-import org.scalatra.scalate.ScalateSupport._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 import javax.servlet.http.HttpServletRequest
 import scalikejdbc._
@@ -10,7 +9,9 @@ import turqey.entity._
 import turqey.utils._
 import turqey.servlet._
 
-class UserController extends ControllerBase with FileUploadSupport {
+class UserController extends AuthedController
+  with FileUploadSupport
+  with ScalateSupport {
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(3*1024*1024)))
   
   override val path = "user"
