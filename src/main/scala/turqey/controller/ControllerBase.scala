@@ -22,7 +22,7 @@ trait AuthedController extends ControllerBase {
   before() {
     SessionHolder.set(session)
     if (!SessionHolder.user.isDefined){
-      redirect(fullUrl(appRoot + "/login", includeServletPath = false))
+      redirect(fullUrl(appRoot + "/login/", includeServletPath = false))
     }
   }
   
