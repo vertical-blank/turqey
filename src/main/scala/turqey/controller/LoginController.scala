@@ -8,13 +8,13 @@ import turqey.utils._
 import turqey.servlet._
 
 class LoginController extends ControllerBase with ScalateSupport {
-  override val path = "login/"
+  override val path = "login"
   
-  val login = get("/") {
+  val login = get("*") {
     jade("/login")
   }
 
-  post("/") {
+  post("*") {
     val id   = params.get("loginId")
     val pass = params.get("password")
 
