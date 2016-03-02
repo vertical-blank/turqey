@@ -2,7 +2,6 @@ package turqey.servlet
 
 import javax.servlet._
 import com.typesafe.scalalogging.{LazyLogging => Logging}
-import org.slf4j.{Logger, LoggerFactory}
 
 import akka.actor.{Props, ActorSystem}
 
@@ -82,5 +81,3 @@ object ServletContextHolder {
   def root:String = { this.srvCxt.getContextPath }
   def assets:String = { this.root + "/assets" }
 }
-
-

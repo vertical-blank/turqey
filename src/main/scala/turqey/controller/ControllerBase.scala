@@ -33,8 +33,5 @@ trait AuthedController extends ControllerBase {
 
 trait ScalateSupport extends org.scalatra.scalate.ScalateSupport {
   override var contentType = "text/html"
-  
-  def jade(template: String, params: (String, Any)* )(implicit session: HttpSession)
-    = { super.jade(template, (params :+ ("session", session)):_*  ) }
 }
 

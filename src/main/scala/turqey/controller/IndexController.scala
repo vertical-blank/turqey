@@ -38,8 +38,6 @@ class IndexController extends AuthedController with ScalateSupport {
   val logout = get("/logout") {
     session.invalidate()
     
-    SessionHolder.set(request.getSession(true))
-    
     redirect(url("/"))
   }
 

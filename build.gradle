@@ -6,11 +6,15 @@ buildscript {
       url 'http://oss.sonatype.org/content/repositories/snapshots/'
     }
     mavenLocal()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
   }
   dependencies {
     classpath "us.hexcoder:gradle-twirl:1.0.0-SNAPSHOT"
     classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
     classpath 'murtools:gradle-scalate-plugin:0.0.3'
+    classpath "com.github.maiflai:gradle-scalatest:0.11"
   }
 }
 
@@ -21,6 +25,7 @@ apply plugin: "java"
 apply plugin: "war"
 apply plugin: "application"
 apply plugin: 'org.flywaydb.flyway'
+apply plugin: "com.github.maiflai.scalatest"
 
 repositories {
   jcenter()
@@ -38,17 +43,15 @@ dependencies {
   compile 'org.scala-lang:scala-library:2.11.7'
   compile 'org.scala-lang:scala-reflect:2.11.7'
   compile 'org.scala-lang:scala-compiler:2.11.7'
-  compile 'org.scala-lang:scala-xml:2.11.0-M4'
   compile 'com.typesafe.play:twirl-api_2.11:1.0.2'
+  compile 'org.scalatra:scalatra_2.11:2.4.0'
   compile 'org.scalatra:scalatra-scalate_2.11:2.4.0'
   
   compile 'ch.qos.logback:logback-classic:1.1.3'
   compile 'com.typesafe.scala-logging:scala-logging_2.11:3.1.0'
-  compile 'com.typesafe.scala-logging:scala-logging-slf4j_2.11:2.1.2'
   
   compile 'com.typesafe.akka:akka-actor_2.11:2.3.6'
   compile 'com.enragedginger:akka-quartz-scheduler_2.11:1.4.0-akka-2.3.x'
-  compile 'org.scalatra:scalatra_2.11:2.4.0'
 
   compile 'io.github.gitbucket:markedj:1.0.5'
   //compile 'com.google.apis:google-api-services-oauth2:v1-rev99-1.20.0'
@@ -74,14 +77,15 @@ dependencies {
   compile 'eu.medsea.mimeutil:mime-util:2.1.3'
   compile 'com.google.guava:guava:19.0'
 
-  compile 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-servlet:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-util:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-security:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-http:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
-  compile 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-servlet:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-util:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-security:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-http:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
+  providedCompile 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
+  providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
   
   executableWar 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
   executableWar 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
@@ -92,12 +96,14 @@ dependencies {
   executableWar 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
   executableWar 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
 
-  testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
+  //testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
   testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
+  testCompile 'org.scalatest:scalatest_2.11:2+'
+  testRuntime 'org.pegdown:pegdown:1.1.0'
 }
 
 sourceSets.all {
-  compileClasspath += configurations.executableWar
+  //compileClasspath += configurations.executableWar
 }
 
 targetCompatibility = '1.7'
@@ -154,9 +160,10 @@ war {
       return it.isDirectory() ? it : zipTree(it)
     }
   }
+  
   from "$buildDir/classes/main"
 
-  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA','WEB-INF/lib/jetty-*.jar'
 
   manifest.attributes('Main-Class': 'JettyLauncher')
 }

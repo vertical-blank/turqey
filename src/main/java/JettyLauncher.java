@@ -8,9 +8,12 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 
 public class JettyLauncher {
+
+    public static final String envKey = "TURQEY_HOME";
+    
     public static void main(String[] args) throws Exception {
         String host = null;
-        int port = 8081;
+        int port = 8080;
         String contextPath = "/";
         boolean forceHttps = false;
 
@@ -20,7 +23,8 @@ public class JettyLauncher {
         URL location = domain.getCodeSource().getLocation();
         String externalLocation = location.toExternalForm();
 
-        File tmpDir = new File(new File(System.getProperty("user.home"), ".turqey"), "tmp");
+        String envHome = System.getenv(envKey);
+        File tmpDir = new File(new File(envHome != null ? envHome : (System.getProperty("user.home") + "/.turqey") ), "tmp");
         if(tmpDir.exists()){
           for(File file: tmpDir.listFiles()){
               if(file.isFile()){
