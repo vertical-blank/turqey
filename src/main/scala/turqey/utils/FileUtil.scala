@@ -9,32 +9,43 @@ object FileUtil {
   
   val envKey = "TURQEY_HOME"
   
-  lazy val homeDir = Option(System.getenv(envKey)).getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() + "/.turqey" }
+  lazy val homeDir = Option(System.getenv(envKey))
+    .getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() + "/.turqey" }
   
-  lazy val usrImageDir = {
-    val dir = new File(homeDir, "userImage")
+  lazy val usrImageDir = getDir(new File(homeDir, "userImage"))
+  
+  def getDir(dir: File) = {
     if (!dir.exists()){
       dir.mkdir()
     }
     dir
   }
   
-  def saveUserImage(base64Image: String): File = {
-    import com.google.common.io.BaseEncoding
+  class Base64Image(data: String) {
+    val Array(header, body) = data.split(",")
     
-    val binary = BaseEncoding.base64().decode(base64Image)
+    def left( str: String, char: Character) :String = str.substring(0, str.indexOf(char))
+    def right(str: String, char: Character) :String = str.substring(str.lastIndexOf(char) + 1)
+    def mid(str: String, begin: Character, end: Character) = left(right(str, begin), end) 
     
-    val fileId = "1"
+    val mediaType = mid(header, ':', ';')
+    val binary = com.google.common.io.BaseEncoding.base64().decode(body)
     
-    val f = new File(usrImageDir, fileId)
-    val out = new FileOutputStream(f)
-    out.write(binary)
-    out.close
-    f
+    def saveTo(file: File): File = {
+      writeBinary(binary, file)
+    }
+    
+    def saveAsUserImage(name: String): File = {
+      saveTo(new File(usrImageDir, name))
+    }
+    
   }
   
-  def saveFileTo(file: File, path: String): Unit = {
-    
+  def writeBinary(bin: Array[Byte], file: File): File = {
+    val out = new FileOutputStream(file)
+    out.write(bin)
+    out.close
+    file
   }
   
   def getMimeType(file: java.io.File): String = {

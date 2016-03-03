@@ -1,20 +1,26 @@
 package turqey.utils
 
 import org.scalatest.FunSuite
+import turqey.utils.FileUtil._
 
 class FileUtilSpec extends FunSuite {
 
-  test("saveUserImage") {
+  test("saveAndRestoreImage") {
     
-    println(FileUtil.usrImageDir)
+    val gifStr = "data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs="
     
-    val gifStr = "R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
+    val img = new Base64Image(gifStr)
     
-    //val tmp = System.getProperty("java.io.tmpdir")
+    assert(img.mediaType == "image/gif")
     
-    val f = FileUtil.saveUserImage(gifStr)
+    val file = new java.io.File(System.getProperty("java.io.tmpdir"), "tmp.gif")
+    img.saveTo(file)
     
+    val bytes = java.nio.file.Files.readAllBytes(file.toPath)
+    val encodeStr = com.google.common.io.BaseEncoding.base64().encode(bytes)
+    file.delete
     
+    assert(encodeStr == img.body)
   }
-
+  
 }

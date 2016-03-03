@@ -169,7 +169,7 @@ war {
 }
 
 run {
-  if (project.gradle.startParameter.taskNames.pop() == 'run'){
+  if (['run', 'test'].contains(project.gradle.startParameter.taskNames.pop())){
     println "remove precompiled templates..."
     new File("$buildDir/classes/main/templates/").deleteDir()
     println 'disable precompile task'

@@ -1,7 +1,7 @@
 package turqey.servlet
 
 import javax.servlet._
-import com.typesafe.scalalogging.{LazyLogging => Logging}
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 import akka.actor.{Props, ActorSystem}
 
