@@ -34,7 +34,7 @@ class AdminController(adminPath: String) extends AuthedController with ScalateSu
     jade("/admin/system", "settings" -> smtpSettings)
   }
   
-  post("/system") {
+  post("/system") { implicit dbSession =>
     redirect(url(systemView))
   }
 }
