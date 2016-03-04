@@ -22,11 +22,11 @@ class AdminController(adminPath: String) extends AuthedController with ScalateSu
     }
   }
 
-  get("/") {
+  get("/") { implicit dbSession =>
     jade("/admin/index")
   }
 
-  val systemView = get("/system") {
+  val systemView = get("/system") { implicit dbSession =>
   
     val settings = SystemSetting.findAll()
     val smtpSettings = SmtpSettings(settings)
@@ -35,11 +35,6 @@ class AdminController(adminPath: String) extends AuthedController with ScalateSu
   }
   
   post("/system") {
-    
-    
-    
     redirect(url(systemView))
   }
-  
-
 }

@@ -13,7 +13,7 @@ import turqey.utils.Implicits._
 class ArticleController extends AuthedController with ScalateSupport {
   override val path = "article"
 
-  val view = get("/:id"){
+  val view = get("/:id"){ implicit dbSession =>
     val userId    = turqey.servlet.SessionHolder.user.get.id
 
     val articleId = params.getOrElse("id", redirect("/")).toLong
@@ -48,7 +48,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       "count"      -> count)
   }
 
-  val edit = get("/:id/edit"){
+  val edit = get("/:id/edit"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val article = Article.find(articleId).getOrElse(redirect("/"))
     if (!article.editable) { redirect("/") }
@@ -64,7 +64,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       "tags"       -> tags)
   }
 
-  val history = get("/:id/history"){
+  val history = get("/:id/history"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirect("/")).toLong
 
     val article = Article.find(articleId).getOrElse(redirect("/"))
@@ -77,7 +77,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
 // TODO Validate that articleId equals comment.articleId
-  post("/:id/comment/:commentId/delete"){
+  post("/:id/comment/:commentId/delete"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val commentId = params.getOrElse("commentId", redirect("/")).toLong
     
@@ -90,7 +90,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     redirect(url(view, "id" -> articleId.toString))
   }
 
-  post("/:id/comment"){
+  post("/:id/comment"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirect("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
     var userId    = turqey.servlet.SessionHolder.user.get.id
@@ -124,7 +124,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     redirect(url(view, "id" -> articleId.toString))
   }
 
-  post("/:id"){
+  post("/:id"){ implicit dbSession =>
     val articleId = params.getOrElse("id", "").toLong
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
@@ -161,7 +161,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     redirect(url(view, "id" -> articleId.toString))
   }
 
-  post("/:id/delete"){
+  post("/:id/delete"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirect("/")).toLong
     
     Article.find(articleId) match {
@@ -172,13 +172,13 @@ class ArticleController extends AuthedController with ScalateSupport {
     redirect(url("/"))
   }
 
-  val newEdit = get("/edit"){
+  val newEdit = get("/edit"){ implicit dbSession =>
     jade("/article/edit", 
       "article"    -> None,
       "tags"       -> Seq())
   }
 
-  post("/"){
+  post("/"){ implicit dbSession =>
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
@@ -195,7 +195,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     redirect(url(view, "id" -> newId.toString))
   }
   
-  val stock = post("/:id/stock"){
+  val stock = post("/:id/stock"){ implicit dbSession =>
     contentType = "text/json"
 
     val articleId = params.getOrElse("id", redirect("/")).toLong
@@ -224,7 +224,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     Json.toJson(Map("count" -> count))
   }
 
-  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String]): Unit = {
+  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Unit = {
     val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
       (id, name) match {
         case ("", _) => {

@@ -18,12 +18,12 @@ class UserController extends AuthedController
   
   val pagesize = 20
 
-  val list = get("/") {
+  val list = get("/") { implicit dbSession =>
     jade("/user/list",
       "users" -> User.findAll())
   }
 
-  val view = get("/:id"){
+  val view = get("/:id"){ implicit dbSession =>
     val id = params.get("id").getOrElse(redirect("/")).toLong
 
     val articleIds = Article.findAllIdBy(
@@ -37,7 +37,7 @@ class UserController extends AuthedController
     )
   }
 
-  val edit = get("/:id/edit"){
+  val edit = get("/:id/edit"){ implicit dbSession =>
     val id = params.get("id").getOrElse(redirect("/")).toLong
     val user = User.find(id).getOrElse(redirect("/"))
     
@@ -46,13 +46,13 @@ class UserController extends AuthedController
     jade("/user/edit", "u" -> Some(user))
   }
 
-  val editNew = get("/edit"){
+  val editNew = get("/edit"){ implicit dbSession =>
     if(!SessionHolder.root){ redirect("/") }
     
     jade("/user/edit", "u" -> None)
   }
 
-  post("/:id"){
+  post("/:id"){ implicit dbSession =>
     val id = params.get("id").getOrElse(redirect("/")).toLong
     val user = User.find(id).getOrElse(redirect("/"))
     
@@ -77,7 +77,7 @@ class UserController extends AuthedController
     redirect(url(view, "id" -> id.toString))
   }
 
-  post("/:id/reset"){
+  post("/:id/reset"){ implicit dbSession =>
     val id = params.get("id").getOrElse(redirect("/")).toLong
     val user = User.find(id).getOrElse(redirect("/"))
     
@@ -88,7 +88,7 @@ class UserController extends AuthedController
     redirect(url(view, "id" -> id.toString))
   }
 
-  post("/"){
+  post("/"){ implicit dbSession =>
     if(!SessionHolder.root){ redirect("/") }
     
     val id = User.create(
@@ -104,7 +104,7 @@ class UserController extends AuthedController
     redirect(url(view, "id" -> id.toString))
   }
 
-  val self = get("/self"){
+  val self = get("/self"){ implicit dbSession =>
     val id = SessionHolder.user.get.id;
 
     val articleIds = Article.findAllIdBy(
@@ -118,8 +118,7 @@ class UserController extends AuthedController
     )
   }
   
-  post("/prof_upload") {
-    
+  post("/prof_upload") { implicit dbSession =>
     val id = SessionHolder.user.get.id;
     
     fileParams.get("file") match {

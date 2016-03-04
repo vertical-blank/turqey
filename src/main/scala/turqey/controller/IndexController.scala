@@ -12,7 +12,7 @@ class IndexController extends AuthedController with ScalateSupport {
   
   val pagesize = 20
 
-  val entry = get("/") {
+  val entry = get("/") { implicit dbSession =>
     val usrId = SessionHolder.user.get.id
 
     val articleIds = Article.findAllId().grouped(pagesize).toSeq
@@ -35,7 +35,7 @@ class IndexController extends AuthedController with ScalateSupport {
       "followingIds" -> followingIds)
   }
 
-  val logout = get("/logout") {
+  val logout = get("/logout") { implicit dbSession =>
     session.invalidate()
     
     redirect(url("/"))

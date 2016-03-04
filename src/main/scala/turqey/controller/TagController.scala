@@ -12,13 +12,13 @@ import turqey.utils.Implicits._
 class TagController extends AuthedController with ScalateSupport {
   override val path = "tag"
 
-  val list = get("/"){
+  val list = get("/"){ implicit dbSession =>
     val tags = Tag.findAllWithArticleCount()
 
     jade("/tag/list", "tags" -> tags)
   }
 
-  val view = get("/:id"){
+  val view = get("/:id"){ implicit dbSession =>
     val tagId = params.getOrElse("id", redirect("/")).toLong
     
     val tag = Tag.find(tagId).getOrElse(redirect("/"))
@@ -43,7 +43,7 @@ class TagController extends AuthedController with ScalateSupport {
       "followed" -> followed)
   }
 
-  get("/followings"){
+  get("/followings"){ implicit dbSession =>
     val userId    = turqey.servlet.SessionHolder.user.get.id
     val ids = TagFollowing.findAllBy(sqls.eq(TagFollowing.tf.userId, userId)).map(_.followedId)
     val tags = Tag.findAllWithArticleCount(ids)
@@ -51,7 +51,7 @@ class TagController extends AuthedController with ScalateSupport {
     jade("/tag/list", "tags" -> tags)
   }
   
-  post("/:id/follow"){
+  post("/:id/follow"){ implicit dbSession =>
     contentType = "text/json"
     
     val tagId  = params.getOrElse("id", redirect("/")).toLong

@@ -3,14 +3,14 @@ package turqey.controller
 import org.scalatra._
 import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession }
 import collection.mutable
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 import turqey.servlet._
 
 import scalikejdbc._
 
 trait ControllerBase extends ScalatraServlet
-  with UrlGeneratorSupport with StrictLogging {
+  with UrlGeneratorSupport with Logging {
   
   def path: String
   
@@ -18,11 +18,34 @@ trait ControllerBase extends ScalatraServlet
     serveStaticResource() getOrElse resourceNotFound()
   }
   
-  def readOnly(block: DBSession => Any) = {
-    DB readOnly block
+  def get(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
+    super.get(transformers:_*) {{
+      DB readOnly { implicit dbSession =>
+          block.apply(dbSession)
+      }
+    }}
   }
-  def withTx(block: DBSession => Any) = {
-    DB localTx block
+  def post(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
+    super.post(transformers:_*) {{ 
+      DB localTx { implicit dbSession =>
+          block.apply(dbSession)
+      }
+    }}
+  }
+  
+  def getWithTx(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
+    super.get(transformers:_*) {{
+      DB localTx { implicit dbSession =>
+          block.apply(dbSession)
+      }
+    }}
+  }
+  def postWithoutTx(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
+    super.post(transformers:_*) {{
+      DB readOnly { implicit dbSession =>
+          block.apply(dbSession)
+      }
+    }}
   }
   
 }
