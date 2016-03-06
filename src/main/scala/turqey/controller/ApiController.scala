@@ -19,7 +19,7 @@ class ApiController extends AuthedController with NotifacationHelper {
     }
   }
 
-  post("/markdown") { implicit dbSession =>
+  postWithoutDB("/markdown") {
     contentType = "text/plain"
     val content   = params.getOrElse("content", "").toString
     Markdown.html(content);

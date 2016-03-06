@@ -25,6 +25,10 @@ trait ControllerBase extends ScalatraServlet
       }
     }}
   }
+  def getWithoutDB(transformers: RouteTransformer*)(block: => Any): Route = {
+    super.get(transformers:_*)(block)
+  }
+  
   def post(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.post(transformers:_*) {{ 
       try {
@@ -35,6 +39,9 @@ trait ControllerBase extends ScalatraServlet
         case e: SuccessfulRedirectException => redirectFatal(e)
       }
     }}
+  }
+  def postWithoutDB(transformers: RouteTransformer*)(block: => Any): Route = {
+    super.post(transformers:_*)(block)
   }
   
   def getWithTx(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
