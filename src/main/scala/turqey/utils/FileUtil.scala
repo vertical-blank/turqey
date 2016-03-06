@@ -48,7 +48,11 @@ object FileUtil {
     file
   }
   
-  def getMimeType(file: java.io.File): String = {
+  def getByteArray(file: File): Array[Byte] = {
+    java.nio.file.Files.readAllBytes(file.toPath)
+  }
+  
+  def getMimeType(file: File): String = {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     val mimeTypes = MimeUtil.getMimeTypes(file);
     
@@ -60,7 +64,7 @@ object FileUtil {
     }
   }
   
-  def isImage(file: java.io.File): Boolean = {
+  def isImage(file: File): Boolean = {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     val mimeTypes = MimeUtil.getMimeTypes(file);
     

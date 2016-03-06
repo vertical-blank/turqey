@@ -131,6 +131,15 @@ class UserController extends AuthedController
       case e: SizeConstraintExceededException => ("too much!")
     }
   }
+  
+  getWithoutDB("/:id/image") {
+    val id = params.get("id").getOrElse(redirectFatal("/")).toLong
+    
+    val img = new java.io.File(FileUtil.usrImageDir, id.toString)
+    
+    contentType = FileUtil.getMimeType(img)
+    FileUtil.getByteArray(img)
+  }
 
 }
 
