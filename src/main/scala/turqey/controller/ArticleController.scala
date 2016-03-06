@@ -16,8 +16,8 @@ class ArticleController extends AuthedController with ScalateSupport {
   val view = get("/:id"){ implicit dbSession =>
     val userId    = turqey.servlet.SessionHolder.user.get.id
 
-    val articleId = params.getOrElse("id", redirect("/")).toLong
-    val article = Article.find(articleId).getOrElse(redirect("/"))
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
     val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
     
     val tags = {
@@ -49,9 +49,9 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   val edit = get("/:id/edit"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirect("/")).toLong
-    val article = Article.find(articleId).getOrElse(redirect("/"))
-    if (!article.editable) { redirect("/") }
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
+    if (!article.editable) { redirectFatal("/") }
 
     val tags = {
       val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
@@ -65,10 +65,8 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   val history = get("/:id/history"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirect("/")).toLong
-
-    val article = Article.find(articleId).getOrElse(redirect("/"))
-
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
     val histories = ArticleHistory.findAll()
 
     jade("article/history", 
@@ -78,8 +76,8 @@ class ArticleController extends AuthedController with ScalateSupport {
 
 // TODO Validate that articleId equals comment.articleId
   post("/:id/comment/:commentId/delete"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirect("/")).toLong
-    val commentId = params.getOrElse("commentId", redirect("/")).toLong
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    val commentId = params.getOrElse("commentId", redirectFatal("/")).toLong
     
     val ac = ArticleComment.ac
     ArticleComment.findBy(sqls.eq(ac.articleId, articleId).and.eq(ac.id, commentId)) match {
@@ -91,7 +89,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   post("/:id/comment"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirect("/")).toLong
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
     var userId    = turqey.servlet.SessionHolder.user.get.id
     
@@ -131,8 +129,8 @@ class ArticleController extends AuthedController with ScalateSupport {
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
 
-    val article = Article.find(articleId).getOrElse(redirect("/"))
-    if (!article.editable) { redirect("/") }
+    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
+    if (!article.editable) { redirectFatal("/") }
     // must read CLOB content before update.
     val oldContent: String = article.content
 
@@ -162,7 +160,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   post("/:id/delete"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirect("/")).toLong
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     
     Article.find(articleId) match {
       case Some(rec) => rec.destroy()
@@ -198,7 +196,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   val stock = post("/:id/stock"){ implicit dbSession =>
     contentType = "text/json"
 
-    val articleId = params.getOrElse("id", redirect("/")).toLong
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val userId    = turqey.servlet.SessionHolder.user.get.id
     val as = ArticleStock.as
     ArticleStock.findBy(sqls

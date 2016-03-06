@@ -21,14 +21,18 @@ trait ControllerBase extends ScalatraServlet
   def get(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.get(transformers:_*) {{
       DB readOnly { implicit dbSession =>
-          block.apply(dbSession)
+        block.apply(dbSession)
       }
     }}
   }
   def post(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.post(transformers:_*) {{ 
-      DB localTx { implicit dbSession =>
-          block.apply(dbSession)
+      try {
+        DB localTx { implicit dbSession =>
+            block.apply(dbSession)
+        }
+      } catch {
+        case e: SuccessfulRedirectException => redirectFatal(e)
       }
     }}
   }
@@ -36,18 +40,37 @@ trait ControllerBase extends ScalatraServlet
   def getWithTx(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.get(transformers:_*) {{
       DB localTx { implicit dbSession =>
-          block.apply(dbSession)
+        block.apply(dbSession)
       }
     }}
   }
   def postWithoutTx(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.post(transformers:_*) {{
       DB readOnly { implicit dbSession =>
-          block.apply(dbSession)
+        block.apply(dbSession)
       }
     }}
   }
   
+  import java.lang.{ Integer => JInteger }
+  import scala.util.control.ControlThrowable
+  import scala.util.control.NoStackTrace
+  
+  
+  def redirectFatal(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+    super.redirect(uri)
+  }
+  
+  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+    throw new SuccessfulRedirectException(uri: String)
+  }
+  
+  private[turqey] case class SuccessfulRedirectException(uri: String) extends ControlThrowable with NoStackTrace
+  
+  def redirectFatal(e: SuccessfulRedirectException)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+    super.redirect(e.uri)
+  }
+
 }
 
 trait AuthedController extends ControllerBase {
@@ -56,7 +79,7 @@ trait AuthedController extends ControllerBase {
   before() {
     SessionHolder.set(session)
     if (!SessionHolder.user.isDefined){
-      redirect(fullUrl(appRoot + "/login/", includeServletPath = false))
+      redirectFatal(fullUrl(appRoot + "/login/", includeServletPath = false))
     }
   }
   

@@ -24,7 +24,7 @@ class UserController extends AuthedController
   }
 
   val view = get("/:id"){ implicit dbSession =>
-    val id = params.get("id").getOrElse(redirect("/")).toLong
+    val id = params.get("id").getOrElse(redirectFatal("/")).toLong
 
     val articleIds = Article.findAllIdBy(
       sqls.eq(Article.column.ownerId, id)
@@ -32,31 +32,31 @@ class UserController extends AuthedController
 
     //show user detail
     jade("/user/view",
-      "u" -> User.find(id).getOrElse(redirect("/")),
+      "u" -> User.find(id).getOrElse(redirectFatal("/")),
       "articleIds" -> articleIds
     )
   }
 
   val edit = get("/:id/edit"){ implicit dbSession =>
-    val id = params.get("id").getOrElse(redirect("/")).toLong
-    val user = User.find(id).getOrElse(redirect("/"))
+    val id = params.get("id").getOrElse(redirectFatal("/")).toLong
+    val user = User.find(id).getOrElse(redirectFatal("/"))
     
-    if(!user.editable){ redirect("/") }
+    if(!user.editable){ redirectFatal("/") }
 
     jade("/user/edit", "u" -> Some(user))
   }
 
   val editNew = get("/edit"){ implicit dbSession =>
-    if(!SessionHolder.root){ redirect("/") }
+    if(!SessionHolder.root){ redirectFatal("/") }
     
     jade("/user/edit", "u" -> None)
   }
 
   post("/:id"){ implicit dbSession =>
-    val id = params.get("id").getOrElse(redirect("/")).toLong
-    val user = User.find(id).getOrElse(redirect("/"))
+    val id = params.get("id").getOrElse(redirectFatal("/")).toLong
+    val user = User.find(id).getOrElse(redirectFatal("/"))
     
-    if(!user.editable){ redirect("/") }
+    if(!user.editable){ redirectFatal("/") }
 
     val updUsr = user.copy(
       name     = params.get("name").get,
@@ -78,10 +78,10 @@ class UserController extends AuthedController
   }
 
   post("/:id/reset"){ implicit dbSession =>
-    val id = params.get("id").getOrElse(redirect("/")).toLong
-    val user = User.find(id).getOrElse(redirect("/"))
+    val id = params.get("id").getOrElse(redirectFatal("/")).toLong
+    val user = User.find(id).getOrElse(redirectFatal("/"))
     
-    if(!user.editable){ redirect("/") }
+    if(!user.editable){ redirectFatal("/") }
 
     user.copy(password = Digest.get(user.loginId) ).save()
 
@@ -89,7 +89,7 @@ class UserController extends AuthedController
   }
 
   post("/"){ implicit dbSession =>
-    if(!SessionHolder.root){ redirect("/") }
+    if(!SessionHolder.root){ redirectFatal("/") }
     
     val id = User.create(
       loginId  = params.get("loginId").get,
@@ -113,7 +113,7 @@ class UserController extends AuthedController
 
     //show user detail
     jade("/user/view",
-      "u" -> User.find(id).getOrElse(redirect("/")),
+      "u" -> User.find(id).getOrElse(redirectFatal("/")),
       "articleIds" -> articleIds
     )
   }
