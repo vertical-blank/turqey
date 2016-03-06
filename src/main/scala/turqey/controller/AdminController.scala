@@ -18,7 +18,7 @@ class AdminController(adminPath: String) extends AuthedController with ScalateSu
     SessionHolder.set(session)
     val user = SessionHolder.user
     if (!user.isDefined && !user.get.root){
-      redirect("")
+      redirectFatal("")
     }
   }
 

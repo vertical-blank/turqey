@@ -19,9 +19,9 @@ class TagController extends AuthedController with ScalateSupport {
   }
 
   val view = get("/:id"){ implicit dbSession =>
-    val tagId = params.getOrElse("id", redirect("/")).toLong
+    val tagId = params.getOrElse("id", redirectFatal("/")).toLong
     
-    val tag = Tag.find(tagId).getOrElse(redirect("/"))
+    val tag = Tag.find(tagId).getOrElse(redirectFatal("/"))
     val articles = Article.findTagged(tagId)
 
     val userId    = turqey.servlet.SessionHolder.user.get.id
@@ -54,7 +54,7 @@ class TagController extends AuthedController with ScalateSupport {
   post("/:id/follow"){ implicit dbSession =>
     contentType = "text/json"
     
-    val tagId  = params.getOrElse("id", redirect("/")).toLong
+    val tagId  = params.getOrElse("id", redirectFatal("/")).toLong
     val userId = turqey.servlet.SessionHolder.user.get.id
 
     val ret = {
