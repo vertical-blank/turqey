@@ -14,6 +14,8 @@
 -@val stocked:    Boolean
 -@val count:      Long
 
+-@val ownerId: Long = article.owner.get.id
+
 script(type="text/javascript" src="#{assets}/vender/js/jquery.toc.min.js")
 
 div.articleHeader
@@ -24,7 +26,9 @@ div.articleHeader
           h2 #{article.title}
         p
           span
-            a(href="#{root}/user/#{article.owner.get.id}") #{article.owner.get.name}
+            a(href="#{root}/user/#{ownerId}")
+              img(src="#{root}/user/#{ownerId}/image" style="width: 20px;height: 20px;")
+              | #{article.owner.get.name}
             |が #{article.created.toString("yyyy/MM/dd")} に投稿
           |#{latestEdit.map( _.toString("yyyy/MM/dd") + "に更新")}
 
