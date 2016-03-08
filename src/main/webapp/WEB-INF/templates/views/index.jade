@@ -40,7 +40,9 @@ div.container#container
               i.material-icons comment
               span(data-bind="text: comment")
             p
-              a(data-bind="text: owner.name, attr: {href: '#{root}/user/' + owner.id}")
+              a(data-bind="attr: {href: '#{root}/user/' + owner.id}")
+                img(data-bind="attr: {src: '#{root}/user/' + owner.id + '/image'}" style="width: 20px; height: 20px;")
+                span(data-bind="text: owner.name")
               |作成:
               span(data-bind="text: created")
               span(data-bind="text: '更新: ' + updated, visible: updated !== ''")
