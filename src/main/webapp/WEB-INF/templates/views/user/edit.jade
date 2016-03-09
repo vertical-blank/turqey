@@ -50,11 +50,12 @@ div.container(style="margin-top: 10px;")
     button.waves-effect.waves-light.btn(type="submit")
       i.material-icons.right check
       |保存
-div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height: 600px;")
+div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height: 700px;")
   div.modal-content
     h4 Modal Header
     div(style="text-align: center;")
       canvas#uploaded
+      canvas#origin(style="display: none;")
       canvas#resized(width="200" height="200" style="display: none;")
   div.modal-footer
     a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") キャンセル
@@ -66,9 +67,19 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height
       var files = e.originalEvent.dataTransfer.files;
       loadFile(files[0], function() {
         var uploaded = document.getElementById('uploaded');
-        uploaded.width = this.width;
-        uploaded.height = this.height;
-        uploaded.getContext('2d').drawImage(this, 0, 0);
+        var origin = document.getElementById('origin');
+        origin.width = this.width;
+        origin.height = this.height;
+        origin.getContext('2d').drawImage(this, 0, 0);
+        
+        var ratioX = this.width / 750;
+        var ratioY = this.height / 500;
+        var ratio = ratioX > ratioY ? ratioX : ratioY;
+        console.log(ratio);
+        
+        uploaded.width = this.width / ratio;
+        uploaded.height = this.height / ratio;
+        uploaded.getContext('2d').drawImage(this, 0, 0, uploaded.width, uploaded.height);
         $(uploaded).imgAreaSelect({
           handles: true,
           onSelectEnd: selectEnd,
@@ -93,15 +104,19 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height
     if (!selection.width || !selection.height)
         return;
     
-    var uploaded = document.getElementById('uploaded');
+    var origin = document.getElementById('origin');
     var resized   = document.getElementById('resized');
-
-    var sourceX = selection.x1;
-    var sourceY = selection.y1;
-    var sourceW = selection.width;
-    var sourceH = selection.height;
     
-    var srcData = uploaded.getContext('2d').getImageData(sourceX, sourceY, sourceW, sourceH).data;
+    var ratioX = origin.width / 750;
+    var ratioY = origin.height / 500;
+    var ratio = ratioX > ratioY ? ratioX : ratioY;
+
+    var sourceX = parseInt(selection.x1 * ratio);
+    var sourceY = parseInt(selection.y1 * ratio);
+    var sourceW = parseInt(selection.width * ratio);
+    var sourceH = parseInt(selection.height * ratio);
+    
+    var srcData = origin.getContext('2d').getImageData(sourceX, sourceY, sourceW, sourceH).data;
     var imageDataTo = resized.getContext('2d').createImageData(200, 200);
     
     pica.resizeBuffer({
