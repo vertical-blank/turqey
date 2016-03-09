@@ -13,7 +13,7 @@ div.container(style="margin-top: 10px;")
   div.row
     div.col.s4
       div()
-        a.modal-trigger(href="#modal1")
+        a#modal-trigger(href="#modal1")
           img#image(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
     div.col.s8
       form.col.s12#form(action="#{root}/user/#{u.map(_.id)}" method="post")
@@ -51,109 +51,77 @@ div.container(style="margin-top: 10px;")
       i.material-icons.right check
       |保存
   div#modal1.modal.modal-fixed-footer
-    div.modal-content#hoge
+    div.modal-content
       h4 Modal Header
-      div
-        canvas#preview
+      div(style="text-align: center; height: 100%;")
+        canvas#uploaded
         canvas#resized(width="200" height="200" style="display: none;")
     div.modal-footer
       a.modal-action.modal-close.waves-effect.waves-green.btn-flat(href="#!") キャンセル
       a.modal-action.modal-close.waves-effect.waves-green.btn-flat(href="#!") 決定
-  
-
 :!javascript
   $(document).ready(function(){
-    $('.modal-trigger').leanModal();
-    $('body').bind('drop', function(e){
-      e.preventDefault();
-    });
+    var cancelSelection;
     
-    $('#hoge').bind('drop', function(e){
+    $('#modal1').bind('drop', function(e){
       e.preventDefault();
       var files = e.originalEvent.dataTransfer.files;
       loadFile(files[0], function() {
-        var canvas = document.getElementById('preview');
-        var context = canvas.getContext('2d');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        context.drawImage(this, 0, 0);
-        $('#preview').imgAreaSelect({
+        var uploaded = document.getElementById('uploaded');
+        uploaded.width = this.width;
+        uploaded.height = this.height;
+        uploaded.getContext('2d').drawImage(this, 0, 0);
+        var imgSelect = $(uploaded).imgAreaSelect({
           handles: true,
-          onSelectChange: crop,
           onSelectEnd: selectEnd,
           aspectRatio: "1:1"
         });
+        cancelSelection = function(){ imgSelect.cancelSelection(); };
       });
-    }).bind('dragenter', function(){
-      return false;
-    }).bind('dragover', function(){
+    }).bind('dragenter dragover', function(){
       return false;
     });
+    
+    $('#modal-trigger').leanModal({
+      complete: cancelSelection
+    });
+    
+    $('body').bind('drop dragenter dragover', function(e){
+      return false;
+    });
+    
   });
-  var delay = (function(){
-    var timer = 0;
-    return function(callback, ms){
-      clearTimeout (timer);
-      timer = setTimeout(callback, ms);
-    };
-  })();
-  function crop(img, selection) {
-    if (!selection.width || !selection.height)
-        return;
-        
-    delay(function(){selectEnd(img, selection);}, 300);
-    
-    // draw to canvas.
-    var canvas = document.getElementById('resized');
-    var context = canvas.getContext('2d');
-    var imageObj = document.getElementById('preview');
-
-    var sourceX = selection.x1;
-    var sourceY = selection.y1;
-    var sourceWidth = selection.width;
-    var sourceHeight = selection.height;
-    
-    var destWidth = 200;
-    var destHeight = 200;
-    
-    var destX = canvas.width / 2 - destWidth / 2;
-    var destY = canvas.height / 2 - destHeight / 2;
-
-    context.drawImage(imageObj, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-  }
+  
   function selectEnd(img, selection){
     if (!selection.width || !selection.height)
         return;
-        
-    var canvas =  document.getElementById('resized');
-    var imageObj = document.getElementById('preview');
+    
+    var uploaded = document.getElementById('uploaded');
+    var resized   = document.getElementById('resized');
 
     var sourceX = selection.x1;
     var sourceY = selection.y1;
-    var sourceWidth = selection.width;
-    var sourceHeight = selection.height;
+    var sourceW = selection.width;
+    var sourceH = selection.height;
     
-    var srcData = imageObj.getContext('2d').getImageData(sourceX, sourceY, sourceWidth, sourceHeight).data;
-      
-    var imageDataTo = canvas.getContext('2d').createImageData(200, 200);
+    var srcData = uploaded.getContext('2d').getImageData(sourceX, sourceY, sourceW, sourceH).data;
+    var imageDataTo = resized.getContext('2d').createImageData(200, 200);
     
-    var resizeOpts = {
-      src     : srcData,
-      dest    : imageDataTo.data,
-      width   : sourceWidth,
-      height  : sourceHeight,
-      toWidth : 200,
-      toHeight: 200,
-      quality : 3
-    };
-    
-    window.pica.resizeBuffer(resizeOpts, function() {
-      canvas.getContext('2d').putImageData(imageDataTo, 0, 0);
-      
-      var data = canvas.toDataURL('image/png');
-      document.getElementById('base64').value = data;
-      document.getElementById('image').src = data;
-      console.log('Antialeasing Done!!!');
-    });
-    
+    pica.resizeBuffer({
+        src     : srcData,
+        dest    : imageDataTo.data,
+        width   : sourceW,
+        height  : sourceH,
+        toWidth : 200,
+        toHeight: 200,
+        quality : 3
+      },
+      function() {
+        resized.getContext('2d').putImageData(imageDataTo, 0, 0);
+        
+        var data = resized.toDataURL('image/png');
+        document.getElementById('base64').value = data;
+        document.getElementById('image').src = data;
+    }); 
   }
+  
