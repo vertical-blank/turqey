@@ -52,8 +52,9 @@ object FileUtil {
     java.nio.file.Files.readAllBytes(file.toPath)
   }
   
+  MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
+  
   def getMimeType(file: File): String = {
-    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     val mimeTypes = MimeUtil.getMimeTypes(file);
     
     mimeTypes.headOption match {
@@ -65,7 +66,6 @@ object FileUtil {
   }
   
   def isImage(file: File): Boolean = {
-    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     val mimeTypes = MimeUtil.getMimeTypes(file);
     
     mimeTypes.headOption match {

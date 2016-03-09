@@ -50,18 +50,18 @@ div.container(style="margin-top: 10px;")
     button.waves-effect.waves-light.btn(type="submit")
       i.material-icons.right check
       |保存
-  div#modal1.modal.modal-fixed-footer
-    div.modal-content
-      h4 Modal Header
-      div(style="text-align: center; height: 100%;")
-        canvas#uploaded
-        canvas#resized(width="200" height="200" style="display: none;")
-    div.modal-footer
-      a.modal-action.modal-close.waves-effect.waves-green.btn-flat(href="#!") キャンセル
-      a.modal-action.modal-close.waves-effect.waves-green.btn-flat(href="#!") 決定
+div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height: 600px;")
+  div.modal-content
+    h4 Modal Header
+    div(style="text-align: center;")
+      canvas#uploaded
+      canvas#resized(width="200" height="200" style="display: none;")
+  div.modal-footer
+    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") キャンセル
+    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") 決定
 :!javascript
   $(document).ready(function(){
-    var cancelSelection;
+    var cancelSelection = function() { console.log('close'); };
     
     $('#modal1').bind('drop', function(e){
       e.preventDefault();
@@ -83,13 +83,13 @@ div.container(style="margin-top: 10px;")
     });
     
     $('#modal-trigger').leanModal({
+      dismissible: true,
       complete: cancelSelection
     });
     
     $('body').bind('drop dragenter dragover', function(e){
       return false;
     });
-    
   });
   
   function selectEnd(img, selection){
