@@ -61,8 +61,6 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height
     a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") 決定
 :!javascript
   $(document).ready(function(){
-    var cancelSelection = function() { console.log('close'); };
-    
     $('#modal1').bind('drop', function(e){
       e.preventDefault();
       var files = e.originalEvent.dataTransfer.files;
@@ -71,12 +69,11 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height
         uploaded.width = this.width;
         uploaded.height = this.height;
         uploaded.getContext('2d').drawImage(this, 0, 0);
-        var imgSelect = $(uploaded).imgAreaSelect({
+        $(uploaded).imgAreaSelect({
           handles: true,
           onSelectEnd: selectEnd,
           aspectRatio: "1:1"
         });
-        cancelSelection = function(){ imgSelect.cancelSelection(); };
       });
     }).bind('dragenter dragover', function(){
       return false;
@@ -84,7 +81,7 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height
     
     $('#modal-trigger').leanModal({
       dismissible: true,
-      complete: cancelSelection
+      complete: function(){ $('#uploaded').imgAreaSelect({ instance: true }).cancelSelection(); }
     });
     
     $('body').bind('drop dragenter dragover', function(e){
