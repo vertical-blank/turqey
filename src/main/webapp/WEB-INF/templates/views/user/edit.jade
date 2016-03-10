@@ -9,12 +9,12 @@
 script(type="text/javascript" src="#{assets}/vender/js/jquery.imgareaselect.min.js")
 link(href="#{assets}/vender/css/imgareaselect-animated.css" rel="stylesheet")
 script(type="text/javascript" src="#{assets}/vender/js/pica.min.js")
-div.container(style="margin-top: 10px;")
+div.container#container(style="margin-top: 10px;")
   div.row
     div.col.s4
       div()
         a#modal-trigger(href="#modal1")
-          img#image(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
+          img#image.z-depth-2(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
     div.col.s8
       form.col.s12#form(action="#{root}/user/#{u.map(_.id)}" method="post")
         div.row
@@ -44,22 +44,22 @@ div.container(style="margin-top: 10px;")
               :type=>"checkbox",
               :name=>"root",
               :checked=>{u.map(_.root).getOrElse(false)},
-              :disabled=>{!(u.map(u => SessionHolder.root && !u.self ).getOrElse(false))} }
+              :disabled=>{!(SessionHolder.root && u.map(u => !u.self).getOrElse(true))} }
             label(for="filled-in-box") 管理者  
-        textarea#base64(style="display: none;")
-    button.waves-effect.waves-light.btn(type="submit")
-      i.material-icons.right check
-      |保存
-div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height: 700px;")
-  div.modal-content
-    h4 Modal Header
-    div(style="text-align: center;")
-      canvas#uploaded
-      canvas#origin(style="display: none;")
-      canvas#resized(width="200" height="200" style="display: none;")
-  div.modal-footer
-    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") キャンセル
-    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!") 決定
+        input#base64(type="text" name="image" style="display: none;")
+        button.waves-effect.waves-light.btn(type="submit")
+          i.material-icons.right check
+          |保存
+  div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height: 700px;")
+    div.modal-content
+      h4 Modal Header
+      div(style="text-align: center;")
+        canvas#uploaded
+        canvas#origin(style="display: none;")
+        canvas#cropped(width="200" height="200" style="display: none;")
+    div.modal-footer
+      a.modal-action.waves-effect.waves-grey.btn-flat(data-bind="click: imgCancel") キャンセル
+      a.modal-action.waves-effect.waves-grey.btn-flat(data-bind="click: imgOk") 決定
 :!javascript
   $(document).ready(function(){
     $('#modal1').bind('drop', function(e){
@@ -72,10 +72,7 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height
         origin.height = this.height;
         origin.getContext('2d').drawImage(this, 0, 0);
         
-        var ratioX = this.width / 750;
-        var ratioY = this.height / 500;
-        var ratio = ratioX > ratioY ? ratioX : ratioY;
-        console.log(ratio);
+        var ratio = getRatio();
         
         uploaded.width = this.width / ratio;
         uploaded.height = this.height / ratio;
@@ -98,18 +95,25 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height
     $('body').bind('drop dragenter dragover', function(e){
       return false;
     });
+    
   });
+  
+  function getRatio(origin){
+    origin = origin || document.getElementById('origin');
+    var ratioX = origin.width / 750;
+    var ratioY = origin.height / 500;
+    var ratio = ratioX > ratioY ? ratioX : ratioY;
+    return ratio > 1? ratio: 1;
+  }
   
   function selectEnd(img, selection){
     if (!selection.width || !selection.height)
         return;
     
     var origin = document.getElementById('origin');
-    var resized   = document.getElementById('resized');
+    var cropped   = document.getElementById('cropped');
     
-    var ratioX = origin.width / 750;
-    var ratioY = origin.height / 500;
-    var ratio = ratioX > ratioY ? ratioX : ratioY;
+    var ratio = getRatio();
 
     var sourceX = parseInt(selection.x1 * ratio);
     var sourceY = parseInt(selection.y1 * ratio);
@@ -117,7 +121,7 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height
     var sourceH = parseInt(selection.height * ratio);
     
     var srcData = origin.getContext('2d').getImageData(sourceX, sourceY, sourceW, sourceH).data;
-    var imageDataTo = resized.getContext('2d').createImageData(200, 200);
+    var imageDataTo = cropped.getContext('2d').createImageData(200, 200);
     
     pica.resizeBuffer({
         src     : srcData,
@@ -129,11 +133,41 @@ div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height
         quality : 3
       },
       function() {
-        resized.getContext('2d').putImageData(imageDataTo, 0, 0);
-        
-        var data = resized.toDataURL('image/png');
-        document.getElementById('base64').value = data;
-        document.getElementById('image').src = data;
+        cropped.getContext('2d').putImageData(imageDataTo, 0, 0);
     }); 
   }
+  
+  var ViewModel = function (){
+    var self = this;
+    
+    function clearRect(canvas){
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    this.resetImg = function(){
+      clearRect(document.getElementById('uploaded'));
+      clearRect(document.getElementById('origin'));
+      clearRect(document.getElementById('cropped'));
+    };
+    
+    this.imgOk = function() {
+      var data = cropped.toDataURL('image/png');
+      document.getElementById('base64').value = data;
+      document.getElementById('image').src = data;
+      self.resetImg();
+      $('#uploaded').imgAreaSelect({ instance: true }).cancelSelection();
+      $('#modal1').closeModal();
+    };
+    
+    this.imgCancel = function() {
+      self.resetImg();
+      $('#uploaded').imgAreaSelect({ instance: true }).cancelSelection();
+      $('#modal1').closeModal();
+    };
+    
+  };
+  
+  // Activates knockout.js
+  var vm = new ViewModel();
+  ko.applyBindings(vm, document.getElementById('container'));
   

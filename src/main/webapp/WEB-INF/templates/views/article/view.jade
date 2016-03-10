@@ -85,9 +85,12 @@ div.container
             form(action="#{root}/article/#{article.id}/comment/#{comment.id}/delete" method="post" style="display: inline;")
               button.btn-floating.btn.red
                 i.small.material-icons delete
-
         div.card-content.markdown
-          span.card-title #{comment.user.get.name} #{comment.created.toString("yyyy/MM/dd")}
+          span.card-title
+            a(href="#{root}/user/#{comment.userId}")
+              img(src="#{root}/user/#{comment.userId}/image" style="width: 40px; height: 40px;")
+              | #{comment.user.get.name}
+            | #{comment.created.toString("yyyy/MM/dd")}
           ! #{Markdown.html(comment.content)}
   
   div.row

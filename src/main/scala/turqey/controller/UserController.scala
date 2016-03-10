@@ -54,10 +54,13 @@ class UserController extends AuthedController
 
   post("/:id"){ implicit dbSession =>
     val id = params.get("id").getOrElse(redirectFatal("/")).toLong
+    val image = params.get("image")
     val user = User.find(id).getOrElse(redirectFatal("/"))
     
     if(!user.editable){ redirectFatal("/") }
 
+    val root = SessionHolder.root && (params.get("root").isDefined || user.self)
+    
     val updUsr = user.copy(
       name     = params.get("name").get,
       email    = params.get("email").get,
@@ -66,9 +69,11 @@ class UserController extends AuthedController
         case Some(p)  => { Digest.get(p) }
       },
       imgUrl   = "",
-      root     = SessionHolder.root && params.get("root").isDefined
+      root     = root
     ).save()
-
+    
+    image.filter( _ != "" ).foreach( new FileUtil.Base64Image(_).saveAsUserImage(id.toString) )
+    
     val sessionUsr = SessionHolder.user.get
     if (sessionUsr.id == user.id){
       session("user") = sessionUsr.copy(name = updUsr.name, imgUrl = updUsr.imgUrl)
@@ -91,6 +96,8 @@ class UserController extends AuthedController
   post("/"){ implicit dbSession =>
     if(!SessionHolder.root){ redirectFatal("/") }
     
+    val image = params.get("image")
+    
     val id = User.create(
       loginId  = params.get("loginId").get,
       name     = params.get("name").get,
@@ -99,6 +106,8 @@ class UserController extends AuthedController
       imgUrl   = "",
       root     = SessionHolder.root && params.get("root").isDefined
     ).id
+    
+    image.filter( _ != "" ).foreach( new FileUtil.Base64Image(_).saveAsUserImage(id.toString) )
 
     //update user
     redirect(url(view, "id" -> id.toString))
@@ -137,8 +146,9 @@ class UserController extends AuthedController
     
     val img = new java.io.File(FileUtil.usrImageDir, id.toString)
     
-    contentType = FileUtil.getMimeType(img)
-    FileUtil.getByteArray(img)
+    //contentType = FileUtil.getMimeType(img)
+    contentType = "image/png"
+    img
   }
 
 }

@@ -20,8 +20,12 @@ trait ControllerBase extends ScalatraServlet
   
   def get(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.get(transformers:_*) {{
-      DB readOnly { implicit dbSession =>
-        block.apply(dbSession)
+      try {
+        DB readOnly { implicit dbSession =>
+          block.apply(dbSession)
+        }
+      } catch {
+        case e: SuccessfulRedirectException => redirectFatal(e)
       }
     }}
   }
