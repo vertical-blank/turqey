@@ -54,7 +54,7 @@ div.container#container(style="margin-top: 10px;")
     div.modal-content
       h4 Modal Header
       div(style="text-align: center;")
-        canvas#uploaded.z-depth-1
+        canvas#uploaded.z-depth-1(style="display: none;")
         canvas#origin(style="display: none;")
         canvas#cropped(width="200" height="200" style="display: none;")
     div.modal-footer
@@ -77,11 +77,20 @@ div.container#container(style="margin-top: 10px;")
         uploaded.width = this.width / ratio;
         uploaded.height = this.height / ratio;
         uploaded.getContext('2d').drawImage(this, 0, 0, uploaded.width, uploaded.height);
-        $(uploaded).imgAreaSelect({
+        
+        $(uploaded).toggle(true);
+        
+        var imgSelect = $(uploaded).imgAreaSelect({
+          persistent: true,
           handles: true,
           onSelectEnd: selectEnd,
-          aspectRatio: "1:1"
+          aspectRatio: "1:1",
+          instance: true
         });
+        imgSelect.setSelection(10, 10, 100, 100);
+        imgSelect.setOptions({ show: true });
+        imgSelect.update();
+        
       });
     }).bind('dragenter dragover', function(){
       return false;
