@@ -14,7 +14,7 @@ div.container#container(style="margin-top: 10px;")
     div.col.s4
       div()
         a#modal-trigger(href="#modal1")
-          img#image.z-depth-2(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
+          img#image.z-depth-1(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
     div.col.s8
       form.col.s12#form(action="#{root}/user/#{u.map(_.id)}" method="post")
         div.row
@@ -54,7 +54,7 @@ div.container#container(style="margin-top: 10px;")
     div.modal-content
       h4 Modal Header
       div(style="text-align: center;")
-        canvas#uploaded
+        canvas#uploaded.z-depth-1
         canvas#origin(style="display: none;")
         canvas#cropped(width="200" height="200" style="display: none;")
     div.modal-footer
