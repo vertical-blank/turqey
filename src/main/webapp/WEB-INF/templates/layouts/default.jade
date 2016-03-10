@@ -111,28 +111,29 @@ html
             i.material-icons.small.left exit_to_app
             |ログアウト
       
-      :!javascript
-        $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
-        var TopnavVM = function (){
-          var self = this;
-          self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
-          self.notifs = ko.observableArray([]);
-          self.loadNotifs = function (){
-            $.get('#{root}/api/notifs', function (response){
-              self.notifs(response);
-              $('#notifInd').dropdown();
-              setTimeout(self.loadNotifs, 30000);
-            });
+      - if (SessionHolder.user.isDefined)
+        :!javascript
+          $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
+          var TopnavVM = function (){
+            var self = this;
+            self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
+            self.notifs = ko.observableArray([]);
+            self.loadNotifs = function (){
+              $.get('#{root}/api/notifs', function (response){
+                self.notifs(response);
+                $('#notifInd').dropdown();
+                setTimeout(self.loadNotifs, 30000);
+              });
+            };
+            self.setAsRead = function (item){
+              $.post('#{root}/api/notif_read', item, function (response){
+              });
+              return true;
+            }
           };
-          self.setAsRead = function (item){
-            $.post('#{root}/api/notif_read', item, function (response){
-            });
-            return true;
-          }
-        };
-        var topnavVM = new TopnavVM();
-        ko.applyBindings(topnavVM, document.getElementById('topnav'));
-        topnavVM.loadNotifs();
+          var topnavVM = new TopnavVM();
+          ko.applyBindings(topnavVM, document.getElementById('topnav'));
+          topnavVM.loadNotifs();
     
     main
       !~~ body

@@ -146,9 +146,12 @@ class UserController extends AuthedController
     
     val img = new java.io.File(FileUtil.usrImageDir, id.toString)
     
-    //contentType = FileUtil.getMimeType(img)
-    contentType = "image/png"
-    img
+    if (img.exists()){
+      contentType = "image/png"
+      img
+    } else {
+      None
+    }
   }
 
 }
