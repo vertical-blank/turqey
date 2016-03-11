@@ -14,7 +14,7 @@ div.container#container(style="margin-top: 10px;")
     div.col.s4
       div()
         a#modal-trigger(href="#modal1")
-          img#image.z-depth-1(src="#{root}/user/#{u.map(_.id)}/image" style="width: 200px;height: 200px;")
+          img#image.z-depth-1(src="#{root}/user/#{u.map(_.id).getOrElse(0)}/image" style="width: 200px;height: 200px;")
     div.col.s8
       form.col.s12#form(action="#{root}/user/#{u.map(_.id)}" method="post")
         div.row
@@ -52,47 +52,71 @@ div.container#container(style="margin-top: 10px;")
           |保存
   div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height: 700px;")
     div.modal-content
-      h4 Modal Header
+      h4 画像を選択
       div(style="text-align: center;")
+        div#beforeupload(style="margin-top: 200px;")
+          p
+            i.material-icons.large photo_library
+          p 画像ファイルをドラッグ
+          p または
+          p
+            a.btn.waves-effect.waves-light(data-bind="click: fileInput") ファイルを選択
+            input#fileInput(type="file" style="display: none;" data-bind="event: {change: fileSelect}")
         canvas#uploaded.z-depth-1(style="display: none;")
-        canvas#origin(style="display: none;")
-        canvas#cropped(width="200" height="200" style="display: none;")
+      canvas#origin(style="display: none;")
+      canvas#cropped(width="200" height="200" style="display: none;")
     div.modal-footer
       a.modal-action.waves-effect.waves-grey.btn-flat(data-bind="click: imgCancel") キャンセル
       a.modal-action.waves-effect.waves-grey.btn-flat(data-bind="click: imgOk") 決定
 :!javascript
-  $(document).ready(function(){
-    $('#modal1').bind('drop', function(e){
-      e.preventDefault();
-      var files = e.originalEvent.dataTransfer.files;
-      loadFile(files[0], function() {
-        var uploaded = document.getElementById('uploaded');
-        var origin = document.getElementById('origin');
-        origin.width = this.width;
-        origin.height = this.height;
-        origin.getContext('2d').drawImage(this, 0, 0);
-        
-        var ratio = getRatio();
-        
-        uploaded.width = this.width / ratio;
-        uploaded.height = this.height / ratio;
-        uploaded.getContext('2d').drawImage(this, 0, 0, uploaded.width, uploaded.height);
-        
-        $(uploaded).toggle(true);
-        
-        var imgSelect = $(uploaded).imgAreaSelect({
-          persistent: true,
-          handles: true,
-          onSelectEnd: selectEnd,
-          aspectRatio: "1:1",
-          instance: true
-        });
-        imgSelect.setSelection(10, 10, 100, 100);
-        imgSelect.setOptions({ show: true });
-        imgSelect.update();
-        
+  
+  var readFile = function(e){
+    e.preventDefault();
+    var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
+    
+    loadFile(files[0], function() {
+      $('#beforeupload').toggle(false);
+      $('#uploaded').toggle(true);
+      
+      var uploaded = document.getElementById('uploaded');
+      var origin = document.getElementById('origin');
+      origin.width = this.width;
+      origin.height = this.height;
+      origin.getContext('2d').drawImage(this, 0, 0);
+      
+      var ratio = getRatio();
+      
+      uploaded.width = parseInt(this.width / ratio);
+      uploaded.height = parseInt(this.height / ratio);
+      uploaded.getContext('2d').drawImage(this, 0, 0, uploaded.width, uploaded.height);
+      
+      $(uploaded).toggle(true);
+      
+      var imgSelect = $(uploaded).imgAreaSelect({
+        persistent: true,
+        handles: true,
+        onSelectEnd: selectEnd,
+        aspectRatio: "1:1",
+        instance: true
       });
-    }).bind('dragenter dragover', function(){
+      
+      var selectionSize = (function(a, b){
+        return a < b ? a: b;
+      })(uploaded.width * 0.8, uploaded.height * 0.8);
+      
+      imgSelect.setSelection(
+        (uploaded.width - selectionSize) / 2,
+        (uploaded.height - selectionSize) / 2,
+        (uploaded.width - selectionSize) / 2 + selectionSize,
+        (uploaded.height - selectionSize) / 2 + selectionSize);
+      imgSelect.setOptions({ show: true });
+      imgSelect.update();
+      selectEnd(imgSelect, imgSelect.getSelection());
+    });
+  };
+  
+  $(document).ready(function(){
+    $('#modal1').bind('drop', readFile).bind('dragenter dragover', function(){
       return false;
     });
     
@@ -104,7 +128,6 @@ div.container#container(style="margin-top: 10px;")
     $('body').bind('drop dragenter dragover', function(e){
       return false;
     });
-    
   });
   
   function getRatio(origin){
@@ -146,8 +169,16 @@ div.container#container(style="margin-top: 10px;")
     }); 
   }
   
-  var ViewModel = function (){
+  var ViewModel = function(){
     var self = this;
+    
+    this.fileInput = function(){
+      document.getElementById('fileInput').click();
+    };
+    
+    this.fileSelect = function(m, e){
+      readFile(e);
+    };
     
     function clearRect(canvas){
       canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
@@ -157,6 +188,8 @@ div.container#container(style="margin-top: 10px;")
       clearRect(document.getElementById('uploaded'));
       clearRect(document.getElementById('origin'));
       clearRect(document.getElementById('cropped'));
+      $('#beforeupload').toggle(true);
+      $('#uploaded').toggle(false);
     };
     
     this.imgOk = function() {

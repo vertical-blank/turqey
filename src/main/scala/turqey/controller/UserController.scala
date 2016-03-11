@@ -150,7 +150,7 @@ class UserController extends AuthedController
       contentType = "image/png"
       img
     } else {
-      None
+      getClass.getResourceAsStream("/default_user.png")
     }
   }
 

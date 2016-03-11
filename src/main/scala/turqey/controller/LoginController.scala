@@ -11,7 +11,7 @@ class LoginController extends ControllerBase with ScalateSupport {
   override val path = "login"
   
   val login = get("/") { implicit dbSession =>
-    jade("/login")
+    jade("/login", "uri" -> params.get("uri"))
   }
   
   post("/") { implicit dbSession =>
@@ -29,7 +29,7 @@ class LoginController extends ControllerBase with ScalateSupport {
           lastLogin = Some(new org.joda.time.DateTime())
         ).save()
         
-        redirect(fullUrl("/", includeServletPath = false) + "/")
+        redirect(fullUrl("/", includeServletPath = false) + params.get("uri").map(_.toString).getOrElse("/"))
       }
       case None => jade("/login")
     }

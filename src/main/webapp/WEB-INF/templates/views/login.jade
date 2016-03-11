@@ -1,6 +1,7 @@
 
 - import turqey.servlet.ServletContextHolder._
 
+-@val uri: Option[String] = None
 div.container
   div.row
     div.col.s6.offset-s3.center
@@ -16,3 +17,5 @@ div.container
               label(for="password") PASS
           div.row.s12
             button.waves-effect.waves-light.btn Login
+          - if(uri.isDefined)
+            input(name="uri" type="hidden" value="#{uri.get}")

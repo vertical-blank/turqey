@@ -50,7 +50,9 @@ html
                     data-activates="menuDropdown"
                     data-constrainwidth="false"
                     data-beloworigin="true"
-                    data-alignment="right") #{u.name}
+                    data-alignment="right"
+                    style="height: 64px;")
+                    img(src="#{root}/user/#{u.id}/image" style="width: 40px; height: 40px;margin-top: 10px;border-radius: 4px;")
             a.button-collapse.right(data-activates="mobile-menu")
               i.material-icons menu
             ul.side-nav#mobile-menu
