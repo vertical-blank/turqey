@@ -50,7 +50,7 @@ div.container#container(style="margin-top: 10px;")
         button.waves-effect.waves-light.btn(type="submit")
           i.material-icons.right check
           |保存
-  div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 700px;max-height: 700px;")
+  div#modal1.modal.modal-fixed-footer(style="width: 800px;height: 600px;max-height: 600px;")
     div.modal-content
       h4 画像を選択
       div(style="text-align: center;")
@@ -133,7 +133,7 @@ div.container#container(style="margin-top: 10px;")
   function getRatio(origin){
     origin = origin || document.getElementById('origin');
     var ratioX = origin.width / 750;
-    var ratioY = origin.height / 500;
+    var ratioY = origin.height / 400;
     var ratio = ratioX > ratioY ? ratioX : ratioY;
     return ratio > 1? ratio: 1;
   }
@@ -188,6 +188,7 @@ div.container#container(style="margin-top: 10px;")
       clearRect(document.getElementById('uploaded'));
       clearRect(document.getElementById('origin'));
       clearRect(document.getElementById('cropped'));
+      document.getElementById('fileInput').value = '';
       $('#beforeupload').toggle(true);
       $('#uploaded').toggle(false);
     };
