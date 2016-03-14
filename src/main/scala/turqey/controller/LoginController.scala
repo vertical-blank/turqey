@@ -11,7 +11,7 @@ class LoginController extends ControllerBase with ScalateSupport {
   override val path = "login"
   
   val login = get("/") { implicit dbSession =>
-    jade("/login", "uri" -> params.get("uri").filter(!_.isEmpty))
+    jade("/login", "showMenu" -> false, "uri" -> params.get("uri").filter(!_.isEmpty))
   }
   
   post("/") { implicit dbSession =>
@@ -31,7 +31,7 @@ class LoginController extends ControllerBase with ScalateSupport {
         
         redirect(fullUrl("/", includeServletPath = false) + params.get("uri").map(_.toString).getOrElse("/"))
       }
-      case None => jade("/login")
+      case None => jade("/login", "showMenu" -> false, "uri" -> params.get("uri").filter(!_.isEmpty))
     }
   }
 

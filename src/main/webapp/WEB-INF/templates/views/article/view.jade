@@ -63,7 +63,9 @@ div.articleHeader
               |ストック
         p
           - for (st <- stockers)
-            a(href="#{root}/user/#{st.id}") #{st.name}
+            a(href="#{root}/user/#{st.id}")
+              img(src="#{root}/user/#{st.id}/image")
+            | 
 
 div.container
   div.row

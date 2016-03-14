@@ -88,10 +88,11 @@ trait AuthedController extends ControllerBase {
   def appRoot:String = ServletContextHolder.root
 
   before() {
+    logger.debug(request.getRequestURI)
     SessionHolder.set(session)
     if (!SessionHolder.user.isDefined){
       val redirectPath = request.getRequestURI.substring(appRoot.length)
-      redirectFatal(fullUrl(appRoot + "/login/" + Option(redirectPath).filter(!_.isEmpty).map("?uri=" + _).getOrElse("") , includeServletPath = false))
+      redirectFatal(fullUrl(appRoot + "/login/" + Option(redirectPath).filter(p => !(p.isEmpty || p == "/")).map("?uri=" + _).getOrElse("") , includeServletPath = false))
     }
   }
   

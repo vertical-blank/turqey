@@ -72,7 +72,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         data-bind="ace: content, aceOptions: { mode: 'markdown', theme: 'eclipse', fontSize: '14px', change: changeContent }")
       textarea(name="content" data-bind="value: content" style="display: none;")
       label.active(for="input_content")
-    div.prev_container(style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())")
+    div#prev_container(style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())")
       div
         div#preview.markdown(data-bind="html: marked")
 

@@ -4,6 +4,7 @@
 
 -@ val body: String
 -@ val title: String = "Turqey"
+-@ val showMenu: Boolean = true
 
 !!! 5
 html
@@ -34,9 +35,9 @@ html
         div.container
           div.nav-wrapper
             a.brand-logo(href="#{root}/" style="font-family: Roboto;font-weight: 100;") TurQey
-            ul.right.hide-on-med-and-down
-              - if (SessionHolder.user.isDefined)
-                - val u = SessionHolder.user.get
+            - if (showMenu && SessionHolder.user.isDefined)
+              - val u = SessionHolder.user.get
+              ul.right.hide-on-med-and-down
                 li
                   a.waves-effect.waves-light(href="#{root}/tag" style="color: white;") タグ一覧
                 li
@@ -53,91 +54,87 @@ html
                     data-alignment="right"
                     style="height: 64px;")
                     img(src="#{root}/user/#{u.id}/image" style="width: 40px; height: 40px;margin-top: 10px;border-radius: 4px;")
-            a.button-collapse.right(data-activates="mobile-menu")
-              i.material-icons menu
-            ul.side-nav#mobile-menu
-              li
-                a.waves-effect.waves-light(href="#{root}/tag")
-                  i.material-icons.small.left label
-                  |タグ一覧
-              li.divider
-              li
-                a(href="#{root}/user/self")
-                  i.material-icons.small.left person
-                  |プロフィール
-              li
-                a(href="#{root}/article/edit")
-                  i.material-icons.small.left edit
-                  |記事作成
-              li
-                a(href="#{root}/tag/followings")
-                  i.material-icons.small.left star
-                  |フォロー中のタグ
-              li.divider
-              li
-                a(href="#{root}/user/")
-                  i.material-icons.small.left people
-                |ユーザ一覧
-              li.divider
-              li
-                a(href="#{root}/logout")
-                  i.material-icons.small.left exit_to_app
-                  |ログアウト
-        ul#notifDropdown.dropdown-content(data-bind="foreach:notifs")
-          /   ko if:$index !== 0
-          li.divider
-          /   /ko
-          li
-            a(data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead")
-
-      ul#menuDropdown.dropdown-content(style="width: 13rem;overflow: hidden;")
-        li
-          a(href="#{root}/user/self")
-            i.material-icons.small.left person
-            |プロフィール
-        li
-          a(href="#{root}/article/edit")
-            i.material-icons.small.left edit
-            |記事作成
-        li
-          a(href="#{root}/tag/followings")
-            i.material-icons.small.left star
-            |フォロー中のタグ
-        li.divider
-        li
-          a(href="#{root}/user/")
-            i.material-icons.small.left people
-            |ユーザ一覧
-        li.divider
-        li
-          a(href="#{root}/logout")
-            i.material-icons.small.left exit_to_app
-            |ログアウト
-      
-      - if (SessionHolder.user.isDefined)
-        :!javascript
-          $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
-          var TopnavVM = function (){
-            var self = this;
-            self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
-            self.notifs = ko.observableArray([]);
-            self.loadNotifs = function (){
-              $.get('#{root}/api/notifs', function (response){
-                self.notifs(response);
-                $('#notifInd').dropdown();
-                setTimeout(self.loadNotifs, 30000);
-              });
-            };
-            self.setAsRead = function (item){
-              $.post('#{root}/api/notif_read', item, function (response){
-              });
-              return true;
-            }
-          };
-          var topnavVM = new TopnavVM();
-          ko.applyBindings(topnavVM, document.getElementById('topnav'));
-          topnavVM.loadNotifs();
-    
+              a.button-collapse.right(data-activates="mobile-menu")
+                i.material-icons menu
+              ul.side-nav#mobile-menu
+                li
+                  a.waves-effect.waves-light(href="#{root}/tag")
+                    i.material-icons.small.left label
+                    |タグ一覧
+                li.divider
+                li
+                  a(href="#{root}/user/self")
+                    i.material-icons.small.left person
+                    |プロフィール
+                li
+                  a(href="#{root}/article/edit")
+                    i.material-icons.small.left edit
+                    |記事作成
+                li
+                  a(href="#{root}/tag/followings")
+                    i.material-icons.small.left star
+                    |フォロー中のタグ
+                li.divider
+                li
+                  a(href="#{root}/user/")
+                    i.material-icons.small.left people
+                  |ユーザ一覧
+                li.divider
+                li
+                  a(href="#{root}/logout")
+                    i.material-icons.small.left exit_to_app
+                    |ログアウト
+              ul#notifDropdown.dropdown-content(data-bind="foreach:notifs")
+                /   ko if:$index !== 0
+                li.divider
+                /   /ko
+                li
+                  a(data-bind="text: content, attr: {href: linkTo}, click: $root.setAsRead")
+              ul#menuDropdown.dropdown-content(style="width: 13rem;overflow: hidden;")
+                li
+                  a(href="#{root}/user/self")
+                    i.material-icons.small.left person
+                    |プロフィール
+                li
+                  a(href="#{root}/article/edit")
+                    i.material-icons.small.left edit
+                    |記事作成
+                li
+                  a(href="#{root}/tag/followings")
+                    i.material-icons.small.left star
+                    |フォロー中のタグ
+                li.divider
+                li
+                  a(href="#{root}/user/")
+                    i.material-icons.small.left people
+                    |ユーザ一覧
+                li.divider
+                li
+                  a(href="#{root}/logout")
+                    i.material-icons.small.left exit_to_app
+                    |ログアウト
+                :!javascript
+                  $( document ).ready(function(){ $(".button-collapse").sideNav({edge: 'right'}); });
+                  var TopnavVM = function (){
+                    var self = this;
+                    self.notifCount = ko.pureComputed(function (){ return self.notifs().length; });
+                    self.notifs = ko.observableArray([]);
+                    self.loadNotifs = function (){
+                      $.get('#{root}/api/notifs', function (response){
+                        self.notifs(response);
+                        $('#notifInd').dropdown();
+                        setTimeout(self.loadNotifs, 30000);
+                      });
+                    };
+                    self.setAsRead = function (item){
+                      $.post('#{root}/api/notif_read', item, function (response){
+                      });
+                      return true;
+                    }
+                  };
+                  var topnavVM = new TopnavVM();
+                  ko.applyBindings(topnavVM, document.getElementById('topnav'));
+                  topnavVM.loadNotifs();
     main
       !~~ body
     
