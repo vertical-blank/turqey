@@ -4,6 +4,7 @@
 - import turqey.utils.Json
 
 -@val article: Option[Article]
+-@val content: String
 -@val tags:    Seq[Tag]
 
 :css
@@ -26,10 +27,14 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         label Title
     
     div.input-field.col.s4.right-align
-      button.waves-effect.waves-light.btn(type="submit" 
-        data-bind="enable: postable, click: beforeSubmit" disabled)
+      button.waves-effect.waves-light.btn(
+        data-bind="enable: postable, click: saveAsDraft" disabled)
         i.material-icons.right save
         |保存
+      button.waves-effect.waves-light.btn(type="submit"
+        data-bind="enable: postable, click: beforeSubmit" disabled)
+        i.material-icons.right publish
+        |公開
 
   div.row
     div.input-field.col.s3
@@ -105,6 +110,7 @@ div#modal1.modal.modal-fixed-footer
     self.remove = function (obj, e){
       self.tags.remove(obj);
     };
+    self.articleId = #{ article.map(_.id).getOrElse("null") };
     self.add = function(obj, e){
       e && e.preventDefault();
       if (!self.tagText().trim()){ return };
@@ -290,6 +296,19 @@ div#modal1.modal.modal-fixed-footer
         editor.getSession().insert(editor.getSelection().getCursor(), csvToMarkdown(self.contentCsv(), {"c": ",", "t":"\t"}[self.sepChar()], self.setFirstLineAsHeader()))
       })(self.getEditor());
       self.contentCsv("");
+    };
+    self.saveAsDraft = function(){
+      var params = { content: self.getEditor().getValue() };
+      if (self.articleId)
+        params.id = self.articleId;
+      
+      $.post(
+          '#{root}/article/draft/',
+          params,
+          function(response) {
+            console.log(response);
+          }
+      );
     };
     
     // 0: editorOnly, 1: half, 2: previewOnly

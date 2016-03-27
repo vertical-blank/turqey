@@ -7,6 +7,7 @@
 - import turqey.utils.Markdown
 
 -@val article:    Article
+-@val content:    String
 -@val latestEdit: Option[DateTime]
 -@val tags:       Seq[Tag]
 -@val comments:   Seq[ArticleComment]
@@ -71,7 +72,7 @@ div.container
   div.row
     div.markdown.col.s10.m9.l00#main_content
       div
-        ! #{Markdown.html(article.content)}
+        ! #{content}
     div.col.hide-on-small-only.m3.l3
       ul.section.table-of-contents.scrollspy#toc
   hr

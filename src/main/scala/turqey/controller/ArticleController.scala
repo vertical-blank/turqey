@@ -38,8 +38,14 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
     
+    def repo = RepositoryUtil.getArticleRepo(articleId)
+    val master = repo.branch("master")
+    
+    val content = new String(master.head().getDir().file("Article.md").bytes())
+    
     jade("/article/view", 
       "article"    -> article,
+      "content"    -> Markdown.html(content),
       "latestEdit" -> latestEdit,
       "tags"       -> tags,
       "comments"   -> comments,
@@ -58,9 +64,15 @@ class ArticleController extends AuthedController with ScalateSupport {
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
       taggings.map( x => allTags(x.tagId) )
     }
+    
+    def repo = RepositoryUtil.getArticleRepo(articleId)
+    val master = repo.branch("master")
+    
+    val content = new String(master.head().getDir().file("Article.md").bytes())
 
     jade("/article/edit", 
       "article"    -> Some(article),
+      "content"    -> content,
       "tags"       -> tags)
   }
 
@@ -121,6 +133,41 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     redirect(url(view, "id" -> articleId.toString))
   }
+  
+  post("/draft/"){ implicit dbSession =>
+    contentType = "text/json"
+    val user = turqey.servlet.SessionHolder.user.get
+    
+    val content   = params.getOrElse("content", "").toString
+    val title     = params.getOrElse("title", "").toString
+    val articleId = params.getOrElse("id", {
+      Article.create(
+        title   = title,
+        content = content,
+        ownerId = user.id
+      ).id.toString
+    }).toLong
+    
+    def repo = RepositoryUtil.getArticleRepo(articleId)
+    val draft = {
+      val d = repo.branch("draft")
+      if (d.exists()) {
+        d
+      }
+      else {
+        repo.initialize("initialize as blank", Ident(user))
+        repo.branch("master").createNewBranch("draft")
+      }
+    }
+    
+    draft.commit(
+      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
+      "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+      Ident(user)
+    )
+    
+    Json.toJson(Map("articleId" -> articleId))
+  }
 
   post("/:id"){ implicit dbSession =>
     val articleId = params.getOrElse("id", "").toLong
@@ -138,6 +185,18 @@ class ArticleController extends AuthedController with ScalateSupport {
       title   = title,
       content = content
     ).save()
+    
+    def repo = RepositoryUtil.getArticleRepo(articleId)
+    val master = repo.branch("master")
+    
+    val user = turqey.servlet.SessionHolder.user.get
+    def ident = Ident(user)
+    
+    master.commit(
+      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
+      "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+      ident
+    )
 
     val diff = turqey.utils.DiffUtil.uniDiff(oldContent, content).mkString("\r\n")
     ArticleHistory.create(
@@ -173,6 +232,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   val newEdit = get("/edit"){ implicit dbSession =>
     jade("/article/edit", 
       "article"    -> None,
+      "content"    -> "",
       "tags"       -> Seq())
   }
 
@@ -181,13 +241,26 @@ class ArticleController extends AuthedController with ScalateSupport {
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
-
+    
+    val user = turqey.servlet.SessionHolder.user.get
+    
     val newId = Article.create(
       title   = title,
       content = content,
-      ownerId = turqey.servlet.SessionHolder.user.get.id
+      ownerId = user.id
     ).id
-
+    
+    def repo = RepositoryUtil.getArticleRepo(newId)
+    def ident = Ident(user)
+    repo.initialize("initial commit", ident)
+    val master = repo.branch("master")
+    
+    master.commit(
+      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
+      "first commit",
+      ident
+    )
+    
     refreshTaggings(newId, tagIds, tagNames)
     
     redirect(url(view, "id" -> newId.toString))

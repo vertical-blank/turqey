@@ -68,7 +68,6 @@ class UserController extends AuthedController
         case Some("") | None => { user.password }
         case Some(p)  => { Digest.get(p) }
       },
-      imgUrl   = "",
       root     = root
     ).save()
     
@@ -76,7 +75,7 @@ class UserController extends AuthedController
     
     val sessionUsr = SessionHolder.user.get
     if (sessionUsr.id == user.id){
-      session("user") = sessionUsr.copy(name = updUsr.name, imgUrl = updUsr.imgUrl)
+      session("user") = sessionUsr.copy(name = updUsr.name, email = updUsr.email)
     }
 
     redirect(url(view, "id" -> id.toString))

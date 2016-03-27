@@ -4,13 +4,16 @@ import gristle._
 import gristle.GitRepository._
 import java.io.File
 
-object RepositoryUtil  {
+object RepositoryUtil {
   
-  def articleDir(id: Long): GitRepository = {
-    new GitRepository(
-      new File(FileUtil.articleBaseDir, id.toString + ".git"),
-      new Ident("", "")
+  def getArticleRepo(id: Long): GitRepository = {
+    GitRepository.getInstance(
+      new File(FileUtil.articleBaseDir, id.toString + ".git")
     )
   }
   
+}
+
+object Ident {
+  def apply(user: turqey.servlet.UserSession) = new gristle.GitRepository.Ident(user.name, user.email)
 }
