@@ -102,7 +102,6 @@ class UserController extends AuthedController
       name     = params.get("name").get,
       email    = params.get("email").get,
       password = params.get("password").map { p => Digest.get(p) }.get,
-      imgUrl   = "",
       root     = SessionHolder.root && params.get("root").isDefined
     ).id
     

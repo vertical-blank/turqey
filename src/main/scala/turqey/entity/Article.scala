@@ -180,8 +180,8 @@ object Article extends SQLSyntaxSupport[Article] {
     tags: Seq[Tag],
     stock: Long,
     comment: Long)
-  case class UserForList(id: Long, name: String, imgUrl: String)
-  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name, user.imgUrl) }
+  case class UserForList(id: Long, name: String)
+  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name) }
   
   def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
     val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)

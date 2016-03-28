@@ -133,41 +133,6 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     redirect(url(view, "id" -> articleId.toString))
   }
-  
-  post("/draft/"){ implicit dbSession =>
-    contentType = "text/json"
-    val user = turqey.servlet.SessionHolder.user.get
-    
-    val content   = params.getOrElse("content", "").toString
-    val title     = params.getOrElse("title", "").toString
-    val articleId = params.getOrElse("id", {
-      Article.create(
-        title   = title,
-        content = content,
-        ownerId = user.id
-      ).id.toString
-    }).toLong
-    
-    def repo = RepositoryUtil.getArticleRepo(articleId)
-    val draft = {
-      val d = repo.branch("draft")
-      if (d.exists()) {
-        d
-      }
-      else {
-        repo.initialize("initialize as blank", Ident(user))
-        repo.branch("master").createNewBranch("draft")
-      }
-    }
-    
-    draft.commit(
-      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
-      "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-      Ident(user)
-    )
-    
-    Json.toJson(Map("articleId" -> articleId))
-  }
 
   post("/:id"){ implicit dbSession =>
     val articleId = params.getOrElse("id", "").toLong
@@ -186,25 +151,6 @@ class ArticleController extends AuthedController with ScalateSupport {
       content = content
     ).save()
     
-    def repo = RepositoryUtil.getArticleRepo(articleId)
-    val master = repo.branch("master")
-    
-    val user = turqey.servlet.SessionHolder.user.get
-    def ident = Ident(user)
-    
-    master.commit(
-      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
-      "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-      ident
-    )
-
-    val diff = turqey.utils.DiffUtil.uniDiff(oldContent, content).mkString("\r\n")
-    ArticleHistory.create(
-      articleId = articleId,
-      diff      = diff,
-      userId    = Some(turqey.servlet.SessionHolder.user.get.id)
-    )
-    
     Article.getStockers(articleId).foreach { s =>
       ArticleNotification.create(
         articleId  = articleId,
@@ -213,7 +159,17 @@ class ArticleController extends AuthedController with ScalateSupport {
       )
     }
 
-    refreshTaggings(articleId, tagIds, tagNames);
+    val newTagIds = refreshTaggings(articleId, tagIds, tagNames);
+    
+    val user = turqey.servlet.SessionHolder.user.get
+    
+    RepositoryUtil.saveAsMaster(
+      articleId,
+      title,
+      content,
+      newTagIds,
+      Ident(user)
+    )
     
     redirect(url(view, "id" -> articleId.toString))
   }
@@ -250,18 +206,15 @@ class ArticleController extends AuthedController with ScalateSupport {
       ownerId = user.id
     ).id
     
-    def repo = RepositoryUtil.getArticleRepo(newId)
-    def ident = Ident(user)
-    repo.initialize("initial commit", ident)
-    val master = repo.branch("master")
+    val newTagIds = refreshTaggings(newId, tagIds, tagNames)
     
-    master.commit(
-      new gristle.GitRepository.Dir().put("Article.md", content.getBytes()),
-      "first commit",
-      ident
+    RepositoryUtil.saveAsMaster(
+      newId,
+      title,
+      content,
+      newTagIds,
+      Ident(user)
     )
-    
-    refreshTaggings(newId, tagIds, tagNames)
     
     redirect(url(view, "id" -> newId.toString))
   }
@@ -294,8 +247,53 @@ class ArticleController extends AuthedController with ScalateSupport {
     val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
     Json.toJson(Map("count" -> count))
   }
+  
+  get("/drafts/"){ implicit dbSession =>
+    
+  }
+  
+  post("/draft/"){ implicit dbSession =>
+    contentType = "text/json"
+    val user = turqey.servlet.SessionHolder.user.get
+    
+    val content   = params.getOrElse("content", "").toString
+    val title     = params.getOrElse("title", "").toString
+    val articleId = params.get("id").map(_.toLong).getOrElse(
+      Article.create(
+        title   = title,
+        content = content,
+        ownerId = user.id
+      ).id
+    )
+    val tagIds    = multiParams("tagIds")
+    val tagNames  = multiParams("tagNames")
+    
+    val newTagIds = registerTags(tagIds, tagNames)
+    
+    RepositoryUtil.saveAsDraft(
+      articleId,
+      title,
+      content,
+      newTagIds,
+      Ident(user)
+    )
+    
+    Json.toJson(Map("articleId" -> articleId))
+  }
 
-  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Unit = {
+  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Seq[Long] = {
+    val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
+    val tagIdsNew = registerTags(tagIds, tagNames)
+
+    val tagIdsForDelete = tagIdsOld diff tagIdsNew distinct
+    val tagIdsForInsert = tagIdsNew diff tagIdsOld distinct
+
+    ArticleTagging.deleteTagsOfArticle(articleId, tagIdsForDelete)
+    ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
+    tagIdsNew
+  }
+  
+  private def registerTags(tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Seq[Long] = {
     val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
       (id, name) match {
         case ("", _) => {
@@ -308,14 +306,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       }
     }
 
-    val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
-    val tagIdsNew = tagIdName.map { case (id, name) => id }
-
-    val tagIdsForDelete = tagIdsOld diff tagIdsNew distinct
-    val tagIdsForInsert = tagIdsNew diff tagIdsOld distinct
-
-    ArticleTagging.deleteTagsOfArticle(articleId, tagIdsForDelete)
-    ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
+    tagIdName.map { case (id, name) => id }
   }
 
 }

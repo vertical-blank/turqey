@@ -298,15 +298,24 @@ div#modal1.modal.modal-fixed-footer
       self.contentCsv("");
     };
     self.saveAsDraft = function(){
-      var params = { content: self.getEditor().getValue() };
+      var params = { content: self.getEditor().getValue(), title: self.title() };
       if (self.articleId)
         params.id = self.articleId;
+      
+      var tagIds = [];
+      var tagNames = [];
+      $.each(self.tags(), function() {
+        tagIds.push(this.id);
+        tagNames.push(this.name);
+      });
+      params.tagIds = tagIds;
+      params.tagNames = tagNames;
       
       $.post(
           '#{root}/article/draft/',
           params,
           function(response) {
-            console.log(response);
+            self.articleId = JSON.parse(response).articleId;
           }
       );
     };
