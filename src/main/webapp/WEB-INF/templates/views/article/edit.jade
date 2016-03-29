@@ -35,7 +35,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         data-bind="enable: postable, click: beforeSubmit" disabled)
         i.material-icons.right publish
         |公開
-
+  input(type="hidden" name="id" data-bind="value: articleId")
   div.row
     div.input-field.col.s3
       i.material-icons.prefix search
@@ -110,7 +110,7 @@ div#modal1.modal.modal-fixed-footer
     self.remove = function (obj, e){
       self.tags.remove(obj);
     };
-    self.articleId = #{ article.map(_.id).getOrElse("null") };
+    self.articleId = ko.observable(#{ article.map(_.id).getOrElse("null") });
     self.add = function(obj, e){
       e && e.preventDefault();
       if (!self.tagText().trim()){ return };
@@ -299,8 +299,8 @@ div#modal1.modal.modal-fixed-footer
     };
     self.saveAsDraft = function(){
       var params = { content: self.getEditor().getValue(), title: self.title() };
-      if (self.articleId)
-        params.id = self.articleId;
+      if (self.articleId())
+        params.id = self.articleId();
       
       var tagIds = [];
       var tagNames = [];
@@ -315,7 +315,7 @@ div#modal1.modal.modal-fixed-footer
           '#{root}/article/draft/',
           params,
           function(response) {
-            self.articleId = JSON.parse(response).articleId;
+            self.articleId(JSON.parse(response).articleId);
           }
       );
     };
@@ -337,7 +337,7 @@ div#modal1.modal.modal-fixed-footer
     self.editorTop = ko.pureComputed(function(){ return self.isFullscreen()? "0px": "230px"; });
 
     self.title = ko.observable(#{Json.toJson( article.map(_.title).getOrElse("") )});
-    self.content = ko.observable(#{Json.toJson( article.map( x => clobToString(x.content)).getOrElse("") )});
+    self.content = ko.observable(#{Json.toJson(content)});
     self.contentCsv = ko.observable("");
     self.setFirstLineAsHeader = ko.observable(true);
     self.sepChar = ko.observable("c");
