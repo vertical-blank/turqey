@@ -8,11 +8,8 @@ object RepositoryUtil {
   import scala.language.implicitConversions
   
   implicit class RichBranch(b: GitRepository#Branch) {
-    def orCreate( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
+    def existsOr( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
   }
-  
-  implicit def nameToBranch(s: String)
-    (implicit repo: GitRepository): GitRepository#Branch = repo.branch(s)
   
   def getArticleRepo(id: Long): GitRepository = {
     GitRepository.getInstance(
@@ -33,8 +30,8 @@ object RepositoryUtil {
     (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
     
     val master = repo.branch("master")
-      .orCreate( repo.initialize("initial commit", ident).branch("master") )
-    val draft  = repo.branch("draft").orCreate( master.createNewBranch("draft") )
+      .existsOr( repo.initialize("initial commit", ident).branch("master") )
+    val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
     
     commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds), ident)
   }
