@@ -5,6 +5,14 @@ import gristle.GitRepository._
 import java.io.File
 
 object RepositoryUtil {
+  import scala.language.implicitConversions
+  
+  implicit class RichBranch(b: GitRepository#Branch) {
+    def orCreate( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
+  }
+  
+  implicit def nameToBranch(s: String)
+    (implicit repo: GitRepository): GitRepository#Branch = repo.branch(s)
   
   def getArticleRepo(id: Long): GitRepository = {
     GitRepository.getInstance(
@@ -12,9 +20,9 @@ object RepositoryUtil {
     )
   }
   
-  private def commitArticleToBranch(branchName: String, article: ArticleWhole, ident: Ident)
+  private def commitArticleToBranch(branch: GitRepository#Branch, article: ArticleWhole, ident: Ident)
     (implicit repo: GitRepository): Unit = {
-    repo.branch(branchName).commit(
+    branch.commit(
       article.constructDir(), 
       "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
       ident
@@ -23,15 +31,12 @@ object RepositoryUtil {
   
   def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
     (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
-    if (!repo.branch("master").exists()) {
-      repo.initialize("initial commit", ident)
-    }
-    val draft = repo.branch("draft")
-    if (!draft.exists()) {
-      repo.branch("master").createNewBranch("draft")
-    }
     
-    commitArticleToBranch("draft", ArticleWhole(id, title, content, tagIds), ident)
+    val master = repo.branch("master")
+      .orCreate( repo.initialize("initial commit", ident).branch("master") )
+    val draft  = repo.branch("draft").orCreate( master.createNewBranch("draft") )
+    
+    commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds), ident)
   }
   
   def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
@@ -51,16 +56,18 @@ object RepositoryUtil {
 }
 
 case class ArticleAttrs(title: String, tagIds: Seq[Long])
-case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long]) {  
-  def configMap = Map("title" -> this.title, "tagIds" -> this.tagIds)
+
+case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long]) {
+  
+  def attrs = ArticleAttrs(this.title, this.tagIds)
   
   def constructDir() = new gristle.GitRepository.Dir()
     .put(ArticleWhole.ARTICLE_MD,    this.content.getBytes())
-    .put(ArticleWhole.ARTICLE_ATTRS, Json.toJson(this.configMap).getBytes())
+    .put(ArticleWhole.ARTICLE_ATTRS, Json.toJson(this.attrs).getBytes())
 }
 object ArticleWhole {
   val ARTICLE_MD    = "Article.md"
-  val ARTICLE_ATTRS = "articleAttrs.json"
+  val ARTICLE_ATTRS = "ArticleAttrs.json"
 }
 
 object Ident {
