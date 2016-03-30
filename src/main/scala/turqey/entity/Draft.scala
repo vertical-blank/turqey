@@ -6,7 +6,7 @@ import java.sql.{Clob}
 
 case class Draft(
   id: Long,
-  articleId: Option[Long] = None,
+  articleId: Long,
   title: String,
   content: Clob,
   ownerId: Long,
@@ -74,7 +74,7 @@ object Draft extends SQLSyntaxSupport[Draft] {
   }
 
   def create(
-    articleId: Option[Long] = None,
+    articleId: Long,
     title: String,
     content: Clob,
     ownerId: Long)(implicit session: DBSession = autoSession): Draft = {

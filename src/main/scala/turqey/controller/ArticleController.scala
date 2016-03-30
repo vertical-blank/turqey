@@ -295,11 +295,11 @@ class ArticleController extends AuthedController with ScalateSupport {
       )
       .getOrElse(
         Draft.create(
-          articleId = Some(articleId),
+          articleId = articleId,
           title     = title,
           content   = content,
           ownerId   = user.id
-        ).save()
+        )
       )
     
     val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
