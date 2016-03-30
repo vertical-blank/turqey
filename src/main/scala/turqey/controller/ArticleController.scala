@@ -246,7 +246,13 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
   
   get("/drafts/"){ implicit dbSession =>
+    val user = turqey.servlet.SessionHolder.user.get
+    val drafts = Draft.findAllBy(
+      sqls.eq(Draft.column.ownerId, user.id)
+    )
     
+    jade("/article/drafts", 
+      "articles"   -> drafts)
   }
   
   get("/:id/draft/"){ implicit dbSession =>

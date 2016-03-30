@@ -1,4 +1,6 @@
 
+scalikejdbcSettings
+
 val Organization = "yohei224"
 val Name = "turqey"
 val ScalatraVersion = "2.4.0"
