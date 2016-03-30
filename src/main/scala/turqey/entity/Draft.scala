@@ -10,7 +10,7 @@ case class Draft(
   title: String,
   content: Clob,
   ownerId: Long,
-  created: DateTime) {
+  created: DateTime = null) {
 
   def save()(implicit session: DBSession = Draft.autoSession): Draft = Draft.save(this)(session)
 
@@ -77,21 +77,18 @@ object Draft extends SQLSyntaxSupport[Draft] {
     articleId: Option[Long] = None,
     title: String,
     content: Clob,
-    ownerId: Long,
-    created: DateTime)(implicit session: DBSession = autoSession): Draft = {
+    ownerId: Long)(implicit session: DBSession = autoSession): Draft = {
     val generatedKey = withSQL {
       insert.into(Draft).columns(
         column.articleId,
         column.title,
         column.content,
-        column.ownerId,
-        column.created
+        column.ownerId
       ).values(
         articleId,
         title,
         content,
-        ownerId,
-        created
+        ownerId
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -100,8 +97,7 @@ object Draft extends SQLSyntaxSupport[Draft] {
       articleId = articleId,
       title = title,
       content = content,
-      ownerId = ownerId,
-      created = created)
+      ownerId = ownerId)
   }
 
   def batchInsert(entities: Seq[Draft])(implicit session: DBSession = autoSession): Seq[Int] = {

@@ -285,6 +285,22 @@ class ArticleController extends AuthedController with ScalateSupport {
         ownerId = user.id
       ).id
     )
+
+    Draft.findBy(sqls.eq(Draft.column.articleId, articleId))
+      .map(
+        _.copy(
+          title   = title,
+          content = content
+        ).save()
+      )
+      .getOrElse(
+        Draft.create(
+          articleId = Some(articleId),
+          title     = title,
+          content   = content,
+          ownerId   = user.id
+        ).save()
+      )
     
     val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
     
