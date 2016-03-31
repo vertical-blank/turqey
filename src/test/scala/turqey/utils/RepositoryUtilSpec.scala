@@ -4,55 +4,36 @@ import org.scalatest.FunSuite
 import scala.concurrent.Future
 
 class RepositoryUtilSpec extends FunSuite {
-  import scala.concurrent.ExecutionContext.Implicits.global
-  import NamedLock.withLock
+  import gristle.GitRepository.Ident
 
-  test("lock") {
-    val key1 = "aaa"
-    val key2 = "aaaa".substring(1)
+  test("saveAsMaster") {
+    RepositoryUtil.saveAsMaster(
+      -1,
+      "title",
+      "content",
+      Seq(1,2,3),
+      new Ident("user.name", "user.email")
+    )
 
-    // same value, but another instance.
-    assert( key1 == key2 )
-    assert( key1 ne key2 )
-    
-    // must locked by value.
-    withLock(key1) {
-      val vals1 = scala.collection.mutable.ListBuffer.empty[Int]
+    val article = RepositoryUtil.headArticle(-1, "master")
 
-      Future {
-        withLock(key2) {
-          val vals2 = Range(0, 100).map( _ * 2)
-            assert(vals1 == vals2)
-        }
-      }
-
-      Range(0, 100).foreach{
-        Thread.sleep(100)
-        vals1 += _ * 2
-      }
-    }
+    assert(article.title == "title")
+    assert(article.content == "content")
   }
 
-  test("noLock") {
-    val key1 = "aaa"
-    val key2 = "bbb"
+  test("saveAsDraft") {
+    RepositoryUtil.saveAsDraft(
+      -2,
+      "title",
+      "content",
+      Seq(1,2,3),
+      new Ident("user.name", "user.email")
+    )
 
-    // must *Not* locked
-    withLock(key1) {
-      val vals1 = scala.collection.mutable.ListBuffer.empty[Int]
+    val article = RepositoryUtil.headArticle(-2, "draft")
 
-      Future {
-        withLock(key2) {
-          val vals2 = Range(0, 100).map( _ * 2)
-            assert(vals1 != vals2)
-        }
-      }
-
-      Range(0, 100).foreach{
-        Thread.sleep(100)
-        vals1 += _ * 2
-      }
-    }
+    assert(article.title == "title")
+    assert(article.content == "content")
   }
   
 }

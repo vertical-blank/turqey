@@ -305,7 +305,8 @@ class ArticleController extends AuthedController with ScalateSupport {
     Json.toJson(Map("articleId" -> articleId))
   }
 
-  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Seq[Long] = {
+  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])
+    (implicit dbSession: DBSession): Seq[Long] = {
     val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
     val tagIdsNew = registerTags(tagIds, tagNames)
 
@@ -317,7 +318,8 @@ class ArticleController extends AuthedController with ScalateSupport {
     tagIdsNew
   }
   
-  private def registerTags(tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Seq[Long] = {
+  private def registerTags(tagIds: Seq[String], tagNames: Seq[String])
+    (implicit dbSession: DBSession): Seq[Long] = {
     val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
       (id, name) match {
         case ("", _) => {
