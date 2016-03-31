@@ -4,6 +4,7 @@
 - import turqey.utils.Json
 
 -@val article: Option[Article]
+-@val title:   String
 -@val content: String
 -@val tags:    Seq[Tag]
 
@@ -25,7 +26,6 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         length="120"
         data-bind="textInput: title")
         label Title
-    
     div.input-field.col.s4.right-align
       button.waves-effect.waves-light.btn(
         data-bind="enable: postable, click: saveAsDraft" disabled)
@@ -336,7 +336,7 @@ div#modal1.modal.modal-fixed-footer
     self.exitFullscreen = function(){ self.isFullscreen(false);self.getEditor().resize(); };
     self.editorTop = ko.pureComputed(function(){ return self.isFullscreen()? "0px": "230px"; });
 
-    self.title = ko.observable(#{Json.toJson( article.map(_.title).getOrElse("") )});
+    self.title = ko.observable(#{Json.toJson(title)});
     self.content = ko.observable(#{Json.toJson(content)});
     self.contentCsv = ko.observable("");
     self.setFirstLineAsHeader = ko.observable(true);

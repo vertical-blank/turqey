@@ -26,6 +26,9 @@ case class Article(
   
   def view(): String = { "" + this.id.toString }
 
+  def draft()(implicit session: DBSession = Article.autoSession) :Option[Draft] = {
+    Draft.findBy(sqls.eq(Draft.d.articleId, this.id))
+  }
 }
 
 
@@ -176,7 +179,7 @@ object Article extends SQLSyntaxSupport[Article] {
       val at = ArticleTagging.at
       select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.exists(
         select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
-      )
+      ).and.eq(a.published, true)
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
   
@@ -195,7 +198,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
     val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
     val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
-    val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
+    val articles = Article.findAllBy(sqls.in(Article.a.id, ids).and.eq(a.published, true))
     val stockCountByArticleIds = ArticleStock.countByIds(ids)
     val commentCountByArticleIds = ArticleComment.countByIds(ids)
     
@@ -213,14 +216,14 @@ object Article extends SQLSyntaxSupport[Article] {
   
   def findAllId()(implicit session: DBSession = autoSession) :Seq[Long] = {
     withSQL {
-      select(a.result.id).from(Article as a).orderBy(a.id).desc
+      select(a.result.id).from(Article as a).where.eq(a.published, true).orderBy(a.id).desc
     }.map(_.long(1)).list.apply()
   }
   
   def findAllIdBy(where: SQLSyntax)(implicit session: DBSession = autoSession) :Seq[Long] = {
     withSQL {
       select(a.result.id).from(Article as a)
-      .where.append(where).orderBy(a.id).desc
+      .where.append(where).and.eq(a.published, true).orderBy(a.id).desc
     }.map(_.long(1)).list.apply()
   }
 
@@ -235,5 +238,6 @@ object Article extends SQLSyntaxSupport[Article] {
       ).orderBy(u.resultName.id).desc
     }.map(User(u.resultName)(_)).list.apply()
   }
+
 
 }

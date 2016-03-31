@@ -4,6 +4,30 @@ import gristle._
 import gristle.GitRepository._
 import java.io.File
 
+
+object NamedLock {
+  import scala.collection._
+  import scala.collection.convert.decorateAsScala._
+  import java.util.concurrent.locks._
+
+  val objs: concurrent.Map[String, Lock] = new java.util.concurrent.ConcurrentHashMap().asScala
+
+  def lock(key: String): Lock = {
+    objs.putIfAbsent(key, new ReentrantLock())
+    objs(key)
+  }
+
+  def withLock(key: String)(f: => Unit) = {
+    try {
+      lock(key).lock
+      f
+    }
+    finally {
+      lock(key).unlock
+    }
+  }
+}
+
 object RepositoryUtil {
   import scala.language.implicitConversions
   

@@ -17,7 +17,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val userId    = turqey.servlet.SessionHolder.user.get.id
 
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
+    val articleRec = Article.find(articleId).filter( _.published ).getOrElse(redirectFatal("/"))
     val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
     
     val tags = {
@@ -55,17 +55,20 @@ class ArticleController extends AuthedController with ScalateSupport {
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
-
-    val tags = {
-      val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-      taggings.map( x => allTags(x.tagId) )
-    }
     
-    def article = RepositoryUtil.headArticle(articleId, "master")
+    def branch: String = articleRec.draft()
+      .map( x => "draft" )
+      .getOrElse( "master" )
+    
+    def article = RepositoryUtil.headArticle(articleId, branch)
+    val tags = {
+      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
+      article.tagIds.map( allTags(_) )
+    }
 
     jade("/article/edit", 
       "article"    -> Some(articleRec),
+      "title"      -> article.title,
       "content"    -> article.content,
       "tags"       -> tags)
   }
@@ -155,6 +158,7 @@ class ArticleController extends AuthedController with ScalateSupport {
         notifyType = ArticleNotification.TYPES.UPDATE
       )
     }
+    articleRec.draft().foreach(_.destroy())
 
     val newTagIds = refreshTaggings(articleId, tagIds, tagNames);
     
@@ -185,6 +189,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   val newEdit = get("/edit"){ implicit dbSession =>
     jade("/article/edit", 
       "article"    -> None,
+      "title"      -> "",
       "content"    -> "",
       "tags"       -> Seq())
   }
@@ -214,7 +219,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       newTagIds,
       Ident(user)
     )
-    
+
     redirect(url(view, "id" -> articleId.toString))
   }
   
@@ -255,23 +260,6 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     jade("/article/drafts", 
       "drafts"   -> drafts)
-  }
-  
-  get("/:id/draft/"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
-    if (!articleRec.editable) { redirectFatal("/") }
-    
-    val article = RepositoryUtil.headArticle(articleId, "draft")
-    val tags = {
-      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-      article.tagIds.map( allTags(_) )
-    }
-
-    jade("/article/edit", 
-      "article"    -> Some(articleRec),
-      "content"    -> article.content,
-      "tags"       -> tags)
   }
   
   post("/draft/"){ implicit dbSession =>
