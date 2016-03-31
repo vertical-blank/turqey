@@ -143,8 +143,9 @@ class ArticleController extends AuthedController with ScalateSupport {
     val oldContent: String = articleRec.content
 
     articleRec.copy(
-      title   = title,
-      content = content
+      title     = title,
+      content   = content,
+      published = true
     ).save()
     
     Article.getStockers(articleId).foreach { s =>
@@ -197,9 +198,10 @@ class ArticleController extends AuthedController with ScalateSupport {
     val tagNames  = multiParams("tagNames")
     val articleId = params.get("id").map(_.toLong).getOrElse(
       Article.create(
-        title   = title,
-        content = content,
-        ownerId = user.id
+        title     = title,
+        content   = content,
+        ownerId   = user.id,
+        published = true
       ).id
     )
     
@@ -252,7 +254,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     )
     
     jade("/article/drafts", 
-      "articles"   -> drafts)
+      "drafts"   -> drafts)
   }
   
   get("/:id/draft/"){ implicit dbSession =>

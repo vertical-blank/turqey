@@ -11,7 +11,8 @@ case class Article(
   content: Clob,
   ownerId: Long,
   created: DateTime = null,
-  owner: Option[User] = None) {
+  owner: Option[User] = None,
+  published: Boolean = false) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
@@ -34,7 +35,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   override val tableName = "ARTICLES"
 
-  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED")
+  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED", "PUBLISHED")
 
   def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
   def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = apply(a, None)(rs)
@@ -45,7 +46,8 @@ object Article extends SQLSyntaxSupport[Article] {
     content = rs.get(a.content),
     ownerId = rs.get(a.ownerId),
     created = rs.get(a.created),
-    owner = u.map{ u => User(u)(rs) }
+    owner = u.map{ u => User(u)(rs) },
+    published = rs.get(a.published)
   )
 
   val a = Article.syntax("a")
@@ -100,18 +102,21 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId: Option[Long] = None,
     title: String,
     content: Clob,
-    ownerId: Long)(implicit session: DBSession = autoSession): Article = {
+    ownerId: Long,
+    published: Boolean = false)(implicit session: DBSession = autoSession): Article = {
     val generatedKey = withSQL {
       insert.into(Article).columns(
         column.projectId,
         column.title,
         column.content,
-        column.ownerId
+        column.ownerId,
+        column.published
       ).values(
         projectId,
         title,
         content,
-        ownerId
+        ownerId,
+        published
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -120,7 +125,8 @@ object Article extends SQLSyntaxSupport[Article] {
       projectId = projectId,
       title = title,
       content = content,
-      ownerId = ownerId)
+      ownerId = ownerId,
+      published = published)
   }
 
   def batchInsert(entities: Seq[Article])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -130,17 +136,19 @@ object Article extends SQLSyntaxSupport[Article] {
         'title -> entity.title,
         'content -> entity.content,
         'ownerId -> entity.ownerId))
-        SQL("""insert into ARTICLES(
-        PROJECT_ID,
-        TITLE,
-        CONTENT,
-        OWNER_ID
-      ) values (
-        {projectId},
-        {title},
-        {content},
-        {ownerId}
-      )""").batchByName(params: _*).apply()
+      SQL("""insert into ARTICLES(
+          PROJECT_ID,
+          TITLE,
+          CONTENT,
+          OWNER_ID,
+          PUBLISHED
+        ) values (
+          {projectId},
+          {title},
+          {content},
+          {ownerId},
+          {published}
+        )""").batchByName(params: _*).apply()
     }
 
   def save(entity: Article)(implicit session: DBSession = autoSession): Article = {
@@ -150,7 +158,8 @@ object Article extends SQLSyntaxSupport[Article] {
         column.projectId -> entity.projectId,
         column.title -> entity.title,
         column.content -> entity.content,
-        column.ownerId -> entity.ownerId
+        column.ownerId -> entity.ownerId,
+        column.published -> entity.published
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity

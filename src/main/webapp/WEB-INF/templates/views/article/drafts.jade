@@ -1,18 +1,17 @@
 - import turqey.servlet.ServletContextHolder._
 - import turqey.utils.Json
+- import turqey.entity.Draft
 
 -@val drafts:   Seq[Draft]
 
 div.container#container
   div.row
     div.col.s12
-      - for (draft <- drafts)
+      - for (d <- drafts)
         div.card
           div.card-content
             span.card-title
-              a(data-bind="text: title, attr: { href: '#{root}/article/' + id + '/draft/'}")
+              a(href="#{root}/article/#{d.id}/draft/") #{d.title}
             p
-              |作成:
-              span(data-bind="text: created")
-              span(data-bind="text: '更新: ' + updated, visible: updated !== ''")
+              |作成: #{d.created}
 
