@@ -3,7 +3,7 @@
 - import turqey.servlet.SessionHolder
 
 -@ val body: String
--@ val title: String = "Turqey"
+-@ val headTitle: String = "Turqey"
 -@ val showMenu: Boolean = true
 
 !!! 5
@@ -22,7 +22,7 @@ html
     meta(name="viewport" content="width=device-width,initial-scale=1")
     meta(http-equiv="Content-Type" content="text/html; charset=UTF-8")
     
-    title #{title}
+    title #{headTitle}
   
   body
     script(type="text/javascript" src="#{assets}/vender/js/materialize.js")

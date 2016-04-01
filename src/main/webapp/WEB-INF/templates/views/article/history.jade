@@ -1,0 +1,18 @@
+- import turqey.servlet.ServletContextHolder._
+- import turqey.utils.Json
+- import gristle.GitRepository
+- import org.joda.time.{DateTime}
+- import org.joda.time.format.{DateTimeFormat}
+
+-@val article:   turqey.entity.Article
+-@val histories: Seq[GitRepository#Tag]
+
+div.container#container
+  div.row
+    div.col.s12
+      - for (h <- histories.map( _.getCommit() ).reverse)
+        div.card
+          div.card-content
+            span.card-title
+              a(href="#{root}/article/#{article.id}/#{h.getObjectId.name}/") #{new DateTime(h.getTime.asInstanceOf[Long] * 1000).toString("yyyy/MM/dd HH:mm:ss")}
+

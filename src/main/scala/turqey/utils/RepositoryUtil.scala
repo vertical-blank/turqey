@@ -19,8 +19,7 @@ object RepositoryUtil {
     )
   }
   
-  private def commitArticleToBranch(branch: GitRepository#Branch, article: ArticleWhole, ident: Ident)
-    (implicit repo: GitRepository): Unit = {
+  private def commitArticleToBranch(branch: GitRepository#Branch, article: ArticleWhole, ident: Ident): GitRepository#Commit = {
     branch.commit(
       article.constructDir(), 
       "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
@@ -42,7 +41,6 @@ object RepositoryUtil {
   def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
     (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
     withLock (repo.getDirectory.toString) {
-      //saveAsDraft(id, title, content, tagIds, ident)
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
       val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
@@ -50,16 +48,34 @@ object RepositoryUtil {
       commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds), ident)
 
       draft.mergeTo(master, ident)
+
+      master.head.addTag(
+        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+        ident)
     }
   }
   
-  def headArticle(id: Long, branchName: String)(implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
-    val root = repo.branch(branchName).head().getDir
-    
-    val content = new String(root.file(ArticleWhole.ARTICLE_MD).bytes)
-    val attrs   = Json.parseAs[ArticleAttrs](new String(root.file(ArticleWhole.ARTICLE_ATTRS).bytes))
+  def headArticle(id: Long, branchName: String)
+    (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
+    articleAt(id, repo.branch(branchName).head)
+  }
+  def articleAt(id: Long, commitId: String)
+    (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
+    articleAt(id, new repo.Commit(commitId))
+  }
+
+  def articleAt(id: Long, commit: GitRepository#Commit): ArticleWhole = {
+    val dir = commit.getDir
+    val content = new String(dir.file(ArticleWhole.ARTICLE_MD).bytes)
+    val attrs   = Json.parseAs[ArticleAttrs](new String(dir.file(ArticleWhole.ARTICLE_ATTRS).bytes))
     
     ArticleWhole(id, attrs.title, content, attrs.tagIds)
+  }
+
+  def listTags(id: Long)(implicit repo: GitRepository = getArticleRepo(id)): Seq[GitRepository#Tag] = {
+    import collection.JavaConversions._
+    repo.listTags()
   }
 
 }
