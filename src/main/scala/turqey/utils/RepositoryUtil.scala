@@ -96,5 +96,7 @@ object ArticleWhole {
 }
 
 object Ident {
-  def apply(user: turqey.servlet.UserSession) = new gristle.GitRepository.Ident(user.name, user.email)
+  import gristle.GitRepository.{Ident => JIdent}
+  def apply(name: String, email: String): JIdent = new JIdent(name, email)
+  def apply(user: turqey.servlet.UserSession): JIdent = apply(user.name, user.email)
 }

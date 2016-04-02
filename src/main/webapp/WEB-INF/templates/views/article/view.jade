@@ -33,7 +33,7 @@ div.articleHeader
               | #{article.owner.get.name}
             |が #{article.created.toString("yyyy/MM/dd")} に投稿
           |#{latestEdit.map( _.toString("yyyy/MM/dd") + "に更新")}
-
+          a(href="#{root}/article/#{article.id}/history") 編集履歴
         p
           - for (tag <- tags)
             div.chip
