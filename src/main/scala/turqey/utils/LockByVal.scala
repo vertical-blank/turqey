@@ -13,7 +13,7 @@ object LockByVal {
     objs(key)
   }
 
-  def withLock(key: Any)(f: => Unit) = {
+  def withLock[T](key: Any)(f: => T) = {
     try {
       lock(key).lock
       f

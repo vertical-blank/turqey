@@ -28,7 +28,7 @@ object RepositoryUtil {
   }
   
   def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
-    (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
+    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
@@ -39,7 +39,7 @@ object RepositoryUtil {
   }
   
   def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
-    (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
+    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
@@ -49,10 +49,12 @@ object RepositoryUtil {
 
       draft.mergeTo(master, ident)
 
-      master.head.addTag(
+      val head = master.head
+      head.addTag(
         "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
         "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
         ident)
+      head
     }
   }
   
