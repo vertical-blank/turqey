@@ -49,7 +49,6 @@ class InitListener extends ServletContextListener with Logging {
         loginId  = "root",
         name     = "root",
         password = Digest.get("root"),
-        imgUrl   = "",
         root     = true
       )
     }

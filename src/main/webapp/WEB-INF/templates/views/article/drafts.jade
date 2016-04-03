@@ -1,0 +1,17 @@
+- import turqey.servlet.ServletContextHolder._
+- import turqey.utils.Json
+- import turqey.entity.Draft
+
+-@val drafts:   Seq[Draft]
+
+div.container#container
+  div.row
+    div.col.s12
+      - for (d <- drafts)
+        div.card
+          div.card-content
+            span.card-title
+              a(href="#{root}/article/#{d.articleId}/edit") #{d.title}
+            p
+              |作成: #{d.created}
+

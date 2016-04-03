@@ -2,12 +2,11 @@ package turqey.entity
 
 import scalikejdbc._
 import org.joda.time.{DateTime}
-import java.sql.{Clob}
 
 case class ArticleHistory(
   id: Long,
   articleId: Long,
-  diff: Clob,
+  commitId: String,
   userId: Option[Long] = None,
   created: DateTime = null) {
 
@@ -24,13 +23,13 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
 
   override val tableName = "ARTICLE_HISTORIES"
 
-  override val columns = Seq("ID", "ARTICLE_ID", "DIFF", "USER_ID", "CREATED")
+  override val columns = Seq("ID", "ARTICLE_ID", "COMMIT_ID", "USER_ID", "CREATED")
 
   def apply(ah: SyntaxProvider[ArticleHistory])(rs: WrappedResultSet): ArticleHistory = apply(ah.resultName)(rs)
   def apply(ah: ResultName[ArticleHistory])(rs: WrappedResultSet): ArticleHistory = new ArticleHistory(
     id = rs.get(ah.id),
     articleId = rs.get(ah.articleId),
-    diff = rs.get(ah.diff),
+    commitId = rs.get(ah.commitId),
     userId = rs.get(ah.userId),
     created = rs.get(ah.created)
   )
@@ -70,28 +69,43 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
       select(sqls.count).from(ArticleHistory as ah).where.append(where)
     }.map(_.long(1)).single.apply().get
   }
-
   def create(
     articleId: Long,
-    diff: Clob,
-    userId: Option[Long] = None
+    commitId: String,
+    userId: Option[Long] = None,
+    created: DateTime = null
     )(implicit session: DBSession = autoSession): ArticleHistory = {
     val generatedKey = withSQL {
-      insert.into(ArticleHistory).columns(
-        column.articleId,
-        column.diff,
-        column.userId
-      ).values(
-        articleId,
-        diff,
-        userId
-      )
+      if (created != null){
+        insert.into(ArticleHistory).columns(
+          column.articleId,
+          column.commitId,
+          column.userId,
+          column.created
+        ).values(
+          articleId,
+          commitId,
+          userId,
+          created
+        )
+      }
+      else {
+        insert.into(ArticleHistory).columns(
+          column.articleId,
+          column.commitId,
+          column.userId
+        ).values(
+          articleId,
+          commitId,
+          userId
+        )
+      }
     }.updateAndReturnGeneratedKey.apply()
 
     ArticleHistory(
       id = generatedKey,
       articleId = articleId,
-      diff = diff,
+      commitId = commitId,
       userId = userId)
   }
 
@@ -99,15 +113,15 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
     val params: Seq[Seq[(Symbol, Any)]] = entities.map(entity => 
       Seq(
         'articleId -> entity.articleId,
-        'diff -> entity.diff,
+        'commitId -> entity.commitId,
         'userId -> entity.userId))
         SQL("""insert into ARTICLE_HISTORIES(
         ARTICLE_ID,
-        DIFF,
+        COMMIT_ID,
         USER_ID
       ) values (
         {articleId},
-        {diff},
+        {commitId},
         {userId}
       )""").batchByName(params: _*).apply()
     }
@@ -117,7 +131,7 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
       update(ArticleHistory).set(
         column.id -> entity.id,
         column.articleId -> entity.articleId,
-        column.diff -> entity.diff,
+        column.commitId -> entity.commitId,
         column.userId -> entity.userId
       ).where.eq(column.id, entity.id)
     }.update.apply()

@@ -7,24 +7,26 @@ import scalikejdbc._
 import turqey.entity._
 import turqey.utils._
 import turqey.utils.Json
-
 import turqey.utils.Implicits._
 
 class ArticleController extends AuthedController with ScalateSupport {
   override val path = "article"
 
+  get("/:id/:commitId/"){ implicit dbSession =>
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    viewFunc(articleId, params.get("commitId"))
+  }
   val view = get("/:id"){ implicit dbSession =>
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    viewFunc(articleId)
+  }
+
+  private def viewFunc(articleId: Long, commitIdOpt: Option[String] = None)
+    (implicit dbSession: DBSession): Any = {
     val userId    = turqey.servlet.SessionHolder.user.get.id
 
-    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
+    val articleRec = Article.find(articleId).filter( _.published ).getOrElse(redirectFatal("/"))
     val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
-    
-    val tags = {
-      val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
-      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-      taggings.map( x => allTags(x.tagId) )
-    }
 
     val comments = ArticleComment.findAllBy(sqls.eq(ArticleComment.ac.articleId, articleId))
     val stockers = Article.getStockers(articleId)
@@ -38,8 +40,18 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
     
+    def article = commitIdOpt
+      .map(       RepositoryUtil.articleAt(articleId, _) )
+      .getOrElse( RepositoryUtil.headArticle(articleId, "master") )
+    val tags = {
+      val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
+      article.tagIds.map( allTags(_) )
+    }
+    
     jade("/article/view", 
-      "article"    -> article,
+      "article"    -> articleRec,
+      "title"      -> article.title,
+      "content"    -> Markdown.html(article.content),
       "latestEdit" -> latestEdit,
       "tags"       -> tags,
       "comments"   -> comments,
@@ -50,31 +62,36 @@ class ArticleController extends AuthedController with ScalateSupport {
 
   val edit = get("/:id/edit"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
-    if (!article.editable) { redirectFatal("/") }
-
+    val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
+    if (!articleRec.editable) { redirectFatal("/") }
+    
+    def branch: String = articleRec.draft()
+      .map( x => "draft" )
+      .getOrElse( "master" )
+    
+    def article = RepositoryUtil.headArticle(articleId, branch)
     val tags = {
-      val taggings = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId))
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
-      taggings.map( x => allTags(x.tagId) )
+      article.tagIds.map( allTags(_) )
     }
 
     jade("/article/edit", 
-      "article"    -> Some(article),
+      "article"    -> Some(articleRec),
+      "title"      -> article.title,
+      "content"    -> article.content,
       "tags"       -> tags)
   }
 
   val history = get("/:id/history"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
-    val histories = ArticleHistory.findAll()
+    val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
+    val histories = ArticleHistory.findAllBy(sqls.eq(ArticleHistory.ah.articleId, articleId))
 
     jade("article/history", 
-      "article" -> article,
+      "article"   -> articleRec,
       "histories" -> histories)
   }
 
-// TODO Validate that articleId equals comment.articleId
   post("/:id/comment/:commentId/delete"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val commentId = params.getOrElse("commentId", redirectFatal("/")).toLong
@@ -106,9 +123,9 @@ class ArticleController extends AuthedController with ScalateSupport {
           userId    = userId
         ).id
         
-        val article = Article.find(articleId)
+        val articleRec = Article.find(articleId)
         
-        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + article.get.ownerId - userId
+        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + articleRec.get.ownerId - userId
         
         commenterIds.foreach { c =>
           CommentNotification.create(
@@ -123,29 +140,63 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   post("/:id"){ implicit dbSession =>
-    val articleId = params.getOrElse("id", "").toLong
+    val idOpt     = params.get("id")
     val title     = params.getOrElse("title", "").toString
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
 
-    val article = Article.find(articleId).getOrElse(redirectFatal("/"))
-    if (!article.editable) { redirectFatal("/") }
-    // must read CLOB content before update.
-    val oldContent: String = article.content
-
-    article.copy(
-      title   = title,
-      content = content
-    ).save()
-
-    val diff = turqey.utils.DiffUtil.uniDiff(oldContent, content).mkString("\r\n")
-    ArticleHistory.create(
-      articleId = articleId,
-      diff      = diff,
-      userId    = Some(turqey.servlet.SessionHolder.user.get.id)
+    save(
+      idOpt,
+      title,
+      content,
+      tagIds,
+      tagNames
     )
+  }
+  post("/"){ implicit dbSession =>
+    val idOpt     = params.get("id")
+    val title     = params.getOrElse("title", "").toString
+    val content   = params.getOrElse("content", "").toString
+    val tagIds    = multiParams("tagIds")
+    val tagNames  = multiParams("tagNames")
+
+    save(
+      idOpt,
+      title,
+      content,
+      tagIds,
+      tagNames
+    )
+  }
+
+  def save(idOpt: Option[String], title: String, content: String, tagIds: Seq[String], tagNames: Seq[String])
+    (implicit dbSession: DBSession): Any = {
+    val user = turqey.servlet.SessionHolder.user.get
     
+    val articleRec = idOpt.filter( !_.isEmpty )
+      .map( x => 
+        Article.find(x.toLong).map(
+          _.copy(
+            title     = title,
+            content   = content,
+            published = true
+          ).save()
+        ).getOrElse( redirectFatal("/") )
+      ).getOrElse(
+        Article.create(
+          title     = title,
+          content   = content,
+          ownerId   = user.id,
+          published = true
+        )
+      )
+    if (!articleRec.editable) { redirectFatal("/") }
+    
+    val articleId = articleRec.id
+
+    articleRec.draft().foreach(_.destroy())
+
     Article.getStockers(articleId).foreach { s =>
       ArticleNotification.create(
         articleId  = articleId,
@@ -154,8 +205,18 @@ class ArticleController extends AuthedController with ScalateSupport {
       )
     }
 
-    refreshTaggings(articleId, tagIds, tagNames);
+    val newTagIds = refreshTaggings(articleId, tagIds, tagNames)
     
+    val headCommit = RepositoryUtil.saveAsMaster(
+      articleId,
+      title,
+      content,
+      newTagIds,
+      Ident(user)
+    )
+
+    ArticleHistory.create(articleId, headCommit.getObjectId.name, Some(user.id))
+
     redirect(url(view, "id" -> articleId.toString))
   }
 
@@ -173,24 +234,9 @@ class ArticleController extends AuthedController with ScalateSupport {
   val newEdit = get("/edit"){ implicit dbSession =>
     jade("/article/edit", 
       "article"    -> None,
+      "title"      -> "",
+      "content"    -> "",
       "tags"       -> Seq())
-  }
-
-  post("/"){ implicit dbSession =>
-    val title     = params.getOrElse("title", "").toString
-    val content   = params.getOrElse("content", "").toString
-    val tagIds    = multiParams("tagIds")
-    val tagNames  = multiParams("tagNames")
-
-    val newId = Article.create(
-      title   = title,
-      content = content,
-      ownerId = turqey.servlet.SessionHolder.user.get.id
-    ).id
-
-    refreshTaggings(newId, tagIds, tagNames)
-    
-    redirect(url(view, "id" -> newId.toString))
   }
   
   val stock = post("/:id/stock"){ implicit dbSession =>
@@ -221,8 +267,75 @@ class ArticleController extends AuthedController with ScalateSupport {
     val count = ArticleStock.countBy(sqls.eq(as.articleId, articleId))
     Json.toJson(Map("count" -> count))
   }
+  
+  get("/drafts/"){ implicit dbSession =>
+    val user = turqey.servlet.SessionHolder.user.get
+    val drafts = Draft.findAllBy(
+      sqls.eq(Draft.column.ownerId, user.id)
+    )
+    
+    jade("/article/drafts", 
+      "drafts"   -> drafts)
+  }
+  
+  post("/draft/"){ implicit dbSession =>
+    contentType = "text/json"
+    val user = turqey.servlet.SessionHolder.user.get
+    
+    val content   = params.getOrElse("content", "").toString
+    val title     = params.getOrElse("title", "").toString
+    val articleId = params.get("id").map(_.toLong).getOrElse(
+      Article.create(
+        title   = title,
+        content = content,
+        ownerId = user.id
+      ).id
+    )
 
-  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])(implicit dbSession: DBSession): Unit = {
+    Draft.findBy(sqls.eq(Draft.column.articleId, articleId))
+      .map(
+        _.copy(
+          title   = title,
+          content = content
+        ).save()
+      )
+      .getOrElse(
+        Draft.create(
+          articleId = articleId,
+          title     = title,
+          content   = content,
+          ownerId   = user.id
+        )
+      )
+    
+    val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
+    
+    RepositoryUtil.saveAsDraft(
+      articleId,
+      title,
+      content,
+      newTagIds,
+      Ident(user)
+    )
+    
+    Json.toJson(Map("articleId" -> articleId))
+  }
+
+  private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])
+    (implicit dbSession: DBSession): Seq[Long] = {
+    val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
+    val tagIdsNew = registerTags(tagIds, tagNames)
+
+    val tagIdsForDelete = tagIdsOld diff tagIdsNew distinct
+    val tagIdsForInsert = tagIdsNew diff tagIdsOld distinct
+
+    ArticleTagging.deleteTagsOfArticle(articleId, tagIdsForDelete)
+    ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
+    tagIdsNew
+  }
+  
+  private def registerTags(tagIds: Seq[String], tagNames: Seq[String])
+    (implicit dbSession: DBSession): Seq[Long] = {
     val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
       (id, name) match {
         case ("", _) => {
@@ -235,14 +348,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       }
     }
 
-    val tagIdsOld = ArticleTagging.findAllBy(sqls.eq(ArticleTagging.at.articleId, articleId)).map( x => x.tagId )
-    val tagIdsNew = tagIdName.map { case (id, name) => id }
-
-    val tagIdsForDelete = tagIdsOld diff tagIdsNew distinct
-    val tagIdsForInsert = tagIdsNew diff tagIdsOld distinct
-
-    ArticleTagging.deleteTagsOfArticle(articleId, tagIdsForDelete)
-    ArticleTagging.insertTagsOfArticle(articleId, tagIdsForInsert)
+    tagIdName.map { case (id, name) => id }
   }
 
 }

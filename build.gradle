@@ -9,11 +9,14 @@ buildscript {
     maven {
       url "https://plugins.gradle.org/m2/"
     }
+    maven {
+      url "http://yohei224.github.io/"
+    }
   }
   dependencies {
     classpath "us.hexcoder:gradle-twirl:1.0.0-SNAPSHOT"
     classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
-    classpath 'murtools:gradle-scalate-plugin:0.0.3'
+    classpath 'com.github.yohei224:gradle-scalate-plugin:0.0.3'
     classpath "com.github.maiflai:gradle-scalatest:0.11"
   }
 }
@@ -33,6 +36,9 @@ repositories {
   maven{ 
     url 'http://amateras.sourceforge.jp/mvn/'
   }
+  maven {
+    url "http://yohei224.github.io/"
+  }
 }
 
 configurations {
@@ -40,6 +46,8 @@ configurations {
 }
 
 dependencies {
+  compile 'com.github.yohei224:gristle:0.0.1'
+
   compile 'org.scala-lang:scala-library:2.11.7'
   compile 'org.scala-lang:scala-reflect:2.11.7'
   compile 'org.scala-lang:scala-compiler:2.11.7'

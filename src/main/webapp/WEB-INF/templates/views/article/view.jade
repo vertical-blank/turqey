@@ -7,6 +7,8 @@
 - import turqey.utils.Markdown
 
 -@val article:    Article
+-@val title:      String
+-@val content:    String
 -@val latestEdit: Option[DateTime]
 -@val tags:       Seq[Tag]
 -@val comments:   Seq[ArticleComment]
@@ -23,7 +25,7 @@ div.articleHeader
     div.row
       div.col.s8
         p
-          h2 #{article.title}
+          h2 #{title}
         p
           span
             a(href="#{root}/user/#{ownerId}")
@@ -31,7 +33,7 @@ div.articleHeader
               | #{article.owner.get.name}
             |が #{article.created.toString("yyyy/MM/dd")} に投稿
           |#{latestEdit.map( _.toString("yyyy/MM/dd") + "に更新")}
-
+          a(href="#{root}/article/#{article.id}/history") 編集履歴
         p
           - for (tag <- tags)
             div.chip
@@ -71,7 +73,7 @@ div.container
   div.row
     div.markdown.col.s10.m9.l00#main_content
       div
-        ! #{Markdown.html(article.content)}
+        ! #{content}
     div.col.hide-on-small-only.m3.l3
       ul.section.table-of-contents.scrollspy#toc
   hr

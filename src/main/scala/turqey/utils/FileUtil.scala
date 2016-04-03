@@ -13,6 +13,7 @@ object FileUtil {
     .getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() + "/.turqey" }
   
   lazy val usrImageDir = getDir(new File(homeDir, "userImage"))
+  lazy val articleBaseDir = getDir(new File(homeDir, "articles"))
   
   def getDir(dir: File) = {
     if (!dir.exists()){

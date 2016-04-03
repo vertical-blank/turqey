@@ -9,7 +9,6 @@ case class User(
   loginId: String,
   email: String,
   name: String,
-  imgUrl: String,
   password: String,
   root: Boolean = false,
   lastLogin: Option[DateTime] = None,
@@ -31,7 +30,7 @@ object User extends SQLSyntaxSupport[User] {
 
   override val tableName = "USERS"
 
-  override val columns = Seq("ID", "LOGIN_ID", "EMAIL", "NAME", "IMG_URL", "PASSWORD", "ROOT", "LAST_LOGIN", "CREATED")
+  override val columns = Seq("ID", "LOGIN_ID", "EMAIL", "NAME", "PASSWORD", "ROOT", "LAST_LOGIN", "CREATED")
 
   def apply(u: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(u.resultName)(rs)
   def apply(u: ResultName[User])(rs: WrappedResultSet): User = new User(
@@ -39,7 +38,6 @@ object User extends SQLSyntaxSupport[User] {
     loginId = rs.get(u.loginId),
     email = rs.get(u.email),
     name = rs.get(u.name),
-    imgUrl = rs.get(u.imgUrl),
     password = rs.get(u.password),
     root = rs.get(u.root),
     lastLogin = rs.get(u.lastLogin),
@@ -86,7 +84,6 @@ object User extends SQLSyntaxSupport[User] {
     email: String,
     loginId: String,
     name: String,
-    imgUrl: String,
     password: String,
     root: Boolean = false,
     lastLogin: Option[DateTime] = None)(implicit session: DBSession = autoSession): User = {
@@ -95,7 +92,6 @@ object User extends SQLSyntaxSupport[User] {
         column.loginId,
         column.email,
         column.name,
-        column.imgUrl,
         column.password,
         column.root,
         column.lastLogin
@@ -103,7 +99,6 @@ object User extends SQLSyntaxSupport[User] {
         loginId,
         email,
         name,
-        imgUrl,
         password,
         root,
         lastLogin
@@ -115,7 +110,6 @@ object User extends SQLSyntaxSupport[User] {
       loginId = loginId,
       email = email,
       name = name,
-      imgUrl = imgUrl,
       password = password,
       root = root,
       lastLogin = lastLogin)
@@ -127,7 +121,6 @@ object User extends SQLSyntaxSupport[User] {
         'loginId -> entity.loginId,
         'email -> entity.email,
         'name -> entity.name,
-        'imgUrl -> entity.imgUrl,
         'password -> entity.password,
         'root -> entity.root,
         'lastLogin -> entity.lastLogin))
@@ -135,7 +128,6 @@ object User extends SQLSyntaxSupport[User] {
         LOGIN_ID,
         EMAIL,
         NAME,
-        IMG_URL,
         PASSWORD,
         ROOT,
         LAST_LOGIN
@@ -143,7 +135,6 @@ object User extends SQLSyntaxSupport[User] {
         {loginId},
         {email},
         {name},
-        {imgUrl},
         {password},
         {root},
         {lastLogin}
@@ -157,7 +148,6 @@ object User extends SQLSyntaxSupport[User] {
         column.loginId -> entity.loginId,
         column.email -> entity.email,
         column.name -> entity.name,
-        column.imgUrl -> entity.imgUrl,
         column.password -> entity.password,
         column.root -> entity.root,
         column.lastLogin -> entity.lastLogin

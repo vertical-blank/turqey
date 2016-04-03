@@ -11,7 +11,8 @@ case class Article(
   content: Clob,
   ownerId: Long,
   created: DateTime = null,
-  owner: Option[User] = None) {
+  owner: Option[User] = None,
+  published: Boolean = false) {
 
   def save()(implicit session: DBSession = Article.autoSession): Article = Article.save(this)(session)
 
@@ -25,6 +26,9 @@ case class Article(
   
   def view(): String = { "" + this.id.toString }
 
+  def draft()(implicit session: DBSession = Article.autoSession) :Option[Draft] = {
+    Draft.findBy(sqls.eq(Draft.d.articleId, this.id))
+  }
 }
 
 
@@ -34,7 +38,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   override val tableName = "ARTICLES"
 
-  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED")
+  override val columns = Seq("ID", "PROJECT_ID", "TITLE", "CONTENT", "OWNER_ID", "CREATED", "PUBLISHED")
 
   def apply(a: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(a.resultName, None)(rs)
   def apply(a: ResultName[Article])(rs: WrappedResultSet): Article = apply(a, None)(rs)
@@ -45,7 +49,8 @@ object Article extends SQLSyntaxSupport[Article] {
     content = rs.get(a.content),
     ownerId = rs.get(a.ownerId),
     created = rs.get(a.created),
-    owner = u.map{ u => User(u)(rs) }
+    owner = u.map{ u => User(u)(rs) },
+    published = rs.get(a.published)
   )
 
   val a = Article.syntax("a")
@@ -100,18 +105,21 @@ object Article extends SQLSyntaxSupport[Article] {
     projectId: Option[Long] = None,
     title: String,
     content: Clob,
-    ownerId: Long)(implicit session: DBSession = autoSession): Article = {
+    ownerId: Long,
+    published: Boolean = false)(implicit session: DBSession = autoSession): Article = {
     val generatedKey = withSQL {
       insert.into(Article).columns(
         column.projectId,
         column.title,
         column.content,
-        column.ownerId
+        column.ownerId,
+        column.published
       ).values(
         projectId,
         title,
         content,
-        ownerId
+        ownerId,
+        published
       )
     }.updateAndReturnGeneratedKey.apply()
 
@@ -120,7 +128,8 @@ object Article extends SQLSyntaxSupport[Article] {
       projectId = projectId,
       title = title,
       content = content,
-      ownerId = ownerId)
+      ownerId = ownerId,
+      published = published)
   }
 
   def batchInsert(entities: Seq[Article])(implicit session: DBSession = autoSession): Seq[Int] = {
@@ -130,17 +139,19 @@ object Article extends SQLSyntaxSupport[Article] {
         'title -> entity.title,
         'content -> entity.content,
         'ownerId -> entity.ownerId))
-        SQL("""insert into ARTICLES(
-        PROJECT_ID,
-        TITLE,
-        CONTENT,
-        OWNER_ID
-      ) values (
-        {projectId},
-        {title},
-        {content},
-        {ownerId}
-      )""").batchByName(params: _*).apply()
+      SQL("""insert into ARTICLES(
+          PROJECT_ID,
+          TITLE,
+          CONTENT,
+          OWNER_ID,
+          PUBLISHED
+        ) values (
+          {projectId},
+          {title},
+          {content},
+          {ownerId},
+          {published}
+        )""").batchByName(params: _*).apply()
     }
 
   def save(entity: Article)(implicit session: DBSession = autoSession): Article = {
@@ -150,7 +161,8 @@ object Article extends SQLSyntaxSupport[Article] {
         column.projectId -> entity.projectId,
         column.title -> entity.title,
         column.content -> entity.content,
-        column.ownerId -> entity.ownerId
+        column.ownerId -> entity.ownerId,
+        column.published -> entity.published
       ).where.eq(column.id, entity.id)
     }.update.apply()
     entity
@@ -167,7 +179,7 @@ object Article extends SQLSyntaxSupport[Article] {
       val at = ArticleTagging.at
       select.from(Article as a).join(User as u).on(a.ownerId, u.id).where.exists(
         select.from(ArticleTagging as at).where.eq(a.id, at.articleId).and.eq(at.tagId, tagId)
-      )
+      ).and.eq(a.published, true)
     }.map(Article(a.resultName, Option(u.resultName))).list.apply()
   }
   
@@ -180,13 +192,13 @@ object Article extends SQLSyntaxSupport[Article] {
     tags: Seq[Tag],
     stock: Long,
     comment: Long)
-  case class UserForList(id: Long, name: String, imgUrl: String)
-  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name, user.imgUrl) }
+  case class UserForList(id: Long, name: String)
+  object UserForList{ def apply(user: User) = new UserForList(user.id, user.name) }
   
   def findForList(ids: Seq[Long])(implicit session: DBSession = autoSession): Seq[ArticleForList] = {
     val tagsOfArticleIds = Tag.findTagsOfArticleIds(ids)
     val lastUpdatesByIds = ArticleHistory.findLatestsByIds(ids)
-    val articles = Article.findAllBy(sqls.in(Article.a.id, ids))
+    val articles = Article.findAllBy(sqls.in(Article.a.id, ids).and.eq(a.published, true))
     val stockCountByArticleIds = ArticleStock.countByIds(ids)
     val commentCountByArticleIds = ArticleComment.countByIds(ids)
     
@@ -204,14 +216,14 @@ object Article extends SQLSyntaxSupport[Article] {
   
   def findAllId()(implicit session: DBSession = autoSession) :Seq[Long] = {
     withSQL {
-      select(a.result.id).from(Article as a).orderBy(a.id).desc
+      select(a.result.id).from(Article as a).where.eq(a.published, true).orderBy(a.id).desc
     }.map(_.long(1)).list.apply()
   }
   
   def findAllIdBy(where: SQLSyntax)(implicit session: DBSession = autoSession) :Seq[Long] = {
     withSQL {
       select(a.result.id).from(Article as a)
-      .where.append(where).orderBy(a.id).desc
+      .where.append(where).and.eq(a.published, true).orderBy(a.id).desc
     }.map(_.long(1)).list.apply()
   }
 
@@ -226,5 +238,6 @@ object Article extends SQLSyntaxSupport[Article] {
       ).orderBy(u.resultName.id).desc
     }.map(User(u.resultName)(_)).list.apply()
   }
+
 
 }
