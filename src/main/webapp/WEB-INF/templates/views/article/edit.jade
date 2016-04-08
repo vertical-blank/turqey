@@ -36,6 +36,8 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         i.material-icons.right publish
         |公開
   input(type="hidden" name="id" data-bind="value: articleId")
+  div(data-bind="foreach: attachments")
+    input(type="hidden" name="attachments")
   div.row
     div.input-field.col.s3
       i.material-icons.prefix search
@@ -70,7 +72,6 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
           i.small.material-icons fullscreen
         a.waves-effect.waves-grey.btn-flat(style="padding: 0 1rem;" data-bind="click: exitFullscreen, visible: isFullscreen")
           i.small.material-icons fullscreen_exit
-
     div(style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())")
       div.editor#input_content(
         style="height: 100%; width: 100%;"
@@ -80,29 +81,54 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     div#prev_container(style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())")
       div
         div#preview.markdown(data-bind="html: marked")
-
-ul#langs.dropdown-content(style="max-height: 300px; overflow-x: hidden;")
-  / ko foreach: langs
-  li
-    a(data-bind="text: name, click: $root.insertLang")
-  / /ko
-
-div#modal1.modal.modal-fixed-footer
-  div.modal-content
-    h4 Table
-    p
-      textarea#textarea1.materialize-textarea(data-bind="value: contentCsv")
-    p
-      input.filled-in#first_header(type="checkbox" data-bind="checked: setFirstLineAsHeader")
-      label(for="first_header") 先頭行をヘッダとする
-      input(name="sep_char" type="radio" id="sep_comma" value="c" data-bind="checked: sepChar")
-      label(for="sep_comma") カンマ
-      input(name="sep_char" type="radio" id="sep_tab" value="t" data-bind="checked: sepChar")
-      label(for="sep_tab") タブ
-  div.modal-footer
-    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 実行
+  ul#langs.dropdown-content(style="max-height: 300px; overflow-x: hidden;")
+    / ko foreach: langs
+    li
+      a(data-bind="text: name, click: $root.insertLang")
+    / /ko
+  div#modal1.modal.modal-fixed-footer
+    div.modal-content
+      h4 Table
+      p
+        textarea#textarea1.materialize-textarea(data-bind="value: contentCsv")
+      p
+        input.filled-in#first_header(type="checkbox" data-bind="checked: setFirstLineAsHeader")
+        label(for="first_header") 先頭行をヘッダとする
+        input(name="sep_char" type="radio" id="sep_comma" value="c" data-bind="checked: sepChar")
+        label(for="sep_comma") カンマ
+        input(name="sep_char" type="radio" id="sep_tab" value="t" data-bind="checked: sepChar")
+        label(for="sep_tab") タブ
+    div.modal-footer
+      a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 実行
 
 :!javascript
+  $(document).ready(function(){
+    $('#input_content')
+    .bind('drop', function(e){
+      e.preventDefault();
+      var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
+      var file = files[0];
+      if (file.size > 5 * 1024 * 1024){
+        alert('5Mまでです');
+        return;
+      }
+      loadFile(file, function(data){
+        $.post(
+          '#{root}/article/attach/',
+          {
+            filename: file.name,
+            body:     data
+          },
+          function(response) {
+            vm.attachments.push(response);
+          }
+        );
+      });
+    })
+    .bind('dragenter dragover', function(){
+      return false;
+    });
+  });
   var allTags = #{ Json.toJson(Tag.findAll()) };
   var ViewModel = function (initialTags){
     var self = this;
@@ -194,6 +220,8 @@ div#modal1.modal.modal-fixed-footer
           }
       )}, 800);
     };
+
+    self.attachments = ko.observableArray([]);
     
     self.langs = ko.observableArray([
       {name: 'bash'},
@@ -241,7 +269,7 @@ div#modal1.modal.modal-fixed-footer
       return self.editor;
     };
     
-    self.insertLink  = function(){
+    self.insertLink = function(){
       var editor = self.getEditor();
       var range = editor.selection.getRange();
       
@@ -310,13 +338,28 @@ div#modal1.modal.modal-fixed-footer
       });
       params.tagIds = tagIds;
       params.tagNames = tagNames;
+
+      var attIds    = [];
+      var attNames  = [];
+      var attMimes  = [];
+      var attIsImgs = [];
+      $.each(self.attachments(), function() {
+        attIds.push(this.id);
+        attName.push(this.name);
+        attMime.push(this.mime);
+        attIsImg.push(this.isImage);
+      });
+      params.attIds    = attIds;
+      params.attNames  = attNames;
+      params.attMimes  = attMimes;
+      params.attIsImgs = attIsImgs;
       
       $.post(
-          '#{root}/article/draft/',
-          params,
-          function(response) {
-            self.articleId(JSON.parse(response).articleId);
-          }
+        '#{root}/article/draft/',
+        params,
+        function(response) {
+          self.articleId(response.articleId);
+        }
       );
     };
     

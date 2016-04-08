@@ -212,7 +212,8 @@ class ArticleController extends AuthedController with ScalateSupport {
       title,
       content,
       newTagIds,
-      Ident(user)
+      Ident(user),
+      Seq()
     )
 
     ArticleHistory.create(articleId, headCommit.getObjectId.name, Some(user.id))
@@ -291,6 +292,19 @@ class ArticleController extends AuthedController with ScalateSupport {
         ownerId = user.id
       ).id
     )
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     Draft.findBy(sqls.eq(Draft.column.articleId, articleId))
       .map(
@@ -315,10 +329,36 @@ class ArticleController extends AuthedController with ScalateSupport {
       title,
       content,
       newTagIds,
-      Ident(user)
+      Ident(user),
+      Seq()
     )
     
     Json.toJson(Map("articleId" -> articleId))
+  }
+  
+  post("/attach/"){ implicit dbSession =>
+    contentType = "application/json"
+
+    val user = turqey.servlet.SessionHolder.user.get
+
+    val result = {
+      for {
+        body <- params.get("body")
+        name <- params.get("filename") 
+      } yield {
+        val base64 = new FileUtil.Base64Decoder(body, Some(name))
+        val newRec = Upload.create(
+          name      = name,
+          mime      = base64.mimeType,
+          isImage   = base64.isImage,
+          ownerId   = user.id
+        )
+        base64.saveUpload(newRec.id.toString)
+        newRec
+      }
+    }
+    
+    Json.toJson(result)
   }
 
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])
