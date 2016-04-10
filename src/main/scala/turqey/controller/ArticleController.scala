@@ -49,15 +49,16 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     
     jade("/article/view", 
-      "article"    -> articleRec,
-      "title"      -> article.title,
-      "content"    -> Markdown.html(article.content),
-      "latestEdit" -> latestEdit,
-      "tags"       -> tags,
-      "comments"   -> comments,
-      "stockers"   -> stockers,
-      "stocked"    -> stocked,
-      "count"      -> count)
+      "article"     -> articleRec,
+      "title"       -> article.title,
+      "content"     -> Markdown.html(article.content),
+      "latestEdit"  -> latestEdit,
+      "tags"        -> tags,
+      "attachments" -> article.attachments,
+      "comments"    -> comments,
+      "stockers"    -> stockers,
+      "stocked"     -> stocked,
+      "count"       -> count)
   }
 
   val edit = get("/:id/edit"){ implicit dbSession =>
@@ -76,10 +77,11 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
 
     jade("/article/edit", 
-      "article"    -> Some(articleRec),
-      "title"      -> article.title,
-      "content"    -> article.content,
-      "tags"       -> tags)
+      "article"     -> Some(articleRec),
+      "title"       -> article.title,
+      "content"     -> article.content,
+      "tags"        -> tags,
+      "attachments" -> article.attachments)
   }
 
   val history = get("/:id/history"){ implicit dbSession =>
@@ -145,13 +147,27 @@ class ArticleController extends AuthedController with ScalateSupport {
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     save(
       idOpt,
       title,
       content,
       tagIds,
-      tagNames
+      tagNames,
+      attachments
     )
   }
   post("/"){ implicit dbSession =>
@@ -160,17 +176,37 @@ class ArticleController extends AuthedController with ScalateSupport {
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     save(
       idOpt,
       title,
       content,
       tagIds,
-      tagNames
+      tagNames,
+      attachments
     )
   }
 
-  def save(idOpt: Option[String], title: String, content: String, tagIds: Seq[String], tagNames: Seq[String])
+  def save(
+      idOpt: Option[String],
+      title: String,
+      content: String,
+      tagIds: Seq[String],
+      tagNames: Seq[String],
+      attachments: Seq[Attachment])
     (implicit dbSession: DBSession): Any = {
     val user = turqey.servlet.SessionHolder.user.get
     
@@ -213,7 +249,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       content,
       newTagIds,
       Ident(user),
-      Seq()
+      attachments
     )
 
     ArticleHistory.create(articleId, headCommit.getObjectId.name, Some(user.id))
@@ -330,35 +366,10 @@ class ArticleController extends AuthedController with ScalateSupport {
       content,
       newTagIds,
       Ident(user),
-      Seq()
+      attachments
     )
     
     Json.toJson(Map("articleId" -> articleId))
-  }
-  
-  post("/attach/"){ implicit dbSession =>
-    contentType = "application/json"
-
-    val user = turqey.servlet.SessionHolder.user.get
-
-    val result = {
-      for {
-        body <- params.get("body")
-        name <- params.get("filename") 
-      } yield {
-        val base64 = new FileUtil.Base64Decoder(body, Some(name))
-        val newRec = Upload.create(
-          name      = name,
-          mime      = base64.mimeType,
-          isImage   = base64.isImage,
-          ownerId   = user.id
-        )
-        base64.saveUpload(newRec.id.toString)
-        newRec
-      }
-    }
-    
-    Json.toJson(result)
   }
 
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])

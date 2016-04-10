@@ -22,38 +22,59 @@ object FileUtil {
     dir
   }
   
-  class Base64Decoder(data: String, name: Option[String] = None) {
+  class Base64Decoder(data: String, name: Option[String] = None) extends MimeSupport {
     val Array(header, body): Array[String] = data.split(",")
     
     val binary: Array[Byte] = com.google.common.io.BaseEncoding.base64().decode(body)
 
-    import org.apache.tika._
-    import org.apache.tika.detect._
-    import org.apache.tika.mime._
-    import org.apache.tika.metadata._
+    override def getName = this.name
+    override def getInputStream = new java.io.ByteArrayInputStream(this.binary)
 
-    lazy val mime = {
-      val md = new Metadata() 
-      this.name.foreach( md.set(TikaMetadataKeys.RESOURCE_NAME_KEY, _) )
-      val detector = new DefaultDetector()
-      detector.detect(new java.io.ByteArrayInputStream(binary), md)
-    }
-    
-    lazy val mimeType: String = this.mime.toString
-    
-    lazy val isImage: Boolean = this.mime.getType == "image"
-    
     def saveTo(file: File): File = {
       writeBinary(binary, file)
+    }
+    
+    def saveAsUserImage(name: String): File = {
+      saveTo(new File(usrImageDir, name))
+    }
+    
+  }
+  
+  import org.scalatra.servlet.FileItem
+  class FileSaver(item: FileItem) extends MimeSupport {
+    override def getName = Some(item.getName)
+    override def getInputStream = item.getInputStream
+    
+    def saveTo(file: File): File = {
+      item.write(file)
+      file
     }
     
     def saveUpload(name: String): File = {
       saveTo(new File(uploadsDir, name))
     }
     
-    def saveAsUserImage(name: String): File = {
-      saveTo(new File(usrImageDir, name))
+  }
+
+  trait MimeSupport {
+    import org.apache.tika._
+    import org.apache.tika.detect._
+    import org.apache.tika.mime._
+    import org.apache.tika.metadata._
+
+    def getName:        Option[String]
+    def getInputStream: java.io.InputStream
+
+    lazy val mime = {
+      val md = new Metadata() 
+      this.getName.foreach(md.set(TikaMetadataKeys.RESOURCE_NAME_KEY, _))
+      val detector = new DefaultDetector()
+      detector.detect(this.getInputStream, md)
     }
+    
+    lazy val mimeType: String = this.mime.toString
+    
+    lazy val isImage: Boolean = this.mime.getType == "image"
     
   }
   

@@ -6,15 +6,16 @@
 - import org.joda.time.{DateTime}
 - import turqey.utils.Markdown
 
--@val article:    Article
--@val title:      String
--@val content:    String
--@val latestEdit: Option[DateTime]
--@val tags:       Seq[Tag]
--@val comments:   Seq[ArticleComment]
--@val stockers:   Seq[User] = Seq()
--@val stocked:    Boolean
--@val count:      Long
+-@val article:     Article
+-@val title:       String
+-@val content:     String
+-@val latestEdit:  Option[DateTime]
+-@val tags:        Seq[Tag]
+-@val attachments: Seq[Tag] = Seq()
+-@val comments:    Seq[ArticleComment]
+-@val stockers:    Seq[User] = Seq()
+-@val stocked:     Boolean
+-@val count:       Long
 
 -@val ownerId: Long = article.owner.get.id
 

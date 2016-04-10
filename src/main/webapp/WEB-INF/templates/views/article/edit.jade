@@ -3,10 +3,11 @@
 - import turqey.utils.Implicits._
 - import turqey.utils.Json
 
--@val article: Option[Article]
--@val title:   String
--@val content: String
--@val tags:    Seq[Tag]
+-@val article:      Option[Article]
+-@val title:        String
+-@val content:      String
+-@val tags:         Seq[Tag]
+-@val attachments: Seq[Tag] = Seq()
 
 :css
   html, body { height:100%; margin:0; }
@@ -36,8 +37,11 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         i.material-icons.right publish
         |公開
   input(type="hidden" name="id" data-bind="value: articleId")
-  div(data-bind="foreach: attachments")
-    input(type="hidden" name="attachments")
+  div(data-bind="foreach: attachments" style="display: none;")
+    input(type="hidden" name="attIds"    data-bind="value: id")
+    input(type="hidden" name="attNames"  data-bind="value: name")
+    input(type="hidden" name="attMimes"  data-bind="value: mime")
+    input(type="hidden" name="attIsImgs" data-bind="value: isImage")
   div.row
     div.input-field.col.s3
       i.material-icons.prefix search
@@ -112,17 +116,18 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         alert('5Mまでです');
         return;
       }
-      loadFile(file, function(data){
-        $.post(
-          '#{root}/article/attach/',
-          {
-            filename: file.name,
-            body:     data
-          },
-          function(response) {
-            vm.attachments.push(response);
-          }
-        );
+
+      var formData = new FormData();
+      formData.append("thefile", file);
+
+      $.ajax({
+        url:         '#{root}/upload/attach/',
+        method:      'post',
+        processData: false,
+        data:        formData,
+        contentType: false//'multipart/form-data'
+      }).done(function(response) {
+        vm.attachments.push(response);
       });
     })
     .bind('dragenter dragover', function(){
@@ -221,7 +226,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       )}, 800);
     };
 
-    self.attachments = ko.observableArray([]);
+    self.attachments = ko.observableArray(#{Json.toJson(attachments)});
     
     self.langs = ko.observableArray([
       {name: 'bash'},
@@ -345,9 +350,9 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       var attIsImgs = [];
       $.each(self.attachments(), function() {
         attIds.push(this.id);
-        attName.push(this.name);
-        attMime.push(this.mime);
-        attIsImg.push(this.isImage);
+        attNames.push(this.name);
+        attMimes.push(this.mime);
+        attIsImgs.push(this.isImage);
       });
       params.attIds    = attIds;
       params.attNames  = attNames;
