@@ -54,7 +54,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       "content"     -> Markdown.html(article.content),
       "latestEdit"  -> latestEdit,
       "tags"        -> tags,
-      "attachments" -> article.attachments,
+      "attachments" -> article.attachments.filter(!_.isImage),
       "comments"    -> comments,
       "stockers"    -> stockers,
       "stocked"     -> stocked,
