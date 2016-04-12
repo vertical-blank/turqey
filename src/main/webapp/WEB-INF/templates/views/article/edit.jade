@@ -112,15 +112,18 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     .bind('drop', function(e){
       e.preventDefault();
       var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
-      var file = files[0];
-      if (file.size > 5 * 1024 * 1024){
-        alert('5Mまでです');
-        return;
-      }
+      for(var i = 0; i < files.length; i++) {
+        if (files[i].size > 5 * 1024 * 1024){
+          alert('5Mまでです');
+          return;
+        }
+      };
 
       var formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", file.name);
+      $.each(files, function() {
+        formData.append("file", this);
+        formData.append("name", this.name);
+      });
       $.ajax({
         url:         '#{root}/upload/attach/',
         method:      'post',
@@ -128,12 +131,15 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         data:        formData,
         contentType: false
       }).done(function(response) {
-        vm.attachments.push(response);
         var editor = vm.getEditor();
-        editor.getSession().insert(
-          editor.getSelection().getCursor(), 
-          (response.isImage ? '!' : '') + '[' + response.name + '](#{root}/upload/attach/' + response.id + '/)'
-        );
+        var editSession = editor.getSession();
+        $.each(response, function() {
+          vm.attachments.push(this);
+          editSession.insert(
+            editor.getSelection().getCursor(), 
+            (this.isImage ? '!' : '') + '[' + this.name + '](#{root}/upload/attach/' + this.id + '/)\n'
+          );
+        });
       });
     })
     .bind('dragenter dragover', function(){
@@ -281,6 +287,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         .on('pasteImage', function (ev, data){
           var formData = new FormData();
           formData.append("file", data.blob);
+          formData.append("name", new Date().getTime());
           $.ajax({
             url:         '#{root}/upload/attach/',
             method:      'post',
@@ -288,12 +295,15 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
             data:        formData,
             contentType: false
           }).done(function(response) {
-            vm.attachments.push(response);
             var editor = self.editor;
-            editor.getSession().insert(
-              editor.getSelection().getCursor(), 
-              '![' + response.name + '](#{root}/upload/attach/' + response.id + '/)'
-            );
+            var editSession = editor.getSession();
+            $.each(response, function() {
+              vm.attachments.push(this);
+              editSession.insert(
+                editor.getSelection().getCursor(), 
+                '![' + this.name + '](#{root}/upload/attach/' + this.id + '/)'
+              );
+            });
           });
         });
       }
