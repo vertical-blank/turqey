@@ -16,6 +16,7 @@ link(href="#{assets}/vender/css/knockout.autocomplete.css" rel="stylesheet")
 
 script(type="text/javascript" src="#{assets}/vender/ace/ace.js")
 script(type="text/javascript" src="#{assets}/vender/js/diffDOM.js")
+script(type="text/javascript" src="#{assets}/vender/js/paste.js")
 script(type="text/javascript" src="#{assets}/vender/js/jquery.scrollTo.min.js")
 
 script(type="text/javascript" src="#{assets}/vender/js/CsvToMarkdown.js")
@@ -76,7 +77,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
           i.small.material-icons fullscreen
         a.waves-effect.waves-grey.btn-flat(style="padding: 0 1rem;" data-bind="click: exitFullscreen, visible: isFullscreen")
           i.small.material-icons fullscreen_exit
-    div(style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())")
+    div#editor_container(style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())")
       div.editor#input_content(
         style="height: 100%; width: 100%;"
         data-bind="ace: content, aceOptions: { mode: 'markdown', theme: 'eclipse', fontSize: '14px', change: changeContent }")
@@ -107,7 +108,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
 
 :!javascript
   $(document).ready(function(){
-    $('#input_content')
+    $('#editor_container')
     .bind('drop', function(e){
       e.preventDefault();
       var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
@@ -118,14 +119,14 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       }
 
       var formData = new FormData();
-      formData.append("thefile", file);
-
+      formData.append("file", file);
+      formData.append("name", file.name);
       $.ajax({
         url:         '#{root}/upload/attach/',
         method:      'post',
         processData: false,
         data:        formData,
-        contentType: false//'multipart/form-data'
+        contentType: false
       }).done(function(response) {
         vm.attachments.push(response);
       });
@@ -270,6 +271,21 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     self.getEditor = function(){
       if (!self.editor) {
         self.editor = ace.edit("input_content");
+        
+        $('.ace_text-input').pastableTextarea()
+        .on('pasteImage', function (ev, data){
+          var formData = new FormData();
+          formData.append("file", data.blob);
+          $.ajax({
+            url:         '#{root}/upload/attach/',
+            method:      'post',
+            processData: false,
+            data:        formData,
+            contentType: false
+          }).done(function(response) {
+            vm.attachments.push(response);
+          });
+        });
       }
       return self.editor;
     };
