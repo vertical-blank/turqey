@@ -2,7 +2,7 @@ package turqey.utils
 
 import collection.JavaConversions._
 
-import java.io.{File, InputStream, FileOutputStream}
+import java.io.{File, InputStream, FileOutputStream, BufferedInputStream}
 
 object FileUtil {
   
@@ -69,7 +69,7 @@ object FileUtil {
       val md = new Metadata() 
       this.getName.foreach(md.set(TikaMetadataKeys.RESOURCE_NAME_KEY, _))
       val detector = new DefaultDetector()
-      detector.detect(this.getInputStream, md)
+      detector.detect(new BufferedInputStream(this.getInputStream), md)
     }
     
     lazy val mimeType: String = this.mime.toString
