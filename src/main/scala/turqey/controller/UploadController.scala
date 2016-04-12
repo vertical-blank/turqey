@@ -21,10 +21,10 @@ class UploadController extends AuthedController with FileUploadSupport {
     val user = turqey.servlet.SessionHolder.user.get
 
     val result = fileParams.get("file").map { f =>
-      val filename = fileParams.get("name").getOrElse("%tY/%<tm/%<td_%<tH:%<tM:%<tS" format new java.util.Date())
+      val filename = params.get("name").getOrElse("%tY/%<tm/%<td_%<tH:%<tM:%<tS" format new java.util.Date())
       val saver = new FileUtil.FileSaver(f)
       val newRec = Upload.create(
-        name      = f.getName,
+        name      = filename,
         mime      = saver.mimeType,
         isImage   = saver.isImage,
         ownerId   = user.id

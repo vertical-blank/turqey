@@ -129,6 +129,11 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         contentType: false
       }).done(function(response) {
         vm.attachments.push(response);
+        var editor = vm.getEditor();
+        editor.getSession().insert(
+          editor.getSelection().getCursor(), 
+          (response.isImage ? '!' : '') + '[' + response.name + '](#{root}/upload/attach/' + response.id + '/)'
+        );
       });
     })
     .bind('dragenter dragover', function(){
@@ -284,6 +289,11 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
             contentType: false
           }).done(function(response) {
             vm.attachments.push(response);
+            var editor = self.editor;
+            editor.getSession().insert(
+              editor.getSelection().getCursor(), 
+              '![' + response.name + '](#{root}/upload/attach/' + response.id + '/)'
+            );
           });
         });
       }
