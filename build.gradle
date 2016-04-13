@@ -50,7 +50,7 @@ dependencies {
 
   compile 'org.scala-lang:scala-library:2.11.7'
   compile 'org.scala-lang:scala-reflect:2.11.7'
-  compile 'org.scala-lang:scala-compiler:2.11.7'
+  //compile 'org.scala-lang:scala-compiler:2.11.7'
   compile 'com.typesafe.play:twirl-api_2.11:1.0.2'
   compile 'org.scalatra:scalatra_2.11:2.4.0'
   compile 'org.scalatra:scalatra-scalate_2.11:2.4.0'
@@ -68,7 +68,6 @@ dependencies {
   
   compile 'org.scalikejdbc:scalikejdbc_2.11:2.3.5'
   compile 'org.scalikejdbc:scalikejdbc-config_2.11:2.3.5'
-  compile 'org.scalikejdbc:scalikejdbc-test_2.11:2.3.5'
   
   compile 'org.flywaydb:flyway-core:3.2.1'
   compile 'commons-pool:commons-pool:1.6'
@@ -95,6 +94,8 @@ dependencies {
   providedCompile 'org.eclipse.jetty:jetty-io:9.2.15.v20160210'
   providedCompile 'org.eclipse.jetty:jetty-xml:9.2.15.v20160210'
   providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
+
+  runtime 'org.scala-lang:scala-compiler:2.11.7'
   
   executableWar 'org.eclipse.jetty:jetty-server:9.2.15.v20160210'
   executableWar 'org.eclipse.jetty:jetty-webapp:9.2.15.v20160210'
@@ -108,6 +109,7 @@ dependencies {
   //testCompile group: 'org.scalatra', name: 'scalatra-specs2_2.11', version: '2.3.0'
   testCompile group: 'org.scalatra', name: 'scalatra-scalatest_2.11', version: '2.3.1'
   testCompile 'org.scalatest:scalatest_2.11:2+'
+  testCompile 'org.scalikejdbc:scalikejdbc-test_2.11:2.3.5'
   testRuntime 'org.pegdown:pegdown:1.1.0'
 }
 
@@ -169,6 +171,12 @@ war {
       return it.isDirectory() ? it : zipTree(it)
     }
   }
+
+  def excludes = ["scala-compiler"]
+  classpath = classpath.collect { file ->
+      // 除外リスト内のパタンと部分一致に入っているものはnullにしておいて後でfindAllで除外する。
+      excludes.any { file =~ it } ? null : file
+  }.findAll { it }
   
   from "$buildDir/classes/main"
 
