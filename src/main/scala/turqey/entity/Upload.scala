@@ -5,9 +5,9 @@ import scalikejdbc._
 case class Upload(
   id: Long,
   name: String,
-  extension: Option[String] = None,
   mime: String,
   isImage: Boolean,
+  size: Long,
   ownerId: Long) {
 
   def save()(implicit session: DBSession = Upload.autoSession): Upload = Upload.save(this)(session)
@@ -23,15 +23,15 @@ object Upload extends SQLSyntaxSupport[Upload] {
 
   override val tableName = "UPLOADS"
 
-  override val columns = Seq("ID", "NAME", "EXTENSION", "MIME", "IS_IMAGE", "OWNER_ID")
+  override val columns = Seq("ID", "NAME", "MIME", "IS_IMAGE", "SIZE", "OWNER_ID")
 
   def apply(u: SyntaxProvider[Upload])(rs: WrappedResultSet): Upload = apply(u.resultName)(rs)
   def apply(u: ResultName[Upload])(rs: WrappedResultSet): Upload = new Upload(
     id = rs.get(u.id),
     name = rs.get(u.name),
-    extension = rs.get(u.extension),
     mime = rs.get(u.mime),
     isImage = rs.get(u.isImage),
+    size = rs.get(u.size),
     ownerId = rs.get(u.ownerId)
   )
 
@@ -73,22 +73,22 @@ object Upload extends SQLSyntaxSupport[Upload] {
 
   def create(
     name: String,
-    extension: Option[String] = None,
     mime: String,
     isImage: Boolean,
+    size: Long,
     ownerId: Long)(implicit session: DBSession = autoSession): Upload = {
     val generatedKey = withSQL {
       insert.into(Upload).columns(
         column.name,
-        column.extension,
         column.mime,
         column.isImage,
+        column.size,
         column.ownerId
       ).values(
         name,
-        extension,
         mime,
         isImage,
+        size,
         ownerId
       )
     }.updateAndReturnGeneratedKey.apply()
@@ -96,9 +96,9 @@ object Upload extends SQLSyntaxSupport[Upload] {
     Upload(
       id = generatedKey,
       name = name,
-      extension = extension,
       mime = mime,
       isImage = isImage,
+      size = size,
       ownerId = ownerId)
   }
 
@@ -106,21 +106,21 @@ object Upload extends SQLSyntaxSupport[Upload] {
     val params: Seq[Seq[(Symbol, Any)]] = entities.map(entity => 
       Seq(
         'name -> entity.name,
-        'extension -> entity.extension,
         'mime -> entity.mime,
         'isImage -> entity.isImage,
+        'size -> entity.size,
         'ownerId -> entity.ownerId))
         SQL("""insert into UPLOADS(
         NAME,
-        EXTENSION,
         MIME,
         IS_IMAGE,
+        SIZE,
         OWNER_ID
       ) values (
         {name},
-        {extension},
         {mime},
         {isImage},
+        {size},
         {ownerId}
       )""").batchByName(params: _*).apply()
     }
@@ -130,9 +130,9 @@ object Upload extends SQLSyntaxSupport[Upload] {
       update(Upload).set(
         column.id -> entity.id,
         column.name -> entity.name,
-        column.extension -> entity.extension,
         column.mime -> entity.mime,
         column.isImage -> entity.isImage,
+        column.size -> entity.size,
         column.ownerId -> entity.ownerId
       ).where.eq(column.id, entity.id)
     }.update.apply()
