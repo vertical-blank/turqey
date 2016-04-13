@@ -74,7 +74,7 @@ div.container#container(style="margin-top: 10px;")
     e.preventDefault();
     var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
     
-    loadFile(files[0], function() {
+    loadImageFile(files[0], function() {
       $('#beforeupload').toggle(false);
       $('#uploaded').toggle(true);
       

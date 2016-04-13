@@ -12,7 +12,8 @@ class RepositoryUtilSpec extends FunSuite {
       "title",
       "content",
       Seq(1,2,3),
-      new Ident("user.name", "user.email")
+      new Ident("user.name", "user.email"),
+      Seq()
     )
 
     val article = RepositoryUtil.headArticle(-1, "master")
@@ -27,7 +28,8 @@ class RepositoryUtilSpec extends FunSuite {
       "title",
       "content",
       Seq(1,2,3),
-      new Ident("user.name", "user.email")
+      new Ident("user.name", "user.email"),
+      Seq()
     )
 
     val article = RepositoryUtil.headArticle(-2, "draft")

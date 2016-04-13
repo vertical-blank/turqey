@@ -1,9 +1,8 @@
 package turqey.utils
 
 import collection.JavaConversions._
-import eu.medsea.mimeutil._
 
-import java.io.{File, InputStream, FileOutputStream}
+import java.io.{File, InputStream, FileOutputStream, BufferedInputStream}
 
 object FileUtil {
   
@@ -12,8 +11,9 @@ object FileUtil {
   lazy val homeDir = Option(System.getenv(envKey))
     .getOrElse{ new File(System.getProperty("user.home")).getAbsolutePath() + "/.turqey" }
   
-  lazy val usrImageDir = getDir(new File(homeDir, "userImage"))
+  lazy val usrImageDir    = getDir(new File(homeDir, "userImage"))
   lazy val articleBaseDir = getDir(new File(homeDir, "articles"))
+  lazy val uploadsDir     = getDir(new File(homeDir, "uploads"))
   
   def getDir(dir: File) = {
     if (!dir.exists()){
@@ -22,16 +22,14 @@ object FileUtil {
     dir
   }
   
-  class Base64Image(data: String) {
-    val Array(header, body) = data.split(",")
+  class Base64Decoder(data: String, name: Option[String] = None) extends MimeSupport {
+    val Array(header, body): Array[String] = data.split(",")
     
-    def left( str: String, char: Character) :String = str.substring(0, str.indexOf(char))
-    def right(str: String, char: Character) :String = str.substring(str.lastIndexOf(char) + 1)
-    def mid(str: String, begin: Character, end: Character) = left(right(str, begin), end) 
-    
-    val mediaType = mid(header, ':', ';')
-    val binary = com.google.common.io.BaseEncoding.base64().decode(body)
-    
+    val binary: Array[Byte] = com.google.common.io.BaseEncoding.base64().decode(body)
+
+    override def getName = this.name
+    override def getInputStream = new java.io.ByteArrayInputStream(this.binary)
+
     def saveTo(file: File): File = {
       writeBinary(binary, file)
     }
@@ -39,6 +37,44 @@ object FileUtil {
     def saveAsUserImage(name: String): File = {
       saveTo(new File(usrImageDir, name))
     }
+    
+  }
+  
+  import org.scalatra.servlet.FileItem
+  class FileSaver(item: FileItem) extends MimeSupport {
+    override def getName = Some(item.getName)
+    override def getInputStream = item.getInputStream
+    
+    def saveTo(file: File): File = {
+      item.write(file)
+      file
+    }
+    
+    def saveUpload(name: String): File = {
+      saveTo(new File(uploadsDir, name))
+    }
+    
+  }
+
+  trait MimeSupport {
+    import org.apache.tika._
+    import org.apache.tika.detect._
+    import org.apache.tika.mime._
+    import org.apache.tika.metadata._
+
+    def getName:        Option[String]
+    def getInputStream: java.io.InputStream
+
+    lazy val mime = {
+      val md = new Metadata() 
+      this.getName.foreach(md.set(TikaMetadataKeys.RESOURCE_NAME_KEY, _))
+      val detector = new DefaultDetector()
+      detector.detect(new BufferedInputStream(this.getInputStream), md)
+    }
+    
+    lazy val mimeType: String = this.mime.toString
+    
+    lazy val isImage: Boolean = this.mime.getType == "image"
     
   }
   
@@ -53,29 +89,6 @@ object FileUtil {
     java.nio.file.Files.readAllBytes(file.toPath)
   }
   
-  MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
-  
-  def getMimeType(file: File): String = {
-    val mimeTypes = MimeUtil.getMimeTypes(file);
-    
-    mimeTypes.headOption match {
-      case Some(mimeType: MimeType)
-        => mimeType.getMediaType() + "/" + mimeType.getSubType()
-      case _
-        => "application/octet-stream"
-    }
-  }
-  
-  def isImage(file: File): Boolean = {
-    val mimeTypes = MimeUtil.getMimeTypes(file);
-    
-    mimeTypes.headOption match {
-      case Some(mimeType: MimeType)
-        => mimeType.getMediaType() == "image"
-      case _
-        => false
-    }
-  }
 
 }
 

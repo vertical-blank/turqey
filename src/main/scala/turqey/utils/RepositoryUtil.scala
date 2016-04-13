@@ -27,25 +27,25 @@ object RepositoryUtil {
     )
   }
   
-  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
+  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
       val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
       
-      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds), ident)
+      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
     }
   }
   
-  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident)
+  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
       val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
 
-      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds), ident)
+      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
 
       draft.mergeTo(master, ident)
 
@@ -72,7 +72,7 @@ object RepositoryUtil {
     val content = new String(dir.file(ArticleWhole.ARTICLE_MD).bytes)
     val attrs   = Json.parseAs[ArticleAttrs](new String(dir.file(ArticleWhole.ARTICLE_ATTRS).bytes))
     
-    ArticleWhole(id, attrs.title, content, attrs.tagIds)
+    ArticleWhole(id, attrs.title, content, attrs.tagIds, attrs.attachments)
   }
 
   def listTags(id: Long)(implicit repo: GitRepository = getArticleRepo(id)): Seq[GitRepository#Tag] = {
@@ -82,12 +82,11 @@ object RepositoryUtil {
 
 }
 
-case class ArticleAttrs(title: String, tagIds: Seq[Long])
+case class Attachment(id: Long, name: String, isImage: Boolean, mime: String)
+case class ArticleAttrs(title: String, tagIds: Seq[Long], attachments: Seq[Attachment])
 
-case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long]) {
-  
-  def attrs = ArticleAttrs(this.title, this.tagIds)
-  
+case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) {
+  def attrs = ArticleAttrs(this.title, this.tagIds, this.attachments)
   def constructDir() = new gristle.GitRepository.Dir()
     .put(ArticleWhole.ARTICLE_MD,    this.content.getBytes())
     .put(ArticleWhole.ARTICLE_ATTRS, Json.toJson(this.attrs).getBytes())

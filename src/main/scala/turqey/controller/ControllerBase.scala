@@ -102,6 +102,8 @@ trait AuthedController extends ControllerBase {
 }
 
 trait ScalateSupport extends org.scalatra.scalate.ScalateSupport {
-  override var contentType = "text/html"
+  before() {
+    contentType = "text/html"
+  }
 }
 

@@ -1,4 +1,3 @@
-
 package turqey.utils
 
 import java.sql.Clob
@@ -20,6 +19,13 @@ object Implicits {
       clob.setString(1, string)
       clob
     }
+  }
+
+  implicit class StringImprovements(val s: String) {
+    import scala.util.control.Exception._
+
+    def intOpt : Option[Int]  = catching(classOf[NumberFormatException]) opt s.toInt
+    def longOpt: Option[Long] = catching(classOf[NumberFormatException]) opt s.toLong
   }
 
 }

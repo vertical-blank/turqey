@@ -17,7 +17,8 @@ class ScalatraBootstrap extends LifeCycle {
       new TagController(),
       new IndexController(),
       new LoginController(),
-      new UserController()
+      new UserController(),
+      new UploadController()
     )
 
     servlets.foreach { controller =>

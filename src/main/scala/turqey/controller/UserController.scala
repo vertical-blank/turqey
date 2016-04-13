@@ -71,7 +71,7 @@ class UserController extends AuthedController
       root     = root
     ).save()
     
-    image.filter( _ != "" ).foreach( new FileUtil.Base64Image(_).saveAsUserImage(id.toString) )
+    image.filter( _ != "" ).foreach( new FileUtil.Base64Decoder(_).saveAsUserImage(id.toString) )
     
     val sessionUsr = SessionHolder.user.get
     if (sessionUsr.id == user.id){
@@ -105,7 +105,7 @@ class UserController extends AuthedController
       root     = SessionHolder.root && params.get("root").isDefined
     ).id
     
-    image.filter( _ != "" ).foreach( new FileUtil.Base64Image(_).saveAsUserImage(id.toString) )
+    image.filter( _ != "" ).foreach( new FileUtil.Base64Decoder(_).saveAsUserImage(id.toString) )
 
     //update user
     redirect(url(view, "id" -> id.toString))
@@ -123,20 +123,6 @@ class UserController extends AuthedController
       "u" -> User.find(id).getOrElse(redirectFatal("/")),
       "articleIds" -> articleIds
     )
-  }
-  
-  post("/prof_upload") { implicit dbSession =>
-    val id = SessionHolder.user.get.id;
-    
-    fileParams.get("file") match {
-      case Some(file)  =>
-        //file.getContentType 
-        
-      case _ => BadRequest
-    }
-    error {
-      case e: SizeConstraintExceededException => ("too much!")
-    }
   }
   
   getWithoutDB("/:id/image") {

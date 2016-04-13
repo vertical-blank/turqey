@@ -2,19 +2,21 @@
 - import turqey.servlet._
 - import turqey.entity._
 - import turqey.utils.Implicits._
+- import turqey.utils._
 - import turqey.controller._
 - import org.joda.time.{DateTime}
 - import turqey.utils.Markdown
 
--@val article:    Article
--@val title:      String
--@val content:    String
--@val latestEdit: Option[DateTime]
--@val tags:       Seq[Tag]
--@val comments:   Seq[ArticleComment]
--@val stockers:   Seq[User] = Seq()
--@val stocked:    Boolean
--@val count:      Long
+-@val article:     Article
+-@val title:       String
+-@val content:     String
+-@val latestEdit:  Option[DateTime]
+-@val tags:        Seq[Tag]
+-@val attachments: Seq[Attachment] = Seq()
+-@val comments:    Seq[ArticleComment]
+-@val stockers:    Seq[User] = Seq()
+-@val stocked:     Boolean
+-@val count:       Long
 
 -@val ownerId: Long = article.owner.get.id
 
@@ -27,6 +29,15 @@ div.articleHeader
         p
           h2 #{title}
         p
+          - for (tag <- tags)
+            div.chip
+              a(href="#{root}/tag/#{tag.id}") #{tag.name}
+        p
+          - if(attachments.nonEmpty)
+            i.material-icons attachment
+            - for (att <- attachments)
+              a(href="#{root}/upload/attach/#{att.id}/") #{att.name}
+        p
           span
             a(href="#{root}/user/#{ownerId}")
               img(src="#{root}/user/#{ownerId}/image" style="width: 20px;height: 20px;")
@@ -34,17 +45,11 @@ div.articleHeader
             |が #{article.created.toString("yyyy/MM/dd")} に投稿
           |#{latestEdit.map( _.toString("yyyy/MM/dd") + "に更新")}
           a(href="#{root}/article/#{article.id}/history") 編集履歴
-        p
-          - for (tag <- tags)
-            div.chip
-              a(href="#{root}/tag/#{tag.id}") #{tag.name}
-        
         - if(article.editable)
           p
             a.waves-effect.waves-light.btn(href="#{root}/article/#{article.id}/edit")
               i.material-icons.right edit
               |編集
-      
       div.col.s4.right-align#divStock
         p
           span(data-bind="text: count")
@@ -67,8 +72,6 @@ div.articleHeader
           - for (st <- stockers)
             a(href="#{root}/user/#{st.id}")
               img(src="#{root}/user/#{st.id}/image" style="width: 20px;height: 20px;")
-            | 
-
 div.container
   div.row
     div.markdown.col.s10.m9.l00#main_content

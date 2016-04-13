@@ -3,10 +3,11 @@
 - import turqey.utils.Implicits._
 - import turqey.utils.Json
 
--@val article: Option[Article]
--@val title:   String
--@val content: String
--@val tags:    Seq[Tag]
+-@val article:      Option[Article]
+-@val title:        String
+-@val content:      String
+-@val tags:         Seq[Tag]
+-@val attachments: Seq[Tag] = Seq()
 
 :css
   html, body { height:100%; margin:0; }
@@ -15,6 +16,7 @@ link(href="#{assets}/vender/css/knockout.autocomplete.css" rel="stylesheet")
 
 script(type="text/javascript" src="#{assets}/vender/ace/ace.js")
 script(type="text/javascript" src="#{assets}/vender/js/diffDOM.js")
+script(type="text/javascript" src="#{assets}/vender/js/paste.js")
 script(type="text/javascript" src="#{assets}/vender/js/jquery.scrollTo.min.js")
 
 script(type="text/javascript" src="#{assets}/vender/js/CsvToMarkdown.js")
@@ -36,6 +38,11 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         i.material-icons.right publish
         |公開
   input(type="hidden" name="id" data-bind="value: articleId")
+  div(data-bind="foreach: attachments" style="display: none;")
+    input(type="hidden" name="attIds"    data-bind="value: id")
+    input(type="hidden" name="attNames"  data-bind="value: name")
+    input(type="hidden" name="attMimes"  data-bind="value: mime")
+    input(type="hidden" name="attIsImgs" data-bind="value: isImage")
   div.row
     div.input-field.col.s3
       i.material-icons.prefix search
@@ -70,8 +77,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
           i.small.material-icons fullscreen
         a.waves-effect.waves-grey.btn-flat(style="padding: 0 1rem;" data-bind="click: exitFullscreen, visible: isFullscreen")
           i.small.material-icons fullscreen_exit
-
-    div(style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())")
+    div#editor_container(style="float: left; height: 100%; border-right: 1px solid #E0E0E0;" data-bind="style: {width: editorWidth}, visible: !(unshiftableToPreview())")
       div.editor#input_content(
         style="height: 100%; width: 100%;"
         data-bind="ace: content, aceOptions: { mode: 'markdown', theme: 'eclipse', fontSize: '14px', change: changeContent }")
@@ -80,29 +86,66 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     div#prev_container(style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())")
       div
         div#preview.markdown(data-bind="html: marked")
-
-ul#langs.dropdown-content(style="max-height: 300px; overflow-x: hidden;")
-  / ko foreach: langs
-  li
-    a(data-bind="text: name, click: $root.insertLang")
-  / /ko
-
-div#modal1.modal.modal-fixed-footer
-  div.modal-content
-    h4 Table
-    p
-      textarea#textarea1.materialize-textarea(data-bind="value: contentCsv")
-    p
-      input.filled-in#first_header(type="checkbox" data-bind="checked: setFirstLineAsHeader")
-      label(for="first_header") 先頭行をヘッダとする
-      input(name="sep_char" type="radio" id="sep_comma" value="c" data-bind="checked: sepChar")
-      label(for="sep_comma") カンマ
-      input(name="sep_char" type="radio" id="sep_tab" value="t" data-bind="checked: sepChar")
-      label(for="sep_tab") タブ
-  div.modal-footer
-    a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 実行
+  ul#langs.dropdown-content(style="max-height: 300px; overflow-x: hidden;")
+    / ko foreach: langs
+    li
+      a(data-bind="text: name, click: $root.insertLang")
+    / /ko
+  div#modal1.modal.modal-fixed-footer
+    div.modal-content
+      h4 Table
+      p
+        textarea#textarea1.materialize-textarea(data-bind="value: contentCsv")
+      p
+        input.filled-in#first_header(type="checkbox" data-bind="checked: setFirstLineAsHeader")
+        label(for="first_header") 先頭行をヘッダとする
+        input(name="sep_char" type="radio" id="sep_comma" value="c" data-bind="checked: sepChar")
+        label(for="sep_comma") カンマ
+        input(name="sep_char" type="radio" id="sep_tab" value="t" data-bind="checked: sepChar")
+        label(for="sep_tab") タブ
+    div.modal-footer
+      a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 実行
 
 :!javascript
+  $(document).ready(function(){
+    $('#editor_container')
+    .bind('drop', function(e){
+      e.preventDefault();
+      var files = (e.target && e.target.files)? e.target.files: e.originalEvent.dataTransfer.files;
+      for(var i = 0; i < files.length; i++) {
+        if (files[i].size > 5 * 1024 * 1024){
+          alert('5Mまでです');
+          return;
+        }
+      };
+
+      var formData = new FormData();
+      $.each(files, function() {
+        formData.append("file", this);
+        formData.append("name", this.name);
+      });
+      $.ajax({
+        url:         '#{root}/upload/attach/',
+        method:      'post',
+        processData: false,
+        data:        formData,
+        contentType: false
+      }).done(function(response) {
+        var editor = vm.getEditor();
+        var editSession = editor.getSession();
+        $.each(response, function() {
+          vm.attachments.push(this);
+          editSession.insert(
+            editor.getSelection().getCursor(), 
+            (this.isImage ? '!' : '') + '[' + this.name + '](#{root}/upload/attach/' + this.id + '/)\n'
+          );
+        });
+      });
+    })
+    .bind('dragenter dragover', function(){
+      return false;
+    });
+  });
   var allTags = #{ Json.toJson(Tag.findAll()) };
   var ViewModel = function (initialTags){
     var self = this;
@@ -194,6 +237,8 @@ div#modal1.modal.modal-fixed-footer
           }
       )}, 800);
     };
+
+    self.attachments = ko.observableArray(#{Json.toJson(attachments)});
     
     self.langs = ko.observableArray([
       {name: 'bash'},
@@ -237,11 +282,35 @@ div#modal1.modal.modal-fixed-footer
     self.getEditor = function(){
       if (!self.editor) {
         self.editor = ace.edit("input_content");
+        
+        $('.ace_text-input').pastableTextarea()
+        .on('pasteImage', function (ev, data){
+          var formData = new FormData();
+          formData.append("file", data.blob);
+          formData.append("name", new Date().getTime());
+          $.ajax({
+            url:         '#{root}/upload/attach/',
+            method:      'post',
+            processData: false,
+            data:        formData,
+            contentType: false
+          }).done(function(response) {
+            var editor = self.editor;
+            var editSession = editor.getSession();
+            $.each(response, function() {
+              vm.attachments.push(this);
+              editSession.insert(
+                editor.getSelection().getCursor(), 
+                '![' + this.name + '](#{root}/upload/attach/' + this.id + '/)'
+              );
+            });
+          });
+        });
       }
       return self.editor;
     };
     
-    self.insertLink  = function(){
+    self.insertLink = function(){
       var editor = self.getEditor();
       var range = editor.selection.getRange();
       
@@ -310,13 +379,28 @@ div#modal1.modal.modal-fixed-footer
       });
       params.tagIds = tagIds;
       params.tagNames = tagNames;
+
+      var attIds    = [];
+      var attNames  = [];
+      var attMimes  = [];
+      var attIsImgs = [];
+      $.each(self.attachments(), function() {
+        attIds.push(this.id);
+        attNames.push(this.name);
+        attMimes.push(this.mime);
+        attIsImgs.push(this.isImage);
+      });
+      params.attIds    = attIds;
+      params.attNames  = attNames;
+      params.attMimes  = attMimes;
+      params.attIsImgs = attIsImgs;
       
       $.post(
-          '#{root}/article/draft/',
-          params,
-          function(response) {
-            self.articleId(JSON.parse(response).articleId);
-          }
+        '#{root}/article/draft/',
+        params,
+        function(response) {
+          self.articleId(response.articleId);
+        }
       );
     };
     

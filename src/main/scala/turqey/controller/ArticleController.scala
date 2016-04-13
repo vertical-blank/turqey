@@ -49,15 +49,16 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     
     jade("/article/view", 
-      "article"    -> articleRec,
-      "title"      -> article.title,
-      "content"    -> Markdown.html(article.content),
-      "latestEdit" -> latestEdit,
-      "tags"       -> tags,
-      "comments"   -> comments,
-      "stockers"   -> stockers,
-      "stocked"    -> stocked,
-      "count"      -> count)
+      "article"     -> articleRec,
+      "title"       -> article.title,
+      "content"     -> Markdown.html(article.content),
+      "latestEdit"  -> latestEdit,
+      "tags"        -> tags,
+      "attachments" -> article.attachments.filter(!_.isImage),
+      "comments"    -> comments,
+      "stockers"    -> stockers,
+      "stocked"     -> stocked,
+      "count"       -> count)
   }
 
   val edit = get("/:id/edit"){ implicit dbSession =>
@@ -76,10 +77,11 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
 
     jade("/article/edit", 
-      "article"    -> Some(articleRec),
-      "title"      -> article.title,
-      "content"    -> article.content,
-      "tags"       -> tags)
+      "article"     -> Some(articleRec),
+      "title"       -> article.title,
+      "content"     -> article.content,
+      "tags"        -> tags,
+      "attachments" -> article.attachments)
   }
 
   val history = get("/:id/history"){ implicit dbSession =>
@@ -145,13 +147,27 @@ class ArticleController extends AuthedController with ScalateSupport {
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     save(
       idOpt,
       title,
       content,
       tagIds,
-      tagNames
+      tagNames,
+      attachments
     )
   }
   post("/"){ implicit dbSession =>
@@ -160,17 +176,37 @@ class ArticleController extends AuthedController with ScalateSupport {
     val content   = params.getOrElse("content", "").toString
     val tagIds    = multiParams("tagIds")
     val tagNames  = multiParams("tagNames")
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     save(
       idOpt,
       title,
       content,
       tagIds,
-      tagNames
+      tagNames,
+      attachments
     )
   }
 
-  def save(idOpt: Option[String], title: String, content: String, tagIds: Seq[String], tagNames: Seq[String])
+  def save(
+      idOpt: Option[String],
+      title: String,
+      content: String,
+      tagIds: Seq[String],
+      tagNames: Seq[String],
+      attachments: Seq[Attachment])
     (implicit dbSession: DBSession): Any = {
     val user = turqey.servlet.SessionHolder.user.get
     
@@ -212,7 +248,8 @@ class ArticleController extends AuthedController with ScalateSupport {
       title,
       content,
       newTagIds,
-      Ident(user)
+      Ident(user),
+      attachments
     )
 
     ArticleHistory.create(articleId, headCommit.getObjectId.name, Some(user.id))
@@ -291,6 +328,19 @@ class ArticleController extends AuthedController with ScalateSupport {
         ownerId = user.id
       ).id
     )
+    val attachments = {
+      multiParams("attIds")    zip
+      multiParams("attNames")  zip
+      multiParams("attMimes")  zip
+      multiParams("attIsImgs") map {
+        case (((id, name), mime), isImage) => Attachment(
+          id      = id.toLong,
+          name    = name,
+          mime    = mime,
+          isImage = isImage.toBoolean
+        )
+      }
+    }
 
     Draft.findBy(sqls.eq(Draft.column.articleId, articleId))
       .map(
@@ -315,7 +365,8 @@ class ArticleController extends AuthedController with ScalateSupport {
       title,
       content,
       newTagIds,
-      Ident(user)
+      Ident(user),
+      attachments
     )
     
     Json.toJson(Map("articleId" -> articleId))
