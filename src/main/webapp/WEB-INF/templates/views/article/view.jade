@@ -33,11 +33,6 @@ div.articleHeader
             div.chip
               a(href="#{root}/tag/#{tag.id}") #{tag.name}
         p
-          - if(attachments.nonEmpty)
-            i.material-icons attachment
-            - for (att <- attachments)
-              a(href="#{root}/upload/attach/#{att.id}/") #{att.name}
-        p
           span
             a(href="#{root}/user/#{ownerId}")
               img(src="#{root}/user/#{ownerId}/image" style="width: 20px;height: 20px;")

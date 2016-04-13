@@ -82,7 +82,7 @@ object RepositoryUtil {
 
 }
 
-case class Attachment(id: Long, name: String, isImage: Boolean, mime: String)
+case class Attachment(id: Long, name: String, isImage: Boolean, mime: String, size: Long)
 case class ArticleAttrs(title: String, tagIds: Seq[Long], attachments: Seq[Attachment])
 
 case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) {

@@ -63,10 +63,8 @@ trait ControllerBase extends ScalatraServlet
     }}
   }
   
-  import java.lang.{ Integer => JInteger }
   import scala.util.control.ControlThrowable
   import scala.util.control.NoStackTrace
-  
   
   def redirectFatal(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
     super.redirect(uri)

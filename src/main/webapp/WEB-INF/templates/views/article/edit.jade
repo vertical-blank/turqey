@@ -43,6 +43,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     input(type="hidden" name="attNames"  data-bind="value: name")
     input(type="hidden" name="attMimes"  data-bind="value: mime")
     input(type="hidden" name="attIsImgs" data-bind="value: isImage")
+    input(type="hidden" name="attSizes"  data-bind="value: size")
   div.row
     div.input-field.col.s3
       i.material-icons.prefix search
@@ -122,7 +123,6 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       var formData = new FormData();
       $.each(files, function() {
         formData.append("file", this);
-        formData.append("name", this.name);
       });
       $.ajax({
         url:         '#{root}/upload/attach/',
@@ -137,7 +137,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
           vm.attachments.push(this);
           editSession.insert(
             editor.getSelection().getCursor(), 
-            (this.isImage ? '!' : '') + '[' + this.name + '](#{root}/upload/attach/' + this.id + '/)\n'
+            (this.isImage ? '!' : '') + '[' + this.name + '(' + parseInt(this.size / 1024) + 'KB)](#{root}/upload/attach/' + this.id + '/)\n'
           );
         });
       });
@@ -286,8 +286,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         $('.ace_text-input').pastableTextarea()
         .on('pasteImage', function (ev, data){
           var formData = new FormData();
-          formData.append("file", data.blob);
-          formData.append("name", new Date().getTime());
+          formData.append("file", data.blob, new Date().getTime());
           $.ajax({
             url:         '#{root}/upload/attach/',
             method:      'post',
@@ -384,16 +383,19 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       var attNames  = [];
       var attMimes  = [];
       var attIsImgs = [];
+      var attSizes  = [];
       $.each(self.attachments(), function() {
         attIds.push(this.id);
         attNames.push(this.name);
         attMimes.push(this.mime);
         attIsImgs.push(this.isImage);
+        attSizes.push(this.size);
       });
       params.attIds    = attIds;
       params.attNames  = attNames;
       params.attMimes  = attMimes;
       params.attIsImgs = attIsImgs;
+      params.attSizes = attSizes;
       
       $.post(
         '#{root}/article/draft/',

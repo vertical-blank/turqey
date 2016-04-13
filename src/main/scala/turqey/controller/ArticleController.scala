@@ -151,12 +151,14 @@ class ArticleController extends AuthedController with ScalateSupport {
       multiParams("attIds")    zip
       multiParams("attNames")  zip
       multiParams("attMimes")  zip
-      multiParams("attIsImgs") map {
-        case (((id, name), mime), isImage) => Attachment(
+      multiParams("attIsImgs") zip
+      multiParams("attSizes") map {
+        case ((((id, name), mime), isImage), size) => Attachment(
           id      = id.toLong,
           name    = name,
           mime    = mime,
-          isImage = isImage.toBoolean
+          isImage = isImage.toBoolean,
+          size    = size.toLong
         )
       }
     }
@@ -180,12 +182,14 @@ class ArticleController extends AuthedController with ScalateSupport {
       multiParams("attIds")    zip
       multiParams("attNames")  zip
       multiParams("attMimes")  zip
-      multiParams("attIsImgs") map {
-        case (((id, name), mime), isImage) => Attachment(
+      multiParams("attIsImgs") zip
+      multiParams("attSizes") map {
+        case ((((id, name), mime), isImage), size) => Attachment(
           id      = id.toLong,
           name    = name,
           mime    = mime,
-          isImage = isImage.toBoolean
+          isImage = isImage.toBoolean,
+          size    = size.toLong
         )
       }
     }
@@ -332,12 +336,14 @@ class ArticleController extends AuthedController with ScalateSupport {
       multiParams("attIds")    zip
       multiParams("attNames")  zip
       multiParams("attMimes")  zip
-      multiParams("attIsImgs") map {
-        case (((id, name), mime), isImage) => Attachment(
+      multiParams("attIsImgs") zip 
+      multiParams("attSizes") map {
+        case ((((id, name), mime), isImage), size) => Attachment(
           id      = id.toLong,
           name    = name,
           mime    = mime,
-          isImage = isImage.toBoolean
+          isImage = isImage.toBoolean,
+          size    = size.toLong
         )
       }
     }

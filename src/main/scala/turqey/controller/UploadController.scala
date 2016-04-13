@@ -20,19 +20,18 @@ class UploadController extends AuthedController with FileUploadSupport {
 
     val user = turqey.servlet.SessionHolder.user.get
 
-    val result = fileMultiParams("file") zip multiParams("name") map {
-      _ match {
-        case (f, name) => {
-          val saver = new FileUtil.FileSaver(f)
-          val newRec = Upload.create(
-            name      = name,
-            mime      = saver.mimeType,
-            isImage   = saver.isImage,
-            ownerId   = user.id
-          )
-          saver.saveUpload(newRec.id.toString)
-          newRec
-        }
+    val result = fileMultiParams("file") map {
+      f => {
+        val saver = new FileUtil.FileSaver(f)
+        val newRec = Upload.create(
+          name      = f.name,
+          mime      = saver.mimeType,
+          isImage   = saver.isImage,
+          size      = f.size,
+          ownerId   = user.id
+        )
+        saver.saveUpload(newRec.id.toString)
+        newRec
       }
     }
     
@@ -40,13 +39,14 @@ class UploadController extends AuthedController with FileUploadSupport {
   }
 
   getWithoutDB("/attach/:id/") {
+    import java.net.URLEncoder
     val user = turqey.servlet.SessionHolder.user.get
 
     val id = params.get("id").getOrElse(redirectFatal("/")).toLong
 
     Upload.find(id).map{ rec =>
       contentType = rec.mime
-      response.setHeader("Content-Disposition", "attachment; filename=" + rec.name)
+      response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(rec.name, "utf-8"))
       new java.io.File(FileUtil.uploadsDir, id.toString)
     } getOrElse( resourceNotFound() )
   }
