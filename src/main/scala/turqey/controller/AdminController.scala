@@ -11,8 +11,8 @@ import turqey.servlet.SessionHolder
 
 import turqey.utils.Implicits._
 
-class AdminController(adminPath: String) extends AuthedController with ScalateSupport {
-  override val path = adminPath
+class AdminController extends AuthedController with ScalateSupport {
+  override val path = "admin"
 
   before() {
     SessionHolder.set(session)
@@ -23,18 +23,11 @@ class AdminController(adminPath: String) extends AuthedController with ScalateSu
   }
 
   get("/") { implicit dbSession =>
-    jade("/admin/index")
+    jade("/admin/index",
+    "s" -> MailUtil.setting)
   }
 
-  val systemView = get("/system") { implicit dbSession =>
-  
-    val settings = SystemSetting.findAll()
-    val smtpSettings = SmtpSettings(settings)
-  
-    jade("/admin/system", "settings" -> smtpSettings)
-  }
-  
-  post("/system") { implicit dbSession =>
-    redirect(url(systemView))
+  post("/") { implicit dbSession =>
+    redirect(url("/"))
   }
 }

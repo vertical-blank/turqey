@@ -2,7 +2,7 @@ package turqey.utils
 
 import collection.JavaConversions._
 
-import java.io.{File, InputStream, FileOutputStream, BufferedInputStream}
+import java.io._
 
 object FileUtil {
   
@@ -20,6 +20,15 @@ object FileUtil {
       dir.mkdir()
     }
     dir
+  }
+
+  def readFile(file: File): String = {
+    val source = scala.io.Source.fromFile(file)
+    try source.mkString finally source.close()
+  }
+
+  def readJsonFileAs[T](file: File)(implicit m: scala.reflect.Manifest[T]): T = {
+    Json.parseAs[T](readFile(file))
   }
   
   class Base64Decoder(data: String, name: Option[String] = None) extends MimeSupport {
@@ -76,6 +85,13 @@ object FileUtil {
     
     lazy val isImage: Boolean = this.mime.getType == "image"
     
+  }
+  
+  def writeText(content: String, file: File): File = {
+    val out = new PrintWriter(file)
+    out.write(content)
+    out.close
+    file
   }
   
   def writeBinary(bin: Array[Byte], file: File): File = {

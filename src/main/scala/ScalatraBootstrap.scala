@@ -11,7 +11,7 @@ class AssetsController extends ScalatraServlet
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     val servlets: Seq[ControllerBase] = Seq(
-      new AdminController("admin"),
+      new AdminController(),
       new ApiController(),
       new ArticleController(),
       new TagController(),

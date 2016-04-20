@@ -1,5 +1,5 @@
 @import turqey.entity._
-@import turqey.utils.Mailer
+@import turqey.utils.MailUtil
 @import turqey.helpers.CommentedNotif
 @import turqey.utils.Implicits._
 
