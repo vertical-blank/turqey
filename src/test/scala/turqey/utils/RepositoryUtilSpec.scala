@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 import scala.concurrent.Future
 
 class RepositoryUtilSpec extends FunSuite {
-  import gristle.GitRepository.Ident
+  import glitch.GitRepository.Ident
 
   test("saveAsMaster") {
     RepositoryUtil.saveAsMaster(

@@ -16,65 +16,6 @@ object Keys {
   val baseUrl     = "baseUrl"
 }
 
-case class SmtpSettings(
-  host: String,
-  port: Int,
-  user: String,
-  password: String,
-  ssl: Boolean,
-  fromAddr: String,
-  fromName: String
-) {
-  def toSeq: Seq[SystemSetting] = {
-    Seq(
-      SystemSetting(SmtpSettings.Keys.host, host),
-      SystemSetting(SmtpSettings.Keys.port, port.toString),
-      SystemSetting(SmtpSettings.Keys.user, user),
-      SystemSetting(SmtpSettings.Keys.password, password),
-      SystemSetting(SmtpSettings.Keys.ssl, ssl.toString),
-      SystemSetting(SmtpSettings.Keys.fromAddr, fromAddr),
-      SystemSetting(SmtpSettings.Keys.fromName, fromName)
-    )
-  }
-}
-
-object SmtpSettings {
-  object Keys {
-    val enabled   = "smtpEnabled"
-    val host      = "smtpHost"
-    val port      = "smtpPort"
-    val user      = "smtpUser"
-    val password  = "smtpPassword"
-    val ssl       = "smtpSSL"
-    val fromAddr  = "smtpFromAddr"
-    val fromName  = "smtpFromName"
-    
-    def all() = Seq(host, port, user, password, ssl, fromAddr, fromName)
-  }
-  
-  def apply(vals: Seq[SystemSetting]):Option[SmtpSettings] = {
-    apply(vals.map(s => (s.key, s.value)).toMap)
-  }
-  def apply(vals: Map[String, String]):Option[SmtpSettings] = {
-    for {
-      host <- vals.get(Keys.host)
-      port <- vals.get(Keys.port)
-      user <- vals.get(Keys.user)
-      password <- vals.get(Keys.password)
-      ssl <- vals.get(Keys.ssl)
-      fromAddr <- vals.get(Keys.fromAddr)
-      fromName <- vals.get(Keys.fromName)
-    } yield new SmtpSettings(
-      host,
-      port.toInt,
-      user,
-      password,
-      ssl.toBoolean,
-      fromAddr,
-      fromName
-    )
-  }
-}
 
 object SystemSetting extends SQLSyntaxSupport[SystemSetting] {
 

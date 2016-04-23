@@ -1,44 +1,45 @@
 - import turqey.servlet.ServletContextHolder._
 - import turqey.entity._
 - import turqey.servlet._
-- import turqey.utils.MailUtil._
+- import turqey.utils.SmtpSetting
 
--@val s: SmtpSetting
+-@val smtp: Option[SmtpSetting]
 
 div.container#container(style="margin-top: 10px;")
   div.row
     div.col.s8
+      | SMTP
       form.col.s12#form(action="#{root}/admin/" method="post")
         div.row
           div.input-field.col.s12
-            input(type="text" name="host" value="#{s.host}" length="120")
+            input(type="text" name="host" value="#{smtp.flatMap(_.host)}" length="120")
             label Host
         div.row
           div.input-field.col.s12
-            input(type="text" name="port" value="#{s.port}" length="120")
+            input(type="text" name="port" value="#{smtp.flatMap(_.port)}" length="120")
             label Port
         div.row
           div.input-field.col.s12
-            input(type="text" name="authId" value="#{s.authId}" length="120")
+            input(type="text" name="authId" value="#{smtp.flatMap(_.authId)}" length="120")
             label Id
         div.row
           div.input-field.col.s12
-            input(type="password" name="authPass" value="#{s.authPass}" length="120")
+            input(type="password" name="authPass" value="#{smtp.flatMap(_.authPass)}" length="120")
             label Pass
         div.row
           div.input-field.col.s12
             input.filled-in#filled-in-box{
               :type=>"checkbox",
               :name=>"tls",
-              :checked=>{s.tls},
+              :checked=>{smtp.flatMap(_.ssl).getOrElse(false)}}
             label(for="filled-in-box") TLS/SSL
         div.row
           div.input-field.col.s12
-            input(type="text" name="authId" value="#{s.from.address}" length="120")
+            input(type="text" name="fromAddr" value="#{smtp.map(_.from.address)}" length="120")
             label 送信者アドレス
         div.row
           div.input-field.col.s12
-            input(type="password" name="authPass" value="#{s.from.name}" length="120")
+            input(type="password" name="fromName" value="#{smtp.map(_.from.name)}" length="120")
             label 送信者名
         button.waves-effect.waves-light.btn(type="submit")
           i.material-icons.right check

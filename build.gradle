@@ -49,7 +49,7 @@ configurations {
 }
 
 dependencies {
-  compile 'com.github.yohei224:gristle:0.0.1'
+  compile 'com.github.yohei224:glitch:0.0.1'
 
   compile 'org.scala-lang:scala-library:2.11.7'
   compile 'com.typesafe.play:twirl-api_2.11:1.0.2'

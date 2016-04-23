@@ -24,10 +24,21 @@ class AdminController extends AuthedController with ScalateSupport {
 
   get("/") { implicit dbSession =>
     jade("/admin/index",
-    "s" -> MailUtil.setting)
+    "smtp" -> MailUtil.settingOpt)
   }
 
   post("/") { implicit dbSession =>
+    MailUtil.saveSetting(SmtpSetting(
+      host     =  params.get("host").filter(!_.isEmpty),
+      port     =  params.get("port").map(_.toInt),
+      authId   =  params.get("authId").filter(!_.isEmpty),
+      authPass =  params.get("authPass").filter(!_.isEmpty),
+      ssl      =  params.get("tls").map(_ == "on"),
+      from     =  MailAddress(
+          params.getOrElse("fromAddr", ""),
+          params.get("fromName").filter(!_.isEmpty)
+        )
+    ))
     redirect(url("/"))
   }
 }

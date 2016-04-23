@@ -1,7 +1,7 @@
 package turqey.utils
 
-import gristle._
-import gristle.GitRepository._
+import glitch._
+import glitch.GitRepository._
 import java.io.File
 
 
@@ -87,7 +87,7 @@ case class ArticleAttrs(title: String, tagIds: Seq[Long], attachments: Seq[Attac
 
 case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) {
   def attrs = ArticleAttrs(this.title, this.tagIds, this.attachments)
-  def constructDir() = new gristle.GitRepository.Dir()
+  def constructDir() = new GitRepository.Dir()
     .put(ArticleWhole.ARTICLE_MD,    this.content.getBytes())
     .put(ArticleWhole.ARTICLE_ATTRS, Json.toJson(this.attrs).getBytes())
 }
@@ -97,7 +97,7 @@ object ArticleWhole {
 }
 
 object Ident {
-  import gristle.GitRepository.{Ident => JIdent}
+  import GitRepository.{Ident => JIdent}
   def apply(name: String, email: String): JIdent = new JIdent(name, email)
   def apply(user: turqey.servlet.UserSession): JIdent = apply(user.name, user.email)
 }
