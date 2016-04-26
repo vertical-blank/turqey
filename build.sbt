@@ -37,9 +37,12 @@ scalaVersion := "2.11.7"
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
   "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
-  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
+  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/",
+  "http://yohei224.github.io/" at "http://yohei224.github.io/"
 )
 libraryDependencies ++= Seq(
+  "com.github.yohei224"       % "glitch"                       % "0.0.1",
+
   "org.scala-lang"            % "scala-compiler"               % "2.11.7",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"             %% "scalatra-json"                % ScalatraVersion,
@@ -62,10 +65,12 @@ libraryDependencies ++= Seq(
   
   "com.googlecode.java-diff-utils" % "diffutils"               % "1.2.1",
   
-  "ch.qos.logback"            % "logback-classic"              % "1.1.3",
   
+  "ch.qos.logback"            % "logback-classic"              % "1.1.3",
+
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
+  "org.apache.tika:tika-core:1.12",
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "container;provided",
   "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided"

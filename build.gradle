@@ -46,7 +46,7 @@ configurations {
 }
 
 dependencies {
-  compile 'com.github.yohei224:gristle:0.0.1'
+  compile 'com.github.yohei224:glitch:0.0.1'
 
   compile 'org.scala-lang:scala-library:2.11.7'
   compile 'org.scala-lang:scala-reflect:2.11.7'
@@ -61,7 +61,7 @@ dependencies {
   compile 'com.typesafe.akka:akka-actor_2.11:2.3.6'
   compile 'com.enragedginger:akka-quartz-scheduler_2.11:1.4.0-akka-2.3.x'
 
-  compile 'io.github.gitbucket:markedj:1.0.5'
+  compile 'io.github.gitbucket:markedj:1.0.6'
   //compile 'com.google.apis:google-api-services-oauth2:v1-rev99-1.20.0'
   //compile 'com.google.apis:google-api-services-plus:v1-rev290-1.20.0'
   //compile 'com.google.apis:google-api-services-plusDomains:v1-rev198-1.20.0'

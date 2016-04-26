@@ -1,7 +1,7 @@
 package turqey.utils
 
-import gristle._
-import gristle.GitRepository._
+import glitch._
+import glitch.GitRepository._
 import java.io.File
 
 
@@ -27,27 +27,42 @@ object RepositoryUtil {
     )
   }
   
-  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
-    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
+  def createDraft(id: Long, ident: Ident, userId: Long)
+    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Branch = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
-      
-      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
+      repo.branch("draft" + userId.toString)
+        .existsOr( master.createNewBranch("draft" + userId.toString) )
     }
   }
   
-  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
+  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, userId: Long, attachments: Seq[Attachment])
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master")
         .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draft  = repo.branch("draft").existsOr( master.createNewBranch("draft") )
+      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
+      
+      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
+      
+      master.mergeTo(draft, ident)
+
+      draft.head
+    }
+  }
+  
+  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, userId: Long, attachments: Seq[Attachment])
+    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
+    withLock (repo.getDirectory.toString) {
+      val master = repo.branch("master")
+        .existsOr( repo.initialize("initial commit", ident).branch("master") )
+      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
 
       commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
 
-      draft.mergeTo(master, ident)
+      master.mergeTo(draft, ident)
+      draft.mergeTo(master, ident, true)
 
       val head = master.head
       head.addTag(
@@ -55,6 +70,19 @@ object RepositoryUtil {
         "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
         ident)
       head
+    }
+  }
+
+  def mergeMasterToDraft(id: Long, ident: Ident, userId: Long)
+    (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
+    withLock (repo.getDirectory.toString) {
+      val master = repo.branch("master")
+        .existsOr( repo.initialize("initial commit", ident).branch("master") )
+      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
+
+      if (draft.head.getObjectId() != master.head.getObjectId()){
+        master.mergeTo(draft, ident)
+      }
     }
   }
   
@@ -87,7 +115,7 @@ case class ArticleAttrs(title: String, tagIds: Seq[Long], attachments: Seq[Attac
 
 case class ArticleWhole(id: Long, title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) {
   def attrs = ArticleAttrs(this.title, this.tagIds, this.attachments)
-  def constructDir() = new gristle.GitRepository.Dir()
+  def constructDir() = new GitRepository.Dir()
     .put(ArticleWhole.ARTICLE_MD,    this.content.getBytes())
     .put(ArticleWhole.ARTICLE_ATTRS, Json.toJson(this.attrs).getBytes())
 }
@@ -97,7 +125,7 @@ object ArticleWhole {
 }
 
 object Ident {
-  import gristle.GitRepository.{Ident => JIdent}
+  import GitRepository.{Ident => JIdent}
   def apply(name: String, email: String): JIdent = new JIdent(name, email)
   def apply(user: turqey.servlet.UserSession): JIdent = apply(user.name, user.email)
 }
