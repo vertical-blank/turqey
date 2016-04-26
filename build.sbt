@@ -5,10 +5,14 @@ val Organization = "yohei224"
 val Name = "turqey"
 val ScalatraVersion = "2.4.0"
 val ScalikejdbcVersion = "2.3.5"
-val JettyVersion = "8.1.18.v20150929"
+val JettyVersion = "9.2.15.v20160210"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
+
+containerLibs in Jetty := Seq("org.eclipse.jetty" % "jetty-runner" % "9.2.15.v20160210" intransitive())
+containerMain in Jetty := "org.eclipse.jetty.runner.Runner"
+containerPort := 8081
 
 import ScalateKeys._
 seq(scalateSettings:_*)
@@ -23,9 +27,6 @@ scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
   )
 }
 
-containerLibs in Jetty := Seq("org.mortbay.jetty" % "jetty-runner" % "8.0.0.v20110901" intransitive())
-containerMain in Jetty := "org.mortbay.jetty.runner.Runner"
-containerPort := 8081
 
 sourcesInBase := false
 organization := Organization
@@ -33,47 +34,60 @@ name := Name
 version := "1.0"
 scalaVersion := "2.11.7"
 
+checksums in update := Nil
+
+
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
   "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
   "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/",
-  "http://yohei224.github.io/" at "http://yohei224.github.io/"
+  "my-github-repo" at "http://yohei224.github.io/"
 )
 libraryDependencies ++= Seq(
-  "com.github.yohei224"       % "glitch"                       % "0.0.1",
+  "com.github.yohei224"       % "glitch"                      % "0.0.1",
 
   "org.scala-lang"            % "scala-compiler"               % "2.11.7",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
-  "org.scalatra"             %% "scalatra-json"                % ScalatraVersion,
   "org.scalatra"             %% "scalatra-scalate"             % ScalatraVersion,
-  "org.json4s"               %% "json4s-core"                  % "3.3.0",
-  "org.json4s"               %% "json4s-native"                % "3.3.0",
-  
-  "io.github.gitbucket"       % "markedj"                      % "1.0.6",
-  
-  "org.scalikejdbc"          %% "scalikejdbc"                  % ScalikejdbcVersion,
-  "org.scalikejdbc"          %% "scalikejdbc-config"           % ScalikejdbcVersion,
-  "org.scalikejdbc"          %% "scalikejdbc-test"             % ScalikejdbcVersion,
-  
-  "commons-pool"              % "commons-pool"                 % "1.6",
-  "commons-dbcp"              % "commons-dbcp"                 % "1.4",
-  "javax.mail"                % "javax.mail-api"               % "1.5.4",
-  
-  "com.h2database"            % "h2"                           % "1.4.190",
-  "org.flywaydb"              % "flyway-core"                  % "3.2.1",
-  
-  "com.googlecode.java-diff-utils" % "diffutils"               % "1.2.1",
-  
   
   "ch.qos.logback"            % "logback-classic"              % "1.1.3",
+  "com.typesafe.scala-logging"%%"scala-logging"                % "3.1.0",
 
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
-  "org.apache.tika:tika-core:1.12",
+  
+  "io.github.gitbucket"       % "markedj"                      % "+",
+  
+  "org.scalikejdbc"          %% "scalikejdbc"                  % ScalikejdbcVersion,
+  "org.scalikejdbc"          %% "scalikejdbc-config"           % ScalikejdbcVersion,
+  
+  "org.flywaydb"              % "flyway-core"                  % "3.2.1",
+  "commons-pool"              % "commons-pool"                 % "1.6",
+  "commons-dbcp"              % "commons-dbcp"                 % "1.4",
+  
+  "com.h2database"            % "h2"                           % "1.4.190",
+  "com.googlecode.java-diff-utils" % "diffutils"               % "1.2.1",
+  "org.json4s"               %% "json4s-core"                  % "3.3.0",
+  "org.json4s"               %% "json4s-native"                % "3.3.0",
+  
+  "javax.mail"                % "javax.mail-api"               % "1.5.4",
+  "com.sun.mail"              % "javax.mail"                   % "1.5.4",
+  
+  "com.google.guava"          % "guava"                        % "19.0",
+  "org.apache.tika"           % "tika-core"                    % "1.12",
+
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "container;provided",
   "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "provided",
-  "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided"
+  "org.eclipse.jetty"         %	"jetty-servlet"                % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-util"                   % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-security"               % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-http"                   % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-io"                     % JettyVersion     % "provided",
+  "org.eclipse.jetty"         %	"jetty-xml"                    % JettyVersion     % "provided",
+
+  "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
+  "org.scalikejdbc"          %% "scalikejdbc-test"             % ScalikejdbcVersion % "test"
 )
 
 // Twirl settings
@@ -142,6 +156,10 @@ executableKey	:= {
 
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
+
+  Keys.update.value select configurationFilter() filter { jar => jar.name.startsWith("scala-compiler") } foreach { 
+    jar => IO delete (temp / "WEB-INF" / "lib" / jar.name ) }
+
   val contentMappings	= (temp.*** --- PathFinder(temp)).get pair relativeTo(temp)
   val manifest		= new JarManifest
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION,	"1.0")
