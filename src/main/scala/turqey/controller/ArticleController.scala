@@ -83,7 +83,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       )
     )
 
-    RepositoryUtil.mergeMasterToDraft(articleId, Ident(user), user.id)
+    RepositoryUtil.mergeMasterToDraft(articleId, Ident(user))
     
     val tags = {
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
@@ -267,7 +267,6 @@ class ArticleController extends AuthedController with ScalateSupport {
       content,
       newTagIds,
       Ident(user),
-      user.id,
       attachments
     )
 
@@ -387,7 +386,6 @@ class ArticleController extends AuthedController with ScalateSupport {
       content,
       newTagIds,
       Ident(user),
-      user.id,
       attachments
     )
     

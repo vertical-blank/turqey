@@ -26,62 +26,56 @@ object RepositoryUtil {
       ident
     )
   }
-  
-  def createDraft(id: Long, ident: Ident, userId: Long)
-    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Branch = {
+
+  def withMasterAndDraft[T](id: Long, ident: Ident)(operation: (GitRepository#Branch, GitRepository#Branch) => T)
+    (implicit repo: GitRepository = getArticleRepo(id)): T = {
     withLock (repo.getDirectory.toString) {
-      val master = repo.branch("master")
-        .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      repo.branch("draft" + userId.toString)
-        .existsOr( master.createNewBranch("draft" + userId.toString) )
+      val master = repo.branch("master").existsOr( repo.initialize("initial commit", ident).branch("master") )
+      operation(master, repo.branch("draft" + ident.userId.toString).existsOr( master.createNewBranch("draft" + ident.userId.toString) ) )
     }
   }
+
   
-  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, userId: Long, attachments: Seq[Attachment])
+  def createDraft(id: Long, ident: Ident)
+    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Branch = withMasterAndDraft(id, ident) { (m, d) => d }
+  
+  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
-      val master = repo.branch("master")
-        .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
-      
-      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
-      
-      master.mergeTo(draft, ident)
-
-      draft.head
+      withMasterAndDraft(id, ident) { (master, draft) =>
+        commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
+        master.mergeTo(draft, ident)
+        draft.head
+      }
     }
   }
   
-  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, userId: Long, attachments: Seq[Attachment])
+  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
     withLock (repo.getDirectory.toString) {
-      val master = repo.branch("master")
-        .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
+      withMasterAndDraft(id, ident) { (master, draft) =>
+        commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
 
-      commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
+        master.mergeTo(draft, ident)
+        draft.mergeTo(master, ident, true)
 
-      master.mergeTo(draft, ident)
-      draft.mergeTo(master, ident, true)
-
-      val head = master.head
-      head.addTag(
-        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-        ident)
-      head
+        val head = master.head
+        head.addTag(
+          "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+          "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+          ident)
+        head
+      }
     }
   }
 
-  def mergeMasterToDraft(id: Long, ident: Ident, userId: Long)
+  def mergeMasterToDraft(id: Long, ident: Ident)
     (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
     withLock (repo.getDirectory.toString) {
-      val master = repo.branch("master")
-        .existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draft  = repo.branch("draft" + userId.toString).existsOr( master.createNewBranch("draft" + userId.toString) )
-
-      if (draft.head.getObjectId() != master.head.getObjectId()){
-        master.mergeTo(draft, ident)
+      withMasterAndDraft(id, ident) { (master, draft) =>
+        if (draft.head.getObjectId() != master.head.getObjectId()){
+          master.mergeTo(draft, ident)
+        }
       }
     }
   }
@@ -124,8 +118,9 @@ object ArticleWhole {
   val ARTICLE_ATTRS = "ArticleAttrs.json"
 }
 
+case class Ident(userId: Long, name: String, email: String) extends GitRepository.Ident(name, email)
+
 object Ident {
-  import GitRepository.{Ident => JIdent}
-  def apply(name: String, email: String): JIdent = new JIdent(name, email)
-  def apply(user: turqey.servlet.UserSession): JIdent = apply(user.name, user.email)
+  def apply(user: turqey.servlet.UserSession): Ident = Ident(user.id, user.name, user.email)
 }
+
