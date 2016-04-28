@@ -70,7 +70,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val draft = articleRec.draft
     def branch: String = draft
-      .map( d =>  "draft" + d.ownerId )
+      .map( d =>  "draftOf" + d.ownerId )
       .getOrElse( "master" )
     def article = RepositoryUtil.headArticle(articleId, branch)
 
