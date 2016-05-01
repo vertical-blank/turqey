@@ -26,8 +26,8 @@ case class Article(
   
   def view(): String = { "" + this.id.toString }
 
-  def draft()(implicit session: DBSession = Article.autoSession) :Option[Draft] = {
-    Draft.findBy(sqls.eq(Draft.d.articleId, this.id))
+  def draft(userId: Long)(implicit session: DBSession = Article.autoSession) :Option[Draft] = {
+    Draft.findBy(sqls.eq(Draft.d.articleId, this.id).and.eq(Draft.d.ownerId, userId))
   }
 }
 

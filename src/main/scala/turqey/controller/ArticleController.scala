@@ -61,16 +61,30 @@ class ArticleController extends AuthedController with ScalateSupport {
       "count"       -> count)
   }
 
-  val edit = get("/:id/edit"){ implicit dbSession =>
+  val edit = getWithTx("/:id/edit"){ implicit dbSession =>
+    val user = turqey.servlet.SessionHolder.user.get
+
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
     
-    def branch: String = articleRec.draft()
-      .map( x => "draft" )
+    val draft = articleRec.draft(user.id)
+    def branch: String = draft
+      .map( d =>  "draftOf" + d.ownerId )
       .getOrElse( "master" )
-    
     def article = RepositoryUtil.headArticle(articleId, branch)
+
+    draft.getOrElse(
+      Draft.create(
+        articleId = articleId,
+        title     = articleRec.title,
+        content   = articleRec.content,
+        ownerId   = user.id
+      )
+    )
+
+    RepositoryUtil.mergeMasterToDraft(articleId, Ident(user))
+    
     val tags = {
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
       article.tagIds.map( allTags(_) )
@@ -235,7 +249,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val articleId = articleRec.id
 
-    articleRec.draft().foreach(_.destroy())
+    articleRec.draft(user.id).foreach(_.destroy())
 
     Article.getStockers(articleId).foreach { s =>
       ArticleNotification.create(

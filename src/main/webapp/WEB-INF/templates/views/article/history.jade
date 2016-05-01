@@ -13,5 +13,5 @@ div.container#container
         div.card
           div.card-content
             span.card-title
-              a(href="#{root}/article/#{article.id}/#{h.commitId}/") #{h.created.toString("yyyy/MM/dd HH:mm:ss")}
+              a(href="#{root}/article/#{article.id}/#{h.commitId}/") #{h.created.toString("yyyy/MM/dd HH:mm:ss")} #{h.user.map(_.name)}
 

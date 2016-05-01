@@ -7,7 +7,8 @@ case class ArticleHistory(
   id: Long,
   articleId: Long,
   commitId: String,
-  userId: Option[Long] = None,
+  userId:  Option[Long] = None,
+  user:    Option[User] = None,
   created: DateTime = null) {
 
   def save()(implicit session: DBSession = ArticleHistory.autoSession): ArticleHistory = ArticleHistory.save(this)(session)
@@ -26,11 +27,13 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   override val columns = Seq("ID", "ARTICLE_ID", "COMMIT_ID", "USER_ID", "CREATED")
 
   def apply(ah: SyntaxProvider[ArticleHistory])(rs: WrappedResultSet): ArticleHistory = apply(ah.resultName)(rs)
-  def apply(ah: ResultName[ArticleHistory])(rs: WrappedResultSet): ArticleHistory = new ArticleHistory(
+  def apply(ah: ResultName[ArticleHistory])(rs: WrappedResultSet): ArticleHistory = apply(ah, None)(rs)
+  def apply(ah: ResultName[ArticleHistory], u: Option[ResultName[User]])(rs: WrappedResultSet): ArticleHistory = new ArticleHistory(
     id = rs.get(ah.id),
     articleId = rs.get(ah.articleId),
     commitId = rs.get(ah.commitId),
     userId = rs.get(ah.userId),
+    user = u.map{ u => User(u)(rs) },
     created = rs.get(ah.created)
   )
 
@@ -45,7 +48,10 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[ArticleHistory] = {
-    withSQL(select.from(ArticleHistory as ah)).map(ArticleHistory(ah.resultName)).list.apply()
+    val u = User.u
+    withSQL{
+      select.from(ArticleHistory as ah).join(User as u).on(ah.userId, u.id)
+    }.map(ArticleHistory(ah.resultName, Option(u.resultName))).list.apply()
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = {
@@ -59,9 +65,10 @@ object ArticleHistory extends SQLSyntaxSupport[ArticleHistory] {
   }
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[ArticleHistory] = {
-    withSQL {
-      select.from(ArticleHistory as ah).where.append(where)
-    }.map(ArticleHistory(ah.resultName)).list.apply()
+    val u = User.u
+    withSQL{
+      select.from(ArticleHistory as ah).join(User as u).on(ah.userId, u.id).where.append(where)
+    }.map(ArticleHistory(ah.resultName, Option(u.resultName))).list.apply()
   }
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = {
