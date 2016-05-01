@@ -68,7 +68,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
     
-    val draft = articleRec.draft
+    val draft = articleRec.draft(user.id)
     def branch: String = draft
       .map( d =>  "draftOf" + d.ownerId )
       .getOrElse( "master" )
@@ -249,7 +249,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val articleId = articleRec.id
 
-    articleRec.draft.foreach(_.destroy())
+    articleRec.draft(user.id).foreach(_.destroy())
 
     Article.getStockers(articleId).foreach { s =>
       ArticleNotification.create(

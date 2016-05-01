@@ -15,7 +15,9 @@ class V1_11__FixDraftName extends JdbcMigration {
 
     ThreadLocalDB.load() withinTx { implicit session =>
       Draft.findAll.foreach { d =>
-        RepositoryUtil.getArticleRepo(d.articleId).branch("draft").createNewBranch("draftOf" + d.ownerId.toString)
+        val branch = RepositoryUtil.getArticleRepo(d.articleId).branch("draft")
+        if (branch.exists)
+          branch.createNewBranch("draftOf" + d.ownerId.toString)
       }
     }
   }

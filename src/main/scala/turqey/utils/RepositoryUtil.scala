@@ -27,11 +27,11 @@ object RepositoryUtil {
     )
   }
 
-  def withMasterAndDraft[T](id: Long, ident: Ident)(operation: (GitRepository#Branch, GitRepository#Branch) => T)
+  private def withMasterAndDraft[T](id: Long, ident: Ident)(operation: (GitRepository#Branch, GitRepository#Branch) => T)
     (implicit repo: GitRepository = getArticleRepo(id)): T = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master").existsOr( repo.initialize("initial commit", ident).branch("master") )
-      operation(master, repo.branch("draft" + ident.userId.toString).existsOr( master.createNewBranch("draft" + ident.userId.toString) ) )
+      operation(master, repo.branch("draftOf" + ident.userId.toString).existsOr( master.createNewBranch("draftOf" + ident.userId.toString) ) )
     }
   }
 
@@ -123,4 +123,7 @@ case class Ident(userId: Long, name: String, email: String) extends GitRepositor
 object Ident {
   def apply(user: turqey.servlet.UserSession): Ident = Ident(user.id, user.name, user.email)
 }
+
+class ConflictException extends Exception
+
 

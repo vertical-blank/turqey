@@ -38,6 +38,7 @@ class InitListener extends ServletContextListener with Logging {
   override def contextInitialized(event: ServletContextEvent):Unit = {
     
     DBInitializer.setupDB
+    DBInitializer.loadGlobalSettings()
 
     val flyway = new Flyway()
     flyway.setDataSource(ConnectionPool.dataSource())
@@ -60,6 +61,8 @@ class InitListener extends ServletContextListener with Logging {
     
     val system = ActorSystem("SampleSystem")
     val scheduler = QuartzSchedulerExtension(system)
+
+    new org.h2.tools.Server().runTool()
 
   }
 

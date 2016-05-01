@@ -14,20 +14,6 @@ containerLibs in Jetty := Seq("org.eclipse.jetty" % "jetty-runner" % "9.2.15.v20
 containerMain in Jetty := "org.eclipse.jetty.runner.Runner"
 containerPort := 8081
 
-import ScalateKeys._
-seq(scalateSettings:_*)
-scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
-  Seq(
-    TemplateConfig(
-      base / "webapp" / "WEB-INF" / "templates",
-      Seq(),
-      Seq(),
-      None
-    )
-  )
-}
-
-
 sourcesInBase := false
 organization := Organization
 name := Name
@@ -118,12 +104,25 @@ libraryDependencies	++= Seq(
   "org.eclipse.jetty"	%	"jetty-server"       % JettyVersion % "executable"
 )
 
+
 val executableKey	= TaskKey[File]("executable")
 executableKey	:= {
   import org.apache.ivy.util.ChecksumHelper
   import java.util.jar.{ Manifest => JarManifest }
   import java.util.jar.Attributes.{ Name => AttrName }
 
+import ScalateKeys._
+seq(scalateSettings:_*)
+scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
+  Seq(
+    TemplateConfig(
+      base / "webapp" / "WEB-INF" / "templates",
+      Seq(),
+      Seq(),
+      None
+    )
+  )
+}
   val workDir	= Keys.target.value / "executable"
   val warName	= Keys.name.value + ".war"
 
