@@ -18,7 +18,7 @@ object RepositoryUtil {
       new File(FileUtil.articleBaseDir, id.toString + ".git")
     )
   }
-  
+
   private def commitArticleToBranch(branch: GitRepository#Branch, article: ArticleWhole, ident: Ident): GitRepository#Commit = {
     branch.commit(
       article.constructDir(), 
@@ -31,12 +31,12 @@ object RepositoryUtil {
     (implicit repo: GitRepository = getArticleRepo(id)): T = {
     withLock (repo.getDirectory.toString) {
       val master = repo.branch("master").existsOr( repo.initialize("initial commit", ident).branch("master") )
-      operation(master, repo.branch("draftOf" + ident.userId.toString).existsOr( master.createNewBranch("draftOf" + ident.userId.toString) ) )
+      val draftName = "draftOf" + ident.userId.toString
+      operation(master, repo.branch(draftName).existsOr( master.createNewBranch(draftName) ) )
     }
   }
-
   
-  def createDraft(id: Long, ident: Ident)
+  def startDraft(id: Long, ident: Ident)
     (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Branch = withMasterAndDraft(id, ident) { (m, d) => d }
   
   def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
@@ -82,8 +82,10 @@ object RepositoryUtil {
   
   def headArticle(id: Long, branchName: String)
     (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
-    articleAt(id, repo.branch(branchName).head)
+    headArticle(id, repo.branch(branchName))
   }
+  def headArticle(id: Long, branch: GitRepository#Branch): ArticleWhole = articleAt(id, branch.head)
+  
   def articleAt(id: Long, commitId: String)
     (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
     articleAt(id, new repo.Commit(commitId))

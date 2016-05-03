@@ -7,7 +7,8 @@
 -@val title:        String
 -@val content:      String
 -@val tags:         Seq[Tag]
--@val attachments: Seq[Tag] = Seq()
+-@val attachments:  Seq[Tag] = Seq()
+-@val head:         String
 
 :css
   html, body { height:100%; margin:0; }
@@ -150,6 +151,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
   var ViewModel = function (initialTags){
     var self = this;
     self.tags = ko.observableArray(initialTags);
+    self.commit = ko.observable(#{ Json.toJson(head) });
     self.remove = function (obj, e){
       self.tags.remove(obj);
     };

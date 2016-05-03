@@ -67,14 +67,15 @@ class ArticleController extends AuthedController with ScalateSupport {
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
-    
-    val draft = articleRec.draft(user.id)
-    def branch: String = draft
-      .map( d =>  "draftOf" + d.ownerId )
-      .getOrElse( "master" )
-    def article = RepositoryUtil.headArticle(articleId, branch)
 
-    draft.getOrElse(
+    val ident = Ident(user)
+    
+    val draftRec = articleRec.draft(user.id)
+    val branch = RepositoryUtil.startDraft(articleId, ident)
+    def article = RepositoryUtil.headArticle(articleId, branch)
+    RepositoryUtil.mergeMasterToDraft(articleId, ident)
+
+    draftRec.getOrElse(
       Draft.create(
         articleId = articleId,
         title     = articleRec.title,
@@ -82,8 +83,6 @@ class ArticleController extends AuthedController with ScalateSupport {
         ownerId   = user.id
       )
     )
-
-    RepositoryUtil.mergeMasterToDraft(articleId, Ident(user))
     
     val tags = {
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
@@ -95,7 +94,9 @@ class ArticleController extends AuthedController with ScalateSupport {
       "title"       -> article.title,
       "content"     -> article.content,
       "tags"        -> tags,
-      "attachments" -> article.attachments)
+      "attachments" -> article.attachments,
+      "head"        -> branch.head.getObjectId.name
+    )
   }
 
   val history = get("/:id/history"){ implicit dbSession =>
@@ -315,7 +316,7 @@ class ArticleController extends AuthedController with ScalateSupport {
         StockNotification.create(
           articleId = articleId,
           userId    = userId
-        );
+        )
       }
     }
 
@@ -390,6 +391,22 @@ class ArticleController extends AuthedController with ScalateSupport {
     )
     
     Json.toJson(Map("articleId" -> articleId))
+  }
+
+  get("/:id/head"){ implicit dbSession =>
+    contentType = "text/json"
+
+    val user = turqey.servlet.SessionHolder.user.get
+    val ident = Ident(user)
+
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+    val branch = RepositoryUtil.startDraft(articleId, ident)
+    def article = RepositoryUtil.headArticle(articleId, branch)
+
+    Json.toJson(Map(
+      "head"    -> branch.head.getObjectId.name,
+      "article" -> article
+    ))
   }
 
   private def refreshTaggings(articleId: Long, tagIds: Seq[String], tagNames: Seq[String])
