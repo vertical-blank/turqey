@@ -5,105 +5,79 @@ import glitch.GitRepository._
 import java.io.File
 
 
-object RepositoryUtil {
+class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
   import scala.language.implicitConversions
-  import LockByVal.withLock
-  
-  implicit class RichBranch(b: GitRepository#Branch) {
-    def existsOr( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
-  }
-  
-  def getArticleRepo(id: Long): GitRepository = {
-    GitRepository.getInstance(
-      new File(FileUtil.articleBaseDir, id.toString + ".git")
-    )
-  }
 
-  private def commitArticleToBranch(branch: GitRepository#Branch, article: ArticleWhole, ident: Ident): GitRepository#Commit = {
-    branch.commit(
+  lazy val ident = identOpt.get
+
+  val repo: GitRepository = GitRepository.getInstance(
+    new File(FileUtil.articleBaseDir, id.toString + ".git"))
+
+  def withLock[T](f: => T) = LockByVal.withLock(repo.getDirectory.toString)(f)
+  def existsOr(b: GitRepository#Branch)( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
+
+  val master: Master = withLock {
+    new Master(existsOr(repo.branch("master"))( repo.initialize("initial commit", ident).branch("master") ))
+  }
+  
+  def draftName = "draftOf" + ident.userId.toString
+  lazy val draft: Draft = new Draft(
+    existsOr(repo.branch(draftName))( master.createNewBranch(draftName)),
+    master)
+  
+  abstract class Branch(branch: GitRepository#Branch) extends repo.Branch(branch.name) {
+    def articleAt(commitId: String): ArticleWhole = articleAt(new repo.Commit(commitId))
+    def articleAt(commit: GitRepository#Commit): ArticleWhole = {
+      val dir = commit.getDir
+      val content = new String(dir.file(ArticleWhole.ARTICLE_MD).bytes)
+      val attrs   = Json.parseAs[ArticleAttrs](new String(dir.file(ArticleWhole.ARTICLE_ATTRS).bytes))
+  
+      ArticleWhole(id, attrs.title, content, attrs.tagIds, attrs.attachments)
+    }
+    def headArticle: ArticleWhole = articleAt(head)
+
+    def commit(article: ArticleWhole): GitRepository#Commit = branch.commit(
       article.constructDir(), 
       "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
       ident
     )
+
+    def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]): GitRepository#Commit
   }
 
-  private def withMasterAndDraft[T](id: Long, ident: Ident)(operation: (GitRepository#Branch, GitRepository#Branch) => T)
-    (implicit repo: GitRepository = getArticleRepo(id)): T = {
-    withLock (repo.getDirectory.toString) {
-      val master = repo.branch("master").existsOr( repo.initialize("initial commit", ident).branch("master") )
-      val draftName = "draftOf" + ident.userId.toString
-      operation(master, repo.branch(draftName).existsOr( master.createNewBranch(draftName) ) )
-    }
-  }
-  
-  def startDraft(id: Long, ident: Ident)
-    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Branch = withMasterAndDraft(id, ident) { (m, d) => d }
-  
-  def saveAsDraft(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
-    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
-    withLock (repo.getDirectory.toString) {
-      withMasterAndDraft(id, ident) { (master, draft) =>
-        commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
-        master.mergeTo(draft, ident)
-        draft.head
-      }
-    }
-  }
-  
-  def saveAsMaster(id: Long, title: String, content: String, tagIds: Seq[Long], ident: Ident, attachments: Seq[Attachment])
-    (implicit repo: GitRepository = getArticleRepo(id)): GitRepository#Commit = {
-    withLock (repo.getDirectory.toString) {
-      withMasterAndDraft(id, ident) { (master, draft) =>
-        commitArticleToBranch(draft, ArticleWhole(id, title, content, tagIds, attachments), ident)
+  class Master(branch: GitRepository#Branch) extends Branch(branch) {
+    override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
+      commit(ArticleWhole(id, title, content, tagIds, attachments))
 
-        master.mergeTo(draft, ident)
-        draft.mergeTo(master, ident, true)
+      master.mergeTo(draft, ident)
+      draft.mergeTo(master, ident, true)
 
-        val head = master.head
-        head.addTag(
-          "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-          "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-          ident)
-        head
-      }
+      val head = master.head
+      head.addTag(
+        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+        ident)
+      head
     }
   }
 
-  def mergeMasterToDraft(id: Long, ident: Ident)
-    (implicit repo: GitRepository = getArticleRepo(id)): Unit = {
-    withLock (repo.getDirectory.toString) {
-      withMasterAndDraft(id, ident) { (master, draft) =>
-        if (draft.head.getObjectId() != master.head.getObjectId()){
-          master.mergeTo(draft, ident)
-        }
-      }
+  class Draft(branch: GitRepository#Branch, master: Master) extends Branch(branch) {
+    def isBehindMaster: Boolean = this.isBehind(master)
+    override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
+      commit(ArticleWhole(id, title, content, tagIds, attachments))
+      draft.head
     }
-  }
-  
-  def headArticle(id: Long, branchName: String)
-    (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
-    headArticle(id, repo.branch(branchName))
-  }
-  def headArticle(id: Long, branch: GitRepository#Branch): ArticleWhole = articleAt(id, branch.head)
-  
-  def articleAt(id: Long, commitId: String)
-    (implicit repo: GitRepository = getArticleRepo(id)): ArticleWhole = {
-    articleAt(id, new repo.Commit(commitId))
+    def isMergableFromMaster: Boolean = master.isMergableTo(this)
+    def isMergableToMaster: Boolean = this.isMergableTo(master)
+
+    def mergeFromMaster: Unit = master.mergeTo(this, ident)
+    def mergeToMaster: Unit = this.mergeTo(master, ident)
   }
 
-  def articleAt(id: Long, commit: GitRepository#Commit): ArticleWhole = {
-    val dir = commit.getDir
-    val content = new String(dir.file(ArticleWhole.ARTICLE_MD).bytes)
-    val attrs   = Json.parseAs[ArticleAttrs](new String(dir.file(ArticleWhole.ARTICLE_ATTRS).bytes))
-    
-    ArticleWhole(id, attrs.title, content, attrs.tagIds, attrs.attachments)
-  }
-
-  def listTags(id: Long)(implicit repo: GitRepository = getArticleRepo(id)): Seq[GitRepository#Tag] = {
+  def listTags(id: Long): Seq[GitRepository#Tag] = {
     import collection.JavaConversions._
     repo.listTags()
   }
-
 }
 
 case class Attachment(id: Long, name: String, isImage: Boolean, mime: String, size: Long)
@@ -127,5 +101,4 @@ object Ident {
 }
 
 class ConflictException extends Exception
-
 

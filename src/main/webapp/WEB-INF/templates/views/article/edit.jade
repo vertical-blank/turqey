@@ -60,7 +60,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         i.material-icons(data-bind="click: $root.remove") close
       / /ko
   
-  div(style="position: absolute; top: 230px; bottom: 40px; width: 100%; background-color: white; z-index: 2;" data-bind="style: {top: editorTop}")
+  div(style="position: absolute; top: 230px; bottom: 75px; width: 100%; background-color: white; z-index: 2;" data-bind="style: {top: editorTop}")
     div(style="height: 36px; width: 100%;border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0;")
       a.dropdown-button.waves-effect.waves-grey.btn-flat(style="padding: 0 1rem;" data-activates="langs" data-constrainwidth="false")
         i.small.material-icons code
@@ -88,6 +88,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     div#prev_container(style="overflow: auto; height: 100%;" data-bind="style: {width: previewWidth}, visible: !(unshiftableToEditor())")
       div
         div#preview.markdown(data-bind="html: marked")
+  div(style="position: absolute; height: 36px; bottom: 0px; width: 100%;border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0;")
   ul#langs.dropdown-content(style="max-height: 300px; overflow-x: hidden;")
     / ko foreach: langs
     li
@@ -107,6 +108,16 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         label(for="sep_tab") タブ
     div.modal-footer
       a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 実行
+  div#modal_merge.modal.modal-fixed-footer
+    div.modal-content
+      h4 マージ確認
+      p
+        | 他のユーザが本文を更新しました。
+        | オートマージが可能です。
+        | オートマージしますか？
+    div.modal-footer
+      a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") 後で
+      a.modal-action.modal-close.waves-effect.waves-grey.btn-flat(href="#!" data-bind="click: insertTable") マージ
 
 :!javascript
   $(document).ready(function(){
@@ -311,6 +322,22 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       return self.editor;
     };
     self.getEditor();
+
+    self.getStatus = function() {
+      if (!self.articleId()){
+        setTimeout(self.getStatus, 30000);
+      }
+      $.get('#{root}/article/' + self.articleId() + '/status', function (response){
+        if (response.behindMaster) {
+          var message = '他ユーザがドキュメントを更新しました。'; 
+          message +=  (response.masterMergable)? '自動マージが可能です': '競合が発生しています';
+          //alert(message);
+        }
+
+        setTimeout(self.getStatus, 30000);
+      });
+    };
+    self.getStatus();
     
     self.insertLink = function(){
       var editor = self.getEditor();
@@ -329,7 +356,7 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         
         var query = 'select * from yql.query.multi where queries = \"' + queries.join(";") + '\"';
         
-        $.get("https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(query),
+        $.get("https:/"+"/query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(query),
           function(response) {
             var replaceTexts = [];
             
@@ -404,7 +431,18 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
         '#{root}/article/draft/',
         params,
         function(response) {
-          self.articleId(response.articleId);
+          self.articleId(response.article.id);
+
+          if (response.behindMaster){
+            if (response.masterMergable){
+              $('#modal_merge').openModal();
+            } else {
+
+            }
+          }
+          else {
+            Materialize.toast('下書を保存しました', 4000)
+          }
         }
       );
     };

@@ -40,9 +40,10 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
     
+    val master = new ArticleRepository(articleId).master
     def article = commitIdOpt
-      .map(       RepositoryUtil.articleAt(articleId, _) )
-      .getOrElse( RepositoryUtil.headArticle(articleId, "master") )
+      .map(       master.articleAt(_) )
+      .getOrElse( master.headArticle )
     val tags = {
       val allTags = Tag.findAll().map( x => (x.id, x) ).toMap
       article.tagIds.map( allTags(_) )
@@ -68,12 +69,12 @@ class ArticleController extends AuthedController with ScalateSupport {
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
 
-    val ident = Ident(user)
+    val ident = Some(Ident(user))
     
     val draftRec = articleRec.draft(user.id)
-    val branch = RepositoryUtil.startDraft(articleId, ident)
-    def article = RepositoryUtil.headArticle(articleId, branch)
-    RepositoryUtil.mergeMasterToDraft(articleId, ident)
+    val repo = new ArticleRepository(articleId, ident)
+    val draft = repo.draft
+    def article = draft.headArticle
 
     draftRec.getOrElse(
       Draft.create(
@@ -95,7 +96,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       "content"     -> article.content,
       "tags"        -> tags,
       "attachments" -> article.attachments,
-      "head"        -> branch.head.getObjectId.name
+      "head"        -> draft.head.getId
     )
   }
 
@@ -262,16 +263,14 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     val newTagIds = refreshTaggings(articleId, tagIds, tagNames)
     
-    val headCommit = RepositoryUtil.saveAsMaster(
-      articleId,
+    val headCommit = new ArticleRepository(articleId, Some(Ident(user))).master.save(
       title,
       content,
       newTagIds,
-      Ident(user),
       attachments
     )
 
-    ArticleHistory.create(articleId, headCommit.getObjectId.name, Some(user.id))
+    ArticleHistory.create(articleId, headCommit.getId, Some(user.id))
 
     redirect(url(view, "id" -> articleId.toString))
   }
@@ -363,14 +362,15 @@ class ArticleController extends AuthedController with ScalateSupport {
       }
     }
 
-    Draft.findBy(sqls.eq(Draft.column.articleId, articleId))
-      .map(
+    Draft.findBy(
+      sqls.eq(Draft.column.articleId, articleId)
+      .and.eq(Draft.column.ownerId, user.id)
+      ).map(
         _.copy(
           title   = title,
           content = content
         ).save()
-      )
-      .getOrElse(
+      ).getOrElse(
         Draft.create(
           articleId = articleId,
           title     = title,
@@ -381,31 +381,65 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
     
-    RepositoryUtil.saveAsDraft(
-      articleId,
+    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+    val head = repo.draft.save(
       title,
       content,
       newTagIds,
-      Ident(user),
       attachments
     )
-    
-    Json.toJson(Map("articleId" -> articleId))
+
+    val draft = repo.draft
+    val article = draft.headArticle
+    val behindMaster = draft.isBehindMaster
+    val mergable = draft.isMergableFromMaster
+
+    Json.toJson(Map(
+      "head"           -> head.getId,
+      "article"        -> article,
+      "behindMaster"   -> behindMaster,
+      "masterMergable" -> mergable
+    ))
   }
 
-  get("/:id/head"){ implicit dbSession =>
+  post("/:id/mergeFromMaster"){ implicit dbSession =>
+    val user = turqey.servlet.SessionHolder.user.get
+    val articleId = params.getOrElse("id", redirectFatal("/")).toLong
+
+    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+    val draft = repo.draft
+    draft.mergeFromMaster
+    val article = draft.headArticle
+    val behindMaster = draft.isBehindMaster
+    val mergable = draft.isMergableFromMaster
+
+    Json.toJson(Map(
+      "head"           -> draft.head.getId,
+      "article"        -> article,
+      "behindMaster"   -> behindMaster,
+      "masterMergable" -> mergable
+    ))
+  }
+
+  get("/:id/status"){ implicit dbSession =>
     contentType = "text/json"
 
     val user = turqey.servlet.SessionHolder.user.get
-    val ident = Ident(user)
-
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val branch = RepositoryUtil.startDraft(articleId, ident)
-    def article = RepositoryUtil.headArticle(articleId, branch)
+
+    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+
+    val draft = repo.draft
+    val article = draft.headArticle
+
+    val behindMaster = draft.isBehindMaster
+    val mergable = draft.isMergableToMaster
 
     Json.toJson(Map(
-      "head"    -> branch.head.getObjectId.name,
-      "article" -> article
+      "head"           -> draft.head.getId,
+      "article"        -> article,
+      "behindMaster"   -> behindMaster,
+      "masterMergable" -> mergable
     ))
   }
 
