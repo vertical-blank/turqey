@@ -4,8 +4,10 @@ import glitch._
 import glitch.GitRepository._
 import java.io.File
 
+class WritableArticleRepository(id: Long, ident: Ident) extends ArticleRepository(id, Some(ident))
+class ReadOnlyArticleRepository(id: Long) extends ArticleRepository(id, None)
 
-class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
+abstract sealed class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
   import scala.language.implicitConversions
 
   lazy val ident = identOpt.get
@@ -16,12 +18,12 @@ class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
   def withLock[T](f: => T) = LockByVal.withLock(repo.getDirectory.toString)(f)
   def existsOr(b: GitRepository#Branch)( f: => GitRepository#Branch ): GitRepository#Branch = if(b.exists) b else f
 
-  val master: Master = withLock {
-    new Master(existsOr(repo.branch("master"))( repo.initialize("initial commit", ident).branch("master") ))
+  val master = withLock {
+    new MasterBranch(existsOr(repo.branch("master"))( repo.initialize("initial commit", ident).branch("master") ))
   }
   
   def draftName = "draftOf" + ident.userId.toString
-  lazy val draft: Draft = new Draft(
+  lazy val draft = new DraftBranch(
     existsOr(repo.branch(draftName))( master.createNewBranch(draftName)),
     master)
   
@@ -45,7 +47,7 @@ class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
     def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]): GitRepository#Commit
   }
 
-  class Master(branch: GitRepository#Branch) extends Branch(branch) {
+  class MasterBranch(branch: GitRepository#Branch) extends Branch(branch) {
     override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
       commit(ArticleWhole(id, title, content, tagIds, attachments))
 
@@ -61,7 +63,7 @@ class ArticleRepository(id: Long, identOpt: Option[Ident] = None) {
     }
   }
 
-  class Draft(branch: GitRepository#Branch, master: Master) extends Branch(branch) {
+  class DraftBranch(branch: GitRepository#Branch, master: MasterBranch) extends Branch(branch) {
     def isBehindMaster: Boolean = this.isBehind(master)
     override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
       commit(ArticleWhole(id, title, content, tagIds, attachments))

@@ -40,7 +40,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
     
-    val master = new ArticleRepository(articleId).master
+    val master = new ReadOnlyArticleRepository(articleId).master
     def article = commitIdOpt
       .map(       master.articleAt(_) )
       .getOrElse( master.headArticle )
@@ -69,10 +69,10 @@ class ArticleController extends AuthedController with ScalateSupport {
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
 
-    val ident = Some(Ident(user))
+    
     
     val draftRec = articleRec.draft(user.id)
-    val repo = new ArticleRepository(articleId, ident)
+    val repo = new WritableArticleRepository(articleId, Ident(user))
     val draft = repo.draft
     def article = draft.headArticle
 
@@ -96,7 +96,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       "content"     -> article.content,
       "tags"        -> tags,
       "attachments" -> article.attachments,
-      "head"        -> draft.head.getId
+      "head"        -> Some(draft.head.getId)
     )
   }
 
@@ -263,7 +263,7 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     val newTagIds = refreshTaggings(articleId, tagIds, tagNames)
     
-    val headCommit = new ArticleRepository(articleId, Some(Ident(user))).master.save(
+    val headCommit = new WritableArticleRepository(articleId, Ident(user)).master.save(
       title,
       content,
       newTagIds,
@@ -381,7 +381,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
     
-    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+    val repo = new WritableArticleRepository(articleId, Ident(user))
     val head = repo.draft.save(
       title,
       content,
@@ -406,7 +406,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val user = turqey.servlet.SessionHolder.user.get
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
-    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+    val repo = new WritableArticleRepository(articleId, Ident(user))
     val draft = repo.draft
     draft.mergeFromMaster
     val article = draft.headArticle
@@ -427,7 +427,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val user = turqey.servlet.SessionHolder.user.get
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
-    val repo = new ArticleRepository(articleId, Some(Ident(user)))
+    val repo = new ReadOnlyArticleRepository(articleId)
 
     val draft = repo.draft
     val article = draft.headArticle
