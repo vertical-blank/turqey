@@ -21,28 +21,30 @@ object Mailer extends NotifacationHelper {
   def getStockMails()(implicit session: DBSession): Seq[Mail] = {
     val notifs = getStockNotifications()
 
-    notifs.groupBy(_.article.id).map {
+    notifs.groupBy(_.article.id).flatMap {
       case(article, stocks) => 
         val article = stocks.head.article
-        new Mail(
-          toAddr  = article.owner.get.email,
-          subject = s"${article.owner.get.name} さん 記事「${article.title}」を${stocks.size}人がストックしました",
-          content = txt.stock(article, stocks).toString
-        )
+        article.owner.map ( o =>
+          new Mail(
+            toAddr  = o.email,
+            subject = s"${o.name} さん 記事「${article.title}」を${stocks.size}人がストックしました",
+            content = txt.stock(article, stocks).toString
+          ))
     }.toSeq
   }
 
   def getCommentMails()(implicit session: DBSession): Seq[Mail] = {
     val notifs = getCommentNotifications()
 
-    notifs.groupBy(_.article.id).map {
+    notifs.groupBy(_.article.id).flatMap {
       case(article, comments) => 
         val article = comments.head.article
-        new Mail(
-          toAddr  = article.owner.get.email,
-          subject = s"${article.owner.get.name} さん 記事「${article.title}」に${comments.size}件のコメントがあります",
-          content = txt.comment(article, comments).toString
-        )
+        article.owner.map ( o =>
+          new Mail(
+            toAddr  = o.email,
+            subject = s"${o.name} さん 記事「${article.title}」に${comments.size}件のコメントがあります",
+            content = txt.comment(article, comments).toString
+          ))
     }.toSeq
   }
 

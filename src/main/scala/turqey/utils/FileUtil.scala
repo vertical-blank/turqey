@@ -3,6 +3,7 @@ package turqey.utils
 import collection.JavaConversions._
 
 import java.io.{File, InputStream, FileOutputStream, BufferedInputStream}
+import java.nio.file.Files
 
 object FileUtil {
   
@@ -30,13 +31,9 @@ object FileUtil {
     override def getName = this.name
     override def getInputStream = new java.io.ByteArrayInputStream(this.binary)
 
-    def saveTo(file: File): File = {
-      writeBinary(binary, file)
-    }
+    def saveTo(file: File): File = writeBinary(binary, file)
     
-    def saveAsUserImage(name: String): File = {
-      saveTo(new File(usrImageDir, name))
-    }
+    def saveAsUserImage(name: String): File = saveTo(new File(usrImageDir, name))
     
   }
   
@@ -50,9 +47,7 @@ object FileUtil {
       file
     }
     
-    def saveUpload(name: String): File = {
-      saveTo(new File(uploadsDir, name))
-    }
+    def saveUpload(name: String): File = saveTo(new File(uploadsDir, name))
     
   }
 
@@ -85,10 +80,7 @@ object FileUtil {
     file
   }
   
-  def getByteArray(file: File): Array[Byte] = {
-    java.nio.file.Files.readAllBytes(file.toPath)
-  }
-  
+  def getByteArray(file: File): Array[Byte] = Files.readAllBytes(file.toPath)
 
 }
 
