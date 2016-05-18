@@ -62,8 +62,8 @@ class UserController extends AuthedController
     val root = SessionHolder.root && (params.get("root").isDefined || user.self)
     
     val updUsr = user.copy(
-      name     = params.get("name").get,
-      email    = params.get("email").get,
+      name     = params("name"),
+      email    = params("email"),
       password = params.get("password") match {
         case Some("") | None => { user.password }
         case Some(p)  => { Digest.get(p) }
@@ -98,9 +98,9 @@ class UserController extends AuthedController
     val image = params.get("image")
     
     val id = User.create(
-      loginId  = params.get("loginId").get,
-      name     = params.get("name").get,
-      email    = params.get("email").get,
+      loginId  = params("loginId"),
+      name     = params("name"),
+      email    = params("email"),
       password = params.get("password").map { p => Digest.get(p) }.get,
       root     = SessionHolder.root && params.get("root").isDefined
     ).id
@@ -125,17 +125,16 @@ class UserController extends AuthedController
     )
   }
   
+  val defaultUser = getClass.getResourceAsStream("/default_user.png")
   getWithoutDB("/:id/image") {
     val id = params.get("id").getOrElse(redirectFatal("/")).toLong
     
     val img = new java.io.File(FileUtil.usrImageDir, id.toString)
     
-    if (img.exists()){
-      contentType = "image/png"
-      img
-    } else {
-      getClass.getResourceAsStream("/default_user.png")
-    }
+    contentType = "image/png"
+    
+    if (img.exists()) img 
+    else defaultUser
   }
 
 }

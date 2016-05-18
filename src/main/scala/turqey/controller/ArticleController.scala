@@ -74,7 +74,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val draftRec = articleRec.draft(user.id)
     val repo = new WritableArticleRepository(articleId, Ident(user))
     val draft = repo.draft
-    def article = draft.headArticle
+    def article = repo.draft.headArticle
 
     draftRec.getOrElse(
       Draft.create(
@@ -141,15 +141,15 @@ class ArticleController extends AuthedController with ScalateSupport {
           userId    = userId
         ).id
         
-        val articleRec = Article.find(articleId)
+        Article.find(articleId).map{ a =>
+          val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + a.ownerId - userId
         
-        val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + articleRec.get.ownerId - userId
-        
-        commenterIds.foreach { c =>
-          CommentNotification.create(
-            commentId  = commentId,
-            notifyToId = c
-          )
+          commenterIds.foreach { c =>
+            CommentNotification.create(
+              commentId  = commentId,
+              notifyToId = c
+            )
+          }
         }
       }
     }
@@ -304,9 +304,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       .eq(as.articleId, articleId).and
       .eq(as.userId, userId)
     ) match {
-      case Some(a)  => {
-        a.destroy()
-      }
+      case Some(a)  => a.destroy()
       case None     => {
         ArticleStock.create(
           articleId = articleId,
@@ -325,9 +323,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   
   get("/drafts/"){ implicit dbSession =>
     val user = turqey.servlet.SessionHolder.user.get
-    val drafts = Draft.findAllBy(
-      sqls.eq(Draft.column.ownerId, user.id)
-    )
+    val drafts = Draft.findAllBy(sqls.eq(Draft.column.ownerId, user.id))
     
     jade("/article/drafts", 
       "drafts"   -> drafts)
@@ -409,6 +405,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     val repo = new WritableArticleRepository(articleId, Ident(user))
     val draft = repo.draft
     draft.mergeFromMaster
+    
     val article = draft.headArticle
     val behindMaster = draft.isBehindMaster
     val mergable = draft.isMergableFromMaster
@@ -458,19 +455,20 @@ class ArticleController extends AuthedController with ScalateSupport {
   
   private def registerTags(tagIds: Seq[String], tagNames: Seq[String])
     (implicit dbSession: DBSession): Seq[Long] = {
-    val tagIdName = tagIds.zip(tagNames).map { case (id, name) =>
+    val tagIdNames: Seq[(Long, String)] = tagIds.zip(tagNames).map { case (id, name) =>
       (id, name) match {
         case ("", _) => {
-          val tag = Tag.findBy(sqls.eq(Tag.t.name, name)).getOrElse(
-            Tag.create( name = name )
-          )
-          (tag.id, tag.name)
+          Tag.findBy(sqls.eq(Tag.t.name, name)).orElse(
+            Some(Tag.create( name = name ))
+          ).map( t => (t.id, t.name) ).get
         }
         case _ => (id.toLong, name)
       }
     }
 
-    tagIdName.map { case (id, name) => id }
+    tagIdNames.map {
+      case (id, name) => id
+    }
   }
 
 }

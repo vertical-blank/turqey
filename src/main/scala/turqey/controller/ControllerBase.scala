@@ -18,8 +18,8 @@ trait ControllerBase extends ScalatraServlet
     serveStaticResource() getOrElse resourceNotFound()
   }
   
-  def get(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
-    super.get(transformers:_*) {{
+  def get(transformers: RouteTransformer*)(block: DBSession => Any): Route = 
+    super.get(transformers:_*) {
       try {
         DB readOnly { implicit dbSession =>
           block.apply(dbSession)
@@ -27,11 +27,9 @@ trait ControllerBase extends ScalatraServlet
       } catch {
         case e: SuccessfulRedirectException => redirectFatal(e)
       }
-    }}
-  }
-  def getWithoutDB(transformers: RouteTransformer*)(block: => Any): Route = {
-    super.get(transformers:_*)(block)
-  }
+    }
+  
+  def getWithoutDB(transformers: RouteTransformer*)(block: => Any): Route = super.get(transformers:_*)(block)
   
   def post(transformers: RouteTransformer*)(block: DBSession => Any): Route = {
     super.post(transformers:_*) {{ 
@@ -66,19 +64,15 @@ trait ControllerBase extends ScalatraServlet
   import scala.util.control.ControlThrowable
   import scala.util.control.NoStackTrace
   
-  def redirectFatal(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
-    super.redirect(uri)
-  }
+  def redirectFatal(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = super.redirect(uri)
   
-  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = 
     throw new SuccessfulRedirectException(uri: String)
-  }
   
   private[turqey] case class SuccessfulRedirectException(uri: String) extends ControlThrowable with NoStackTrace
   
-  def redirectFatal(e: SuccessfulRedirectException)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = {
+  def redirectFatal(e: SuccessfulRedirectException)(implicit request: HttpServletRequest, response: HttpServletResponse): Nothing = 
     super.redirect(e.uri)
-  }
 
 }
 
