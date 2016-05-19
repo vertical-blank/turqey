@@ -73,3 +73,4 @@ jrebel.lic
 db/*
 
 *.history
+/bin/

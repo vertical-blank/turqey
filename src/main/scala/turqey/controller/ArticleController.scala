@@ -22,9 +22,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   private def viewFunc(articleId: Long, commitIdOpt: Option[String] = None)
-    (implicit dbSession: DBSession): Any = {
-    val userId    = turqey.servlet.SessionHolder.user.get.id
-
+    (implicit dbSession: DBSession) = {
     val articleRec = Article.find(articleId).filter( _.published ).getOrElse(redirectFatal("/"))
     val latestEdit = ArticleHistory.findLatestsByIds(Seq(articleId)).get(articleId)
 
@@ -35,7 +33,7 @@ class ArticleController extends AuthedController with ScalateSupport {
       val as = ArticleStock.as 
       ArticleStock.findBy(sqls
         .eq(as.articleId, articleId).and
-        .eq(as.userId, userId)
+        .eq(as.userId, user.id)
       ).isDefined
     }
     val count = ArticleStock.countBy(sqls.eq(ArticleStock.as.articleId, articleId))
@@ -63,13 +61,9 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   val edit = getWithTx("/:id/edit"){ implicit dbSession =>
-    val user = turqey.servlet.SessionHolder.user.get
-
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val articleRec = Article.find(articleId).getOrElse(redirectFatal("/"))
     if (!articleRec.editable) { redirectFatal("/") }
-
-    
     
     val draftRec = articleRec.draft(user.id)
     val repo = new WritableArticleRepository(articleId, Ident(user))
@@ -126,7 +120,6 @@ class ArticleController extends AuthedController with ScalateSupport {
   post("/:id/comment"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
     val comment   = params.getOrElse("comment", "").toString
-    var userId    = turqey.servlet.SessionHolder.user.get.id
     
     params.get("commentId") match {
       case Some(commentId) => {
@@ -138,11 +131,11 @@ class ArticleController extends AuthedController with ScalateSupport {
         val commentId = ArticleComment.create(
           articleId = articleId,
           content   = comment,
-          userId    = userId
+          userId    = user.id
         ).id
         
         Article.find(articleId).map{ a =>
-          val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + a.ownerId - userId
+          val commenterIds = ArticleComment.getCommenterIds(articleId).toSet + a.ownerId - user.id
         
           commenterIds.foreach { c =>
             CommentNotification.create(
@@ -228,7 +221,6 @@ class ArticleController extends AuthedController with ScalateSupport {
       tagNames: Seq[String],
       attachments: Seq[Attachment])
     (implicit dbSession: DBSession): Any = {
-    val user = turqey.servlet.SessionHolder.user.get
     
     val articleRec = idOpt.filter( !_.isEmpty )
       .map( x => 
@@ -298,21 +290,21 @@ class ArticleController extends AuthedController with ScalateSupport {
     contentType = "text/json"
 
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
-    val userId    = turqey.servlet.SessionHolder.user.get.id
+    
     val as = ArticleStock.as
     ArticleStock.findBy(sqls
       .eq(as.articleId, articleId).and
-      .eq(as.userId, userId)
+      .eq(as.userId, user.id)
     ) match {
       case Some(a)  => a.destroy()
       case None     => {
         ArticleStock.create(
           articleId = articleId,
-          userId    = userId
+          userId    = user.id
         )
         StockNotification.create(
           articleId = articleId,
-          userId    = userId
+          userId    = user.id
         )
       }
     }
@@ -322,7 +314,6 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
   
   get("/drafts/"){ implicit dbSession =>
-    val user = turqey.servlet.SessionHolder.user.get
     val drafts = Draft.findAllBy(sqls.eq(Draft.column.ownerId, user.id))
     
     jade("/article/drafts", 
@@ -331,7 +322,6 @@ class ArticleController extends AuthedController with ScalateSupport {
   
   post("/draft/"){ implicit dbSession =>
     contentType = "text/json"
-    val user = turqey.servlet.SessionHolder.user.get
     
     val content   = params.getOrElse("content", "").toString
     val title     = params.getOrElse("title", "").toString
@@ -399,7 +389,6 @@ class ArticleController extends AuthedController with ScalateSupport {
   }
 
   post("/:id/mergeFromMaster"){ implicit dbSession =>
-    val user = turqey.servlet.SessionHolder.user.get
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
     val repo = new WritableArticleRepository(articleId, Ident(user))
@@ -421,7 +410,6 @@ class ArticleController extends AuthedController with ScalateSupport {
   get("/:id/status"){ implicit dbSession =>
     contentType = "text/json"
 
-    val user = turqey.servlet.SessionHolder.user.get
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
     val repo = new ReadOnlyArticleRepository(articleId)

@@ -4,36 +4,33 @@ import org.scalatest.FunSuite
 import scala.concurrent.Future
 
 class RepositoryUtilSpec extends FunSuite {
-  import glitch.GitRepository.Ident
-
   test("saveAsMaster") {
-    RepositoryUtil.saveAsMaster(
-      -1,
+    val repo = new WritableArticleRepository(-1, Ident(-99, "user.name", "user.email"))
+    
+    repo.master.save(
       "title",
       "content",
       Seq(1,2,3),
-      new Ident("user.name", "user.email"),
       Seq()
     )
 
-    val article = RepositoryUtil.headArticle(-1, "master")
+    val article = repo.master.headArticle
 
     assert(article.title == "title")
     assert(article.content == "content")
   }
 
   test("saveAsDraft") {
-    RepositoryUtil.saveAsDraft(
-      -2,
+    val repo = new WritableArticleRepository(-2, Ident(-99, "user.name", "user.email"))
+    
+    repo.draft.save(
       "title",
       "content",
       Seq(1,2,3),
-      new Ident("user.name", "user.email"),
       Seq()
     )
 
-    val article = RepositoryUtil.headArticle(-2, "draft")
-
+    val article = repo.draft.headArticle
     assert(article.title == "title")
     assert(article.content == "content")
   }

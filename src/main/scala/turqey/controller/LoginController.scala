@@ -22,10 +22,10 @@ class LoginController extends ControllerBase with ScalateSupport {
 
     val usr = User.findBy(sqls.eq(User.u.loginId, id).and.eq(User.u.password, digestedPass))
     usr  match {
-      case Some(user: User) => {
-        session("user") = new UserSession(user.id, user.name, user.email, user.root)
+      case Some(u: User) => {
+        session("user") = new UserSession(u.id, u.name, u.email, u.root)
 
-        user.copy(
+        u.copy(
           lastLogin = Some(new org.joda.time.DateTime())
         ).save()
         

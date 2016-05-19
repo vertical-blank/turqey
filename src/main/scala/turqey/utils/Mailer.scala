@@ -2,7 +2,7 @@ package turqey.utils
 
 import turqey.entity._
 import turqey.helpers._
-import turqey.mail._
+import turqey.mail.txt
 import scalikejdbc._
 
 import javax.mail._

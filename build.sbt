@@ -73,7 +73,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty"         %	"jetty-xml"                    % JettyVersion     % "provided",
 
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
-  "org.scalikejdbc"          %% "scalikejdbc-test"             % ScalikejdbcVersion % "test"
+  "org.scalikejdbc"          %% "scalikejdbc-test"             % ScalikejdbcVersion % "test",
+  "org.scalatest"            %% "scalatest"                    % "2.2.6"          % "test"
 )
 
 // Twirl settings

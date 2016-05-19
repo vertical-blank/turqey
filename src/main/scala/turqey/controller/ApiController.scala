@@ -34,10 +34,8 @@ class ApiController extends AuthedController with NotifacationHelper {
   
   get("/notifs") { implicit dbSession =>
     contentType = "application/json"
-    
-    val userId    = Some(SessionHolder.user.get.id)
      
-    val stockNotifs   = getStockNotifications(userId).groupBy(_.article.id).map {
+    val stockNotifs   = getStockNotifications(Some(user.id)).groupBy(_.article.id).map {
       case(id, notifs) => 
         val article = notifs.head.article
         SiteNotif(
@@ -48,7 +46,7 @@ class ApiController extends AuthedController with NotifacationHelper {
         )
     }.toSeq
     
-    val commentNotifs = getCommentNotifications(userId).groupBy(_.article.id).map {
+    val commentNotifs = getCommentNotifications(Some(user.id)).groupBy(_.article.id).map {
       case(id, notifs) => 
         val article = notifs.head.article
         SiteNotif(
@@ -59,7 +57,7 @@ class ApiController extends AuthedController with NotifacationHelper {
         )
     }.toSeq
     
-    val articleNotifs = getArticleNotifications(userId)
+    val articleNotifs = getArticleNotifications(Some(user.id))
     
     val articleUpdateNotifs = articleNotifs
       .filter( _.notifType == ArticleNotification.TYPES.UPDATE )

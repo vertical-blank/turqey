@@ -56,8 +56,8 @@ abstract sealed class ArticleRepository(id: Long, identOpt: Option[Ident] = None
 
       val head = master.head
       head.addTag(
-        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
-        "%tY/%<tm/%<td %<tH:%<tM:%<tS" format new java.util.Date(),
+        "%tY%<tm%<td_%<tH%<tM%<tS" format new java.util.Date(),
+        "%tY%<tm%<td_%<tH%<tM%<tS" format new java.util.Date(),
         ident)
       head
     }

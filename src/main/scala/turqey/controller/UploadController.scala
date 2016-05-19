@@ -18,8 +18,6 @@ class UploadController extends AuthedController with FileUploadSupport {
   post("/attach/"){ implicit dbSession =>
     contentType = "application/json"
 
-    val user = turqey.servlet.SessionHolder.user.get
-
     val result = fileMultiParams("file") map {
       f => {
         val saver = new FileUtil.FileSaver(f)

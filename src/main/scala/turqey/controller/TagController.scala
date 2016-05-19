@@ -24,12 +24,10 @@ class TagController extends AuthedController with ScalateSupport {
     val tag = Tag.find(tagId).getOrElse(redirectFatal("/"))
     val articles = Article.findTagged(tagId)
 
-    val userId    = turqey.servlet.SessionHolder.user.get.id
-
     val followed = {
       val tf = TagFollowing.tf
       TagFollowing.findBy(sqls
-        .eq(tf.userId, userId).and
+        .eq(tf.userId, user.id).and
         .eq(tf.followedId, tagId)
       ).isDefined
     }
@@ -44,8 +42,7 @@ class TagController extends AuthedController with ScalateSupport {
   }
 
   get("/followings"){ implicit dbSession =>
-    val userId    = turqey.servlet.SessionHolder.user.get.id
-    val ids = TagFollowing.findAllBy(sqls.eq(TagFollowing.tf.userId, userId)).map(_.followedId)
+    val ids = TagFollowing.findAllBy(sqls.eq(TagFollowing.tf.userId, user.id)).map(_.followedId)
     val tags = Tag.findAllWithArticleCount(ids)
 
     jade("/tag/list", "tags" -> tags)
@@ -55,12 +52,11 @@ class TagController extends AuthedController with ScalateSupport {
     contentType = "text/json"
     
     val tagId  = params.getOrElse("id", redirectFatal("/")).toLong
-    val userId = turqey.servlet.SessionHolder.user.get.id
 
     val ret = {
       val tf = TagFollowing.tf 
       TagFollowing.findBy(sqls
-        .eq(tf.userId, userId).and
+        .eq(tf.userId, user.id).and
         .eq(tf.followedId, tagId)
       ) match {
         case Some(a)  => {
@@ -68,7 +64,7 @@ class TagController extends AuthedController with ScalateSupport {
           "unfollow"
         }
         case None     => {
-          TagFollowing.create(userId = userId, followedId = tagId)
+          TagFollowing.create(userId = user.id, followedId = tagId)
           "follow"
         }
       }

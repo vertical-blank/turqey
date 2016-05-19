@@ -78,7 +78,9 @@ trait ControllerBase extends ScalatraServlet
 
 trait AuthedController extends ControllerBase {
   def appRoot:String = ServletContextHolder.root
-
+  
+  def user = SessionHolder.user.get
+  
   before() {
     logger.debug(request.getRequestURI)
     SessionHolder.set(session)
