@@ -10,7 +10,7 @@ import turqey.helpers._
 
 case class SiteNotif(linkTo: String, content: String, notifType: String, ids: Seq[Long])
 
-class ApiController extends AuthedController with NotifacationHelper {
+class ApiController extends AuthedController with NotificationHelper {
   override val path = "api"
   
   before (){
@@ -94,7 +94,7 @@ class ApiController extends AuthedController with NotifacationHelper {
     val ids       = multiParams("ids").map(_.toLong)
     val notifType = params("notifType")
 
-    setNotifcationAsRead(notifType, ids)
+    setNotificationAsRead(notifType, ids)
   }
 
 }

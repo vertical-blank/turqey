@@ -7,7 +7,7 @@ case class StockedNotif(article: Article, user: User, id: Long)
 case class CommentedNotif(article: Article, comment: ArticleComment, id: Long)
 case class ArticleNotif(article: Article, notifType: Int, id: Long)
 
-trait NotifacationHelper {
+trait NotificationHelper {
 
   def getStockNotifications(userId: Option[Long] = None)(implicit session: DBSession): Seq[StockedNotif] = {
     val u = User.u
@@ -82,7 +82,7 @@ trait NotifacationHelper {
     "article" -> ArticleNotification
   )
 
-  def setNotifcationAsRead(notifType: String, ids: Seq[Long])(implicit session: DBSession): Unit = {
+  def setNotificationAsRead(notifType: String, ids: Seq[Long])(implicit session: DBSession): Unit = {
     import scala.language.existentials
 
     val typeOfNotif = typesByNames(notifType)

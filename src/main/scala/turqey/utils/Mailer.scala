@@ -8,7 +8,7 @@ import scalikejdbc._
 import javax.mail._
 import javax.mail.internet._
 
-object Mailer extends NotifacationHelper {
+object Mailer extends NotificationHelper {
   case class Mail(toAddr: String, subject: String, content: String = null)
 
   def sendAllNotifications()(implicit session: DBSession) = {
