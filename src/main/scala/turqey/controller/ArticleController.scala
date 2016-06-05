@@ -66,7 +66,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     if (!articleRec.editable) { redirectFatal("/") }
     
     val draftRec = articleRec.draft(user.id)
-    val repo = new WritableArticleRepository(articleId, Ident(user))
+    val repo = new WritableArticleRepository(articleId, ident)
     val draft = repo.draft
     def article = repo.draft.headArticle
 
@@ -255,7 +255,7 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     val newTagIds = refreshTaggings(articleId, tagIds, tagNames)
     
-    val headCommit = new WritableArticleRepository(articleId, Ident(user)).master.save(
+    val headCommit = new WritableArticleRepository(articleId, ident).master.save(
       title,
       content,
       newTagIds,
@@ -367,7 +367,7 @@ class ArticleController extends AuthedController with ScalateSupport {
     
     val newTagIds = registerTags(multiParams("tagIds"), multiParams("tagNames"))
     
-    val repo = new WritableArticleRepository(articleId, Ident(user))
+    val repo = new WritableArticleRepository(articleId, ident)
     val head = repo.draft.save(
       title,
       content,
@@ -391,7 +391,7 @@ class ArticleController extends AuthedController with ScalateSupport {
   post("/:id/mergeFromMaster"){ implicit dbSession =>
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
-    val repo = new WritableArticleRepository(articleId, Ident(user))
+    val repo = new WritableArticleRepository(articleId, ident)
     val draft = repo.draft
     draft.mergeFromMaster
     
@@ -412,7 +412,7 @@ class ArticleController extends AuthedController with ScalateSupport {
 
     val articleId = params.getOrElse("id", redirectFatal("/")).toLong
 
-    val repo = new ReadOnlyArticleRepository(articleId)
+    val repo = new WritableArticleRepository(articleId, ident)
 
     val draft = repo.draft
     val article = draft.headArticle
