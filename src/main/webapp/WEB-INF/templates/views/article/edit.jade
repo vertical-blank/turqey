@@ -8,7 +8,7 @@
 -@val content:      String
 -@val tags:         Seq[Tag]
 -@val attachments:  Seq[Tag] = Seq()
--@val head:         String
+-@val head:         Option[String] = None
 
 :css
   html, body { height:100%; margin:0; }
@@ -427,11 +427,13 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
       params.attIsImgs = attIsImgs;
       params.attSizes = attSizes;
       
+      self.busy(true);
       $.post(
         '#{root}/article/draft/',
         params,
         function(response) {
           self.articleId(response.article.id);
+          self.busy(false);
 
           if (response.behindMaster){
             if (response.masterMergable){
@@ -462,13 +464,15 @@ form.col.s12#form(action="#{root}/article/#{article.map(_.id)}" method="post")
     self.fullscreen = function(){ self.isFullscreen(true);self.getEditor().resize(); };
     self.exitFullscreen = function(){ self.isFullscreen(false);self.getEditor().resize(); };
     self.editorTop = ko.pureComputed(function(){ return self.isFullscreen()? "0px": "230px"; });
+    
+    self.busy = ko.observable(false);
 
     self.title = ko.observable(#{Json.toJson(title)});
     self.content = ko.observable(#{Json.toJson(content)});
     self.contentCsv = ko.observable("");
     self.setFirstLineAsHeader = ko.observable(true);
     self.sepChar = ko.observable("c");
-    self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0); } );
+    self.postable = ko.pureComputed( function (){ return !(!self.content() || self.content().length == 0 || !self.title() || self.title().length == 0 || self.busy()); } );
     self.beforeSubmit = function (){ $(window).unbind("beforeunload"); return true; };
   };
 

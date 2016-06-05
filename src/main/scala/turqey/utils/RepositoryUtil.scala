@@ -30,7 +30,7 @@ class WritableArticleRepository(id: Long, ident: Ident) extends ArticleRepositor
   class MasterBranch(branch: GitRepository#Branch) extends WritableBranch(branch) {
     
     override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
-      commit(ArticleWhole(id, title, content, tagIds, attachments))
+      draft.commit(ArticleWhole(id, title, content, tagIds, attachments))
 
       this.mergeTo(draft, ident)
       draft.mergeTo(master, ident, true)
@@ -46,10 +46,12 @@ class WritableArticleRepository(id: Long, ident: Ident) extends ArticleRepositor
 
   class DraftBranch(branch: GitRepository#Branch, master: MasterBranch) extends WritableBranch(branch) {
     def isBehindMaster: Boolean = this.isBehind(master)
+    
     override def save(title: String, content: String, tagIds: Seq[Long], attachments: Seq[Attachment]) = withLock {
       commit(ArticleWhole(id, title, content, tagIds, attachments))
       draft.head
     }
+    
     def isMergableFromMaster: Boolean = master.isMergableTo(this)
     def isMergableToMaster: Boolean = this.isMergableTo(master)
 

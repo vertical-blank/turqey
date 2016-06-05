@@ -79,9 +79,9 @@ trait ControllerBase extends ScalatraServlet
 trait AuthedController extends ControllerBase {
   def appRoot:String = ServletContextHolder.root
   
-  lazy val user = SessionHolder.user.get
+  def user = SessionHolder.user.get
   
-  lazy val ident = turqey.utils.Ident(user.id, user.name, user.email)
+  def ident = turqey.utils.Ident(user.id, user.name, user.email)
   
   before() {
     logger.debug(request.getRequestURI)
