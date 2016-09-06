@@ -5,7 +5,7 @@ val Organization = "yohei224"
 val Name = "turqey"
 val ScalatraVersion = "2.4.0"
 val ScalikejdbcVersion = "2.3.5"
-val JettyVersion = "8.1.18.v20150929"
+val JettyVersion = "9.2.15.v20160210"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
@@ -23,8 +23,8 @@ scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
   )
 }
 
-containerLibs in Jetty := Seq("org.mortbay.jetty" % "jetty-runner" % "8.0.0.v20110901" intransitive())
-containerMain in Jetty := "org.mortbay.jetty.runner.Runner"
+containerLibs in Jetty := Seq("org.eclipse.jetty" % "jetty-runner" % JettyVersion intransitive())
+containerMain in Jetty := "org.eclipse.jetty.runner.Runner"
 containerPort := 8081
 
 sourcesInBase := false
@@ -37,15 +37,21 @@ scalaVersion := "2.11.7"
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
   "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
-  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
+  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/",
+  "my-github-repo" at "http://yohei224.github.io/"
 )
 libraryDependencies ++= Seq(
+  "com.github.yohei224"       % "glitch"                      % "0.0.1",
+
   "org.scala-lang"            % "scala-compiler"               % "2.11.7",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"             %% "scalatra-json"                % ScalatraVersion,
   "org.scalatra"             %% "scalatra-scalate"             % ScalatraVersion,
   "org.json4s"               %% "json4s-core"                  % "3.3.0",
   "org.json4s"               %% "json4s-native"                % "3.3.0",
+  "com.typesafe.scala-logging" %% "scala-logging"              % "3.1.0",
+  "org.apache.tika"           % "tika-core"                    % "1.12",
+  "com.google.guava" % "guava" % "19.0",
   
   "io.github.gitbucket"       % "markedj"                      % "1.0.6",
   
@@ -67,7 +73,13 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "container;provided",
-  "org.eclipse.jetty"         %	"jetty-server"                 % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-server"                 % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-servlet"                % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-util"                   % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-security"               % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-http"                   % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-io"                     % JettyVersion     % "provided",
+  "org.eclipse.jetty"         % "jetty-xml"                    % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided"
 )
 
